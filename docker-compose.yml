@@ -1,0 +1,11 @@
+name: 'sobekwa'
+services:
+  frontend-app:
+    container_name: frontend
+    build:
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    volumes:
+      - /app/node_modules
+    
