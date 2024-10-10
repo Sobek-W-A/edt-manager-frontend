@@ -20,7 +20,7 @@ if [[ -z "$GITHUB_TOKEN" ]]; then
 fi
 
 # Clone the repository using the token
-git clone https://"$GITHUB_TOKEN"@${REPO_URL#https://}
+git clone https://"$GITHUB_TOKEN"@"${REPO_URL#https://}"
 
 # Check if the clone succeeded
 if [ ! $? ]; then
