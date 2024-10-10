@@ -20,6 +20,10 @@ ENVIRONNMENT="$1"
 DEV="development"
 PROD="production"
 
+# Cleaning eventual remainder files
+chmod +x ./scripts/clean.sh
+./scripts/clean.sh
+
 # Cloning the frontend repository.
 chmod +x ./scripts/cloner.sh
 ./scripts/cloner.sh "$BACKEND_REPOSITORY"
@@ -38,7 +42,7 @@ fi
 
 # Moving to the cloned repository and executing the build script.
 cd "$FOLDER_NAME" || exit 1
-chmod +x "./$FOLDER_NAME/build.sh"
+chmod +x "./build.sh"
 ./build.sh "bundle"
 cd ..
 

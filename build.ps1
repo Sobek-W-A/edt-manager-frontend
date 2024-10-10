@@ -17,6 +17,9 @@ $ENVIRONNMENT = $args[0]
 $DEV = "development"
 $PROD = "production"
 
+# Cleaning eventual remainder files
+.\scripts\clean.ps1
+
 # Cloning the backend repository
 .\scripts\cloner.ps1 $BACKEND_REPOSITORY
 
