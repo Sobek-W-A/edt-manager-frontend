@@ -1,15 +1,3 @@
-function run_dev {
-    # Launching the current application
-    Set-Location .\app
-    npm install
-    npm run dev
-}
-
-function run_prod {
-    # Running the compose file
-    docker-compose -f .\docker-compose.yml up -d
-}
-
 # Variables
 $FOLDER_NAME = "edt-manager-backend"
 $BACKEND_REPOSITORY = "https://github.com/Sobek-W-A/edt-manager-backend.git"
@@ -17,35 +5,59 @@ $ENVIRONNMENT = $args[0]
 $DEV = "development"
 $PROD = "production"
 
-# Cleaning eventual remainder files
-.\scripts\clean.ps1
+function Clone-Repo-And-Build {
+    # Cloning the frontend repository.
+    chmod +x ./scripts/cloner.ps1
+    ./scripts/cloner.ps1 $BACKEND_REPOSITORY $args[0]
 
-# Cloning the backend repository
-.\scripts\cloner.ps1 $BACKEND_REPOSITORY
+    # Checking if the repository has been cloned successfully.
+    if (-not $?) {
+        Write-Host "[ERROR] - The repository has not been successfully cloned!" -ForegroundColor Red
 
-# Checking if the repository has been cloned successfully
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "[ERROR] - The repository has not been successfully cloned!"
-
-    if (-Not (Test-Path $FOLDER_NAME)) {
-        Write-Host "[ERROR] - The repository folder does not exist!"
-        exit 1
-    } else {
-        Write-Host "[STATUS] - Repository's folder has been found. Proceeding..."
+        if (-not (Test-Path -Path $FOLDER_NAME)) {
+            Write-Host "[ERROR] - The repository folder does not exist!" -ForegroundColor Red
+            exit 1
+        } else {
+            Write-Host "[STATUS] - Repository's folder has been found. Proceeding..."
+        }
     }
+
+    # Moving to the cloned repository and executing the build script.
+    Set-Location $FOLDER_NAME
+    chmod +x "./build.ps1"
+    ./build.ps1 "bundle"
+    Set-Location ..
 }
 
-# Moving to the cloned repository and executing the build script
-Set-Location $FOLDER_NAME
-.\build.ps1 "bundle"
-Set-Location ..
+function Run-Dev {
+    # Cloning the repository in dev mode.
+    Clone-Repo-And-Build "dev"
+
+    # Launching the current application.
+    Set-Location ./app
+
+    npm install
+    npm run dev
+}
+
+function Run-Prod {
+    # Cloning the repository.
+    Clone-Repo-And-Build
+
+    # Running the compose file
+    docker-compose -f ./docker-compose.yml up -d
+}
+
+# Cleaning eventual remainder files
+chmod +x ./scripts/clean.ps1
+./scripts/clean.ps1
 
 if ($ENVIRONNMENT) {
     if ($ENVIRONNMENT -eq $DEV) {
-        run_dev
+        Run-Dev
     } elseif ($ENVIRONNMENT -eq $PROD) {
-        run_prod
+        Run-Prod
     }
 } else {
-    run_dev
+    Run-Dev
 }

@@ -1,5 +1,6 @@
 # Variables
 $REPO_URL = $args[0]
+$BRANCH_NAME = $args[1]
 $FOLDER_NAME = "edt-manager-backend"
 
 if (-Not $REPO_URL) {
@@ -33,5 +34,22 @@ if ($LASTEXITCODE -ne 0) {
     Write-Host "[ERROR] - Cloning the repository failed. Please check your token and make sure the repository URL is correct."
     exit 1
 }
+
+# Change to the repository directory
+Set-Location $FOLDER_NAME
+
+# Check if the branch argument is set to "dev"
+if ($BRANCH_NAME -eq "dev") {
+    Write-Host "[INFO] - Checking out the 'dev' branch."
+    git checkout dev
+
+    # Check if the checkout succeeded
+    if (-not $?) {
+        Write-Host "[ERROR] - Failed to checkout the 'dev' branch." -ForegroundColor Red
+        exit 1
+    }
+}
+
+Set-Location ..
 
 Write-Host "[SUCCESS] - Repository cloned successfully!"
