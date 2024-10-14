@@ -5,6 +5,7 @@ import Data from "../../assets/Data.ts";
 import {HTTPMethod} from "./HTTPMethod.ts";
 import {ContentType} from "./ContentType.ts";
 import Storage from "./Storage.ts";
+import UserLoginModel from "../Models/UserLoginModel.ts";
 
 class API {
 
@@ -85,10 +86,10 @@ class API {
      * It adds to the request the necessary headers to make authenticated requests.
      * It also handles the refreshing of the user's tokens in case they have expired.
      *
-     * @param method
-     * @param url
-     * @param body
-     * @param content_type
+     * @param method HTTP method that needs to be used to fetch.
+     * @param url Path for the route that we need to fetch.
+     * @param body Body send with the request (data that needs to be sent).
+     * @param content_type Body's content type.
      * @returns {Promise<APIResponse>}
      */
     async requestLogged(method: HTTPMethod, url: string, body: BodyInit, content_type: ContentType) {
@@ -99,33 +100,18 @@ class API {
             response = await this.request(method, url, body, content_type, authHeader);
 
             // If we are not refreshing the token, we try refreshing it.
-            if ((response.isError() && response.errorCode === 401) && !this.isRefreshing) {
+            if ((response.isError() && response.errorCode() === 401) && !this.isRefreshing) {
                 this.isRefreshing = true;
                 // If we were not able to refresh the tokens :
                 // Logout the user, redirect to login page, etc... are handled by the refresh tokens method
                 this.refreshLock = UserLoginModel.refreshTokens()
                     .then(() => { this.isRefreshing = false });
             }
-
-            // Wait for the current refresh to complete before continuing
-            await this.refreshLock;
-            authHeader = {['Authorization'] : `Bearer ${ Storage.getAccessTokenFromStorage() }`};
-            response = await this.request(method, url, body, content_type, authHeader);
-
-
-
-
-        } else {
-
         }
-
-        // If we get an Unauthorized response
-        // It would be of APIResponse type, so we can use default fields from this class
-        if (this.isRefreshing || ) {
-
-
-        }
-        return response;
+        // Wait for the current refresh to complete before continuing
+        await this.refreshLock;
+        authHeader = {['Authorization'] : `Bearer ${ Storage.getAccessTokenFromStorage() }`};
+        return await this.request(method, url, body, content_type, authHeader);
     }
 }
 export const api = new API();
