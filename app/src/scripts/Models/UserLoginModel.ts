@@ -14,11 +14,16 @@ export default class UserLoginModel extends UserModel {
     }
 
 
-    static refreshTokens() : Promise<APIResponse> {
-        return api.request(
+    loginUser() {
 
-        ).then(
-
-        );
     }
+
+    static logoutUser() {
+
+    }
+
+    static refreshTokens(): void {
+
+    }
+
 }

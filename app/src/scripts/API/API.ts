@@ -38,7 +38,7 @@ class API {
      * @param headers Additional headers (mainly used to authenticate the user)
      * @returns {Promise<APIResponse>} Returns the promise for the request.
      */
-    async request(method: HTTPMethod, url: string, body: BodyInit, supplied_content_type: ContentType = ContentType.JSON, headers: {[key: string]: string }): Promise<APIResponse> {
+    async request(method: HTTPMethod, url: string, body: BodyInit | undefined, supplied_content_type: ContentType = ContentType.JSON, headers: {[key: string]: string } | undefined): Promise<APIResponse> {
         // Building header for the request
         const header: {[key: string]: string } = {
             "Access-Control-Allow-Origin": API.API_URL,
@@ -92,7 +92,7 @@ class API {
      * @param content_type Body's content type.
      * @returns {Promise<APIResponse>}
      */
-    async requestLogged(method: HTTPMethod, url: string, body: BodyInit, content_type: ContentType) {
+    async requestLogged(method: HTTPMethod, url: string, body: BodyInit | undefined, content_type: ContentType = ContentType.JSON): Promise<APIResponse> {
 
         let response;
         let authHeader = {['Authorization'] : `Bearer ${ Storage.getAccessTokenFromStorage() }`};
