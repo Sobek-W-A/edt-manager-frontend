@@ -1,10 +1,10 @@
 import APIResponse from "./APIResponse.ts";
 
-export default class CorrectResponse implements APIResponse {
+export default class CorrectResponse<T> implements APIResponse<T> {
 
-    private readonly _responseObject: object;
+    private readonly _responseObject: T;
 
-    constructor(responseObject: object) {
+    constructor(responseObject: T) {
         this._responseObject = responseObject;
     }
 
@@ -17,7 +17,7 @@ export default class CorrectResponse implements APIResponse {
     errorMessage(): string {
         return ""
     }
-    responseObject(): object {
+    responseObject(): T {
         return this._responseObject;
     }
 }

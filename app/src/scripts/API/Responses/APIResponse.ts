@@ -1,6 +1,6 @@
-export default interface APIResponse {
+export default interface APIResponse<T> {
     isError(): boolean;
     errorCode(): number;
     errorMessage(): string;
-    responseObject(): object;
+    responseObject(): T;
 }

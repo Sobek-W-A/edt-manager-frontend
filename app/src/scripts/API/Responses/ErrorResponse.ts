@@ -1,6 +1,6 @@
 import APIResponse from "./APIResponse.ts";
 
-export default class ErrorResponse implements APIResponse {
+export default class ErrorResponse implements APIResponse<object> {
 
     public readonly _errorCode  : number;
     public readonly _errorMessage: string;
@@ -19,7 +19,6 @@ export default class ErrorResponse implements APIResponse {
     errorMessage(): string {
         return this._errorMessage;
     }
-
     responseObject(): object {
         return {};
     }

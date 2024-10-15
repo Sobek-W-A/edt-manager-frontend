@@ -6,6 +6,7 @@ import {HTTPMethod} from "./Enums/HTTPMethod.ts";
 import {ContentType} from "./Enums/ContentType.ts";
 import Storage from "./Storage.ts";
 import UserLoginModel from "../Models/UserLoginModel.ts";
+import {APIErrorResponse} from "./APITypes/APIErrorResponse.ts";
 
 class API {
 
@@ -38,7 +39,7 @@ class API {
      * @param headers Additional headers (mainly used to authenticate the user)
      * @returns {Promise<APIResponse>} Returns the promise for the request.
      */
-    async request(method: HTTPMethod, url: string, body: BodyInit | undefined, supplied_content_type: ContentType = ContentType.JSON, headers: {[key: string]: string } | undefined): Promise<APIResponse> {
+    async request<T>(method: HTTPMethod, url: string, body: BodyInit | undefined, supplied_content_type: ContentType = ContentType.JSON, headers: {[key: string]: string } | undefined): Promise<APIResponse<T>> {
         // Building header for the request
         const header: {[key: string]: string } = {
             "Access-Control-Allow-Origin": API.API_URL,
@@ -71,11 +72,14 @@ class API {
                 })
                 .then(async (response) => {
                     // When we got our response, we check the status code.
-                    const data = await response.json();
+                    const data: T = await response.json();
                     if(response.status >= 200 && response.status < 300) {
-                        resolve(new CorrectResponse(data));
+                        resolve(new CorrectResponse<T>(data));
                     } else {
-                        resolve(new ErrorResponse(response.status, data.detail));
+                        const errorMessage = (data as APIErrorResponse).detail ||
+                                             (data as APIErrorResponse).message ||
+                                             "An unknown error occurred";
+                        resolve(new ErrorResponse(response.status, errorMessage));
                     }
                 })
         });
@@ -92,12 +96,12 @@ class API {
      * @param content_type Body's content type.
      * @returns {Promise<APIResponse>}
      */
-    async requestLogged(method: HTTPMethod, url: string, body: BodyInit | undefined, content_type: ContentType = ContentType.JSON): Promise<APIResponse> {
+    async requestLogged<T>(method: HTTPMethod, url: string, body: BodyInit | undefined, content_type: ContentType = ContentType.JSON): Promise<APIResponse<T>> {
 
         let response;
         let authHeader = {['Authorization'] : `Bearer ${ Storage.getAccessTokenFromStorage() }`};
         if (!this.isRefreshing){
-            response = await this.request(method, url, body, content_type, authHeader);
+            response = await this.request<T>(method, url, body, content_type, authHeader);
 
             // If we are not refreshing the token, we try refreshing it.
             if ((response.isError() && response.errorCode() === 401) && !this.isRefreshing) {
@@ -111,7 +115,7 @@ class API {
         // Wait for the current refresh to complete before continuing
         await this.refreshLock;
         authHeader = {['Authorization'] : `Bearer ${ Storage.getAccessTokenFromStorage() }`};
-        return await this.request(method, url, body, content_type, authHeader);
+        return await this.request<T>(method, url, body, content_type, authHeader);
     }
 }
 export const api = new API();
