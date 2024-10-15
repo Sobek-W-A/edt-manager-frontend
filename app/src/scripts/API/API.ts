@@ -4,22 +4,40 @@ import Data from "../../assets/Data.ts";
 import {HTTPMethod} from "./Enums/HTTPMethod.ts";
 import {ContentType} from "./Enums/ContentType.ts";
 import Storage from "./Storage.ts";
-import UserLoginModel from "../Models/UserLoginModel.ts";
-import {APIErrorResponse} from "./APITypes/APIErrorResponse.ts";
+import AuthModel from "../Models/AuthModel.ts";
 
+import {APIErrorResponse} from "./APITypes/CommonTypes.ts";
+
+/**
+ * This class is designed to make API calls, logged or not.
+ */
 class API {
 
-    /**
-     * Base API URL.
-     */
+    /** Base API URL. Used to contact the backend application. */
     static API_URL = "http://localhost:8000";
 
-
+    /**
+     * Instance of the API module. It is used to avoid any duplicates of this class and
+     * ensure that the request management is centralized.
+     */
     private static INSTANCE : API;
+
+    /**
+     * This variable is used to "lock" the API when credentials are being refreshed to avoid unpleasant behavior.
+     * @private
+     */
     private isRefreshing    : boolean          = false;
+
+    /**
+     *  This variable is the promise filled by the refresh tokens method. It can be used to block outgoing requests while the token
+     *  are refreshing and to send them back once the process is complete.
+     * @private
+     */
     private refreshLock     : Promise<unknown> = Promise.resolve();
 
-
+    /**
+     * Constructor for the API class.
+     */
     constructor() {
         if (!API.INSTANCE) {
             API.INSTANCE = this;
@@ -107,7 +125,7 @@ class API {
                 this.isRefreshing = true;
                 // If we were not able to refresh the tokens :
                 // Logout the user, redirect to login page, etc... are handled by the refresh tokens method
-                this.refreshLock = UserLoginModel.refreshTokens()
+                this.refreshLock = AuthModel.refreshTokens()
                     .then(() => { this.isRefreshing = false });
             }
         }

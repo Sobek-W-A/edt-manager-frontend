@@ -1,7 +1,7 @@
 
 /**
  * @enum {ContentType}
- * @description Enum of content Types. PLease use them instead of Strings.
+ * @description Enum of content Types. Please use them instead of Strings.
  * It will be useful to properly build HTTP requests.
  */
 export const enum ContentType {

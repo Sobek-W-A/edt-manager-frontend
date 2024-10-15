@@ -1,5 +1,9 @@
 import APIResponse from "./APIResponse.ts";
 
+/**
+ * This class inherits from APIResponse and represents a successful response from the API.
+ * It contains the data returnd by the API as a type inference. Specify T to make it as you want it to be.
+ */
 export default class CorrectResponse<T> implements APIResponse<T> {
 
     private readonly _responseObject: T;
