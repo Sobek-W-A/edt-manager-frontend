@@ -1,4 +1,3 @@
-import APIResponse from "./Responses/APIResponse.ts";
 import ErrorResponse from "./Responses/ErrorResponse.ts";
 import CorrectResponse from "./Responses/CorrectResponse.ts";
 import Data from "../../assets/Data.ts";
@@ -39,7 +38,7 @@ class API {
      * @param headers Additional headers (mainly used to authenticate the user)
      * @returns {Promise<APIResponse>} Returns the promise for the request.
      */
-    async request<T>(method: HTTPMethod, url: string, body: BodyInit | undefined, supplied_content_type: ContentType = ContentType.JSON, headers: {[key: string]: string } | undefined): Promise<APIResponse<T>> {
+    async request<T>(method: HTTPMethod, url: string, body: BodyInit | undefined, supplied_content_type: ContentType = ContentType.JSON, headers: {[key: string]: string } | undefined): Promise<CorrectResponse<T> | ErrorResponse> {
         // Building header for the request
         const header: {[key: string]: string } = {
             "Access-Control-Allow-Origin": API.API_URL,
@@ -96,7 +95,7 @@ class API {
      * @param content_type Body's content type.
      * @returns {Promise<APIResponse>}
      */
-    async requestLogged<T>(method: HTTPMethod, url: string, body: BodyInit | undefined, content_type: ContentType = ContentType.JSON): Promise<APIResponse<T>> {
+    async requestLogged<T>(method: HTTPMethod, url: string, body: BodyInit | undefined, content_type: ContentType = ContentType.JSON): Promise<CorrectResponse<T> | ErrorResponse> {
 
         let response;
         let authHeader = {['Authorization'] : `Bearer ${ Storage.getAccessTokenFromStorage() }`};

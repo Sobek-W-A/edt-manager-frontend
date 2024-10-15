@@ -1,8 +1,9 @@
 import UserModel from "./UserModel.ts";
-import APIResponse from "../API/Responses/APIResponse.ts";
 import UserAPI from "../API/ModelAPIs/UserAPI.ts";
 import Storage from "../API/Storage.ts";
 import {TokenPair} from "../API/APITypes/Tokens.ts";
+import CorrectResponse from "../API/Responses/CorrectResponse.ts";
+import ErrorResponse from "../API/Responses/ErrorResponse.ts";
 
 export default class UserLoginModel extends UserModel {
 
@@ -16,7 +17,7 @@ export default class UserLoginModel extends UserModel {
     }
 
 
-    async loginUser(): Promise<APIResponse<TokenPair>> {
+    async loginUser(): Promise<CorrectResponse<TokenPair> | ErrorResponse> {
         return await UserAPI.loginUserRequest(this._login, this._password);
     }
 
@@ -36,8 +37,8 @@ export default class UserLoginModel extends UserModel {
             window.location.reload();
         } else {
             Storage.setTokensInStorage(
-                response.responseObject().access_token,
-                response.responseObject().refresh_token
+                (response as CorrectResponse<TokenPair>).responseObject().access_token,
+                (response as CorrectResponse<TokenPair>).responseObject().refresh_token
             );
         }
     }
