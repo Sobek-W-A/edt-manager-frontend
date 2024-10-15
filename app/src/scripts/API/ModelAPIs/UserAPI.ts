@@ -1,6 +1,6 @@
-import APIResponse from "../APIResponse.ts";
+import APIResponse from "../Responses/APIResponse.ts";
 import {api} from "../API.ts";
-import {HTTPMethod} from "../HTTPMethod.ts";
+import {HTTPMethod} from "../Enums/HTTPMethod.ts";
 
 export default class UserAPI {
 

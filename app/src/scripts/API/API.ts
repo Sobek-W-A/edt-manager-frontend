@@ -1,9 +1,9 @@
-import APIResponse from "./APIResponse.ts";
-import ErrorResponse from "./ErrorResponse.ts";
-import CorrectResponse from "./CorrectResponse.ts";
+import APIResponse from "./Responses/APIResponse.ts";
+import ErrorResponse from "./Responses/ErrorResponse.ts";
+import CorrectResponse from "./Responses/CorrectResponse.ts";
 import Data from "../../assets/Data.ts";
-import {HTTPMethod} from "./HTTPMethod.ts";
-import {ContentType} from "./ContentType.ts";
+import {HTTPMethod} from "./Enums/HTTPMethod.ts";
+import {ContentType} from "./Enums/ContentType.ts";
 import Storage from "./Storage.ts";
 import UserLoginModel from "../Models/UserLoginModel.ts";
 

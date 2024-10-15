@@ -20,7 +20,7 @@ export default class ErrorResponse implements APIResponse {
         return this._errorMessage;
     }
 
-    responseObject(): unknown {
-        return undefined;
+    responseObject(): object {
+        return {};
     }
 }
