@@ -7,6 +7,7 @@ import Storage from "./Storage.ts";
 import AuthModel from "../Models/AuthModel.ts";
 
 import {APIErrorResponse} from "./APITypes/CommonTypes.ts";
+import APIResponse from "./Responses/APIResponse.ts";
 
 /**
  * This class is designed to make API calls, logged or not.
@@ -56,7 +57,7 @@ class API {
      * @param headers Additional headers (mainly used to authenticate the user)
      * @returns {Promise<APIResponse>} Returns the promise for the request.
      */
-    async request<T>(method: HTTPMethod, url: string, body: BodyInit | undefined, supplied_content_type: ContentType = ContentType.JSON, headers: {[key: string]: string } | undefined): Promise<CorrectResponse<T> | ErrorResponse> {
+    async request<T>(method: HTTPMethod, url: string, body: BodyInit | undefined, supplied_content_type: ContentType = ContentType.JSON, headers: {[key: string]: string } | undefined): Promise<APIResponse<T>> {
         // Building header for the request
         const header: {[key: string]: string } = {
             "Access-Control-Allow-Origin": API.API_URL,
@@ -73,7 +74,7 @@ class API {
         return new Promise((resolve) => {
             // Setting up the timeout mechanism :
             setTimeout(() => {
-                        resolve(new ErrorResponse(504 ,
+                        resolve(new ErrorResponse<T>(504 ,
                             "Timeout waiting for response after "
                             + Data.PROGRAM_VALUES.TIMEOUT_BEFORE_REQUEST_FAILURE + " ms"))
                         },
@@ -113,7 +114,7 @@ class API {
      * @param content_type Body's content type.
      * @returns {Promise<APIResponse>}
      */
-    async requestLogged<T>(method: HTTPMethod, url: string, body: BodyInit | undefined, content_type: ContentType = ContentType.JSON): Promise<CorrectResponse<T> | ErrorResponse> {
+    async requestLogged<T>(method: HTTPMethod, url: string, body: BodyInit | undefined, content_type: ContentType = ContentType.JSON): Promise<APIResponse<T>> {
 
         let response;
         let authHeader = {['Authorization'] : `Bearer ${ Storage.getAccessTokenFromStorage() }`};

@@ -1,10 +1,9 @@
-import CorrectResponse from "../Responses/CorrectResponse.ts";
 import {TokenPair} from "../APITypes/Tokens.ts";
-import ErrorResponse from "../Responses/ErrorResponse.ts";
 import {api} from "../API.ts";
 import {HTTPMethod} from "../Enums/HTTPMethod.ts";
 
 import {ConfirmationMessage} from "../APITypes/CommonTypes.ts";
+import APIResponse from "../Responses/APIResponse.ts";
 
 /**
  * API methods for auth endpoints.
@@ -20,7 +19,7 @@ export default class AuthAPI {
      * @param password Password to authenticate the user.
      * @returns A promise that is either a pair of token or an error.
      */
-    static loginRequest(login: string, password: string): Promise<CorrectResponse<TokenPair> | ErrorResponse> {
+    static loginRequest(login: string, password: string): Promise<APIResponse<TokenPair>> {
         const body = {
             username: login,
             password: password,
@@ -40,7 +39,7 @@ export default class AuthAPI {
      * @param refresh_token Refresh token to revoke.
      * @returns A promise that is either a confirmation message or an error.
      */
-    static logoutRequest(access_token: string, refresh_token: string): Promise<CorrectResponse<ConfirmationMessage> | ErrorResponse>  {
+    static logoutRequest(access_token: string, refresh_token: string): Promise<APIResponse<ConfirmationMessage>>  {
         const body = {
             access_token: access_token,
             refresh_token: refresh_token,
@@ -59,7 +58,7 @@ export default class AuthAPI {
      * @param refresh_token Token to use in order to refresh the user's token.
      * @returns A Promise that is either a new token pair or an error.
      */
-    static refreshTokensRequest(refresh_token: string) : Promise<CorrectResponse<TokenPair> | ErrorResponse> {
+    static refreshTokensRequest(refresh_token: string) : Promise<APIResponse<TokenPair>> {
         const body = {
             refresh_token: refresh_token,
         }
