@@ -15,7 +15,7 @@ import APIResponse from "./Responses/APIResponse.ts";
 class API {
 
     /** Base API URL. Used to contact the backend application. */
-    static API_URL = "http://localhost:8000";
+    public API_URL = "http://localhost:8000";
 
     /**
      * Instance of the API module. It is used to avoid any duplicates of this class and
@@ -60,7 +60,7 @@ class API {
     async request<T>(method: HTTPMethod, url: string, body: BodyInit | undefined, supplied_content_type: ContentType = ContentType.JSON, headers: {[key: string]: string } | undefined): Promise<APIResponse<T>> {
         // Building header for the request
         const header: {[key: string]: string } = {
-            "Access-Control-Allow-Origin": API.API_URL,
+            "Access-Control-Allow-Origin": api.API_URL,
             "Accept": ContentType.JSON,                 // <- Indicates what data the application accepts
             "Origin": window.location.origin,
         };
@@ -81,7 +81,7 @@ class API {
                 Data.PROGRAM_VALUES.TIMEOUT_BEFORE_REQUEST_FAILURE);
 
             // Fetching data from the server
-            fetch(`${API.API_URL}${url}`,
+            fetch(`${api.API_URL}${url}`,
                 {
                     method: method,
                     headers: header,
