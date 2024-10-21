@@ -36,6 +36,10 @@ beforeAll(() => {
     } as unknown as Window & typeof globalThis; // Cast it to the correct type
 });
 
+type successResponseType = {
+    data: string
+}
+
 describe('[TEST] - API class', () => {
     describe('[TEST] - request() method tests', () => {
         it('[TEST] - Should make a fetch call with correct parameters and handle a successful response', async () => {
@@ -46,10 +50,6 @@ describe('[TEST] - API class', () => {
             const content_type = ContentType.JSON;
             const headers = undefined;
             const mockResponse = { data: 'test' };
-
-            type response = {
-                data: string;
-            }
 
             // Mock fetch to resolve with a successful response
             vi.spyOn(global, 'fetch').mockResolvedValue({
@@ -73,7 +73,7 @@ describe('[TEST] - API class', () => {
                 body,
             });
             expect(response).toBeInstanceOf(CorrectResponse);
-            expect((response as CorrectResponse<response>).responseObject()).toEqual(mockResponse);
+            expect((response as CorrectResponse<successResponseType>).responseObject()).toEqual(mockResponse);
         });
 
 
@@ -141,7 +141,7 @@ describe('[TEST] - API class', () => {
                 body,
             });
             expect(response).toBeInstanceOf(CorrectResponse);
-            expect((response as CorrectResponse<{data: string}>).responseObject()).toEqual(mockResponse);
+            expect((response as CorrectResponse<successResponseType>).responseObject()).toEqual(mockResponse);
         });
 
         it('[TEST] - Should refresh tokens and retry if 401 error occurs', async () => {
@@ -157,7 +157,7 @@ describe('[TEST] - API class', () => {
                 .mockReturnValueOnce(mockOldAccessToken) // Before refresh
                 .mockReturnValueOnce(mockNewAccessToken); // After refresh
 
-            const mockErrorResponse = { detail: 'Unauthorized' };
+            const mockErrorResponse   = { detail: 'Unauthorized' };
             const mockSuccessResponse = { data: 'protected data' };
 
             // Mock fetch to first return 401, then 200
@@ -191,7 +191,7 @@ describe('[TEST] - API class', () => {
                 }),
             }));
             expect(response).toBeInstanceOf(CorrectResponse);
-            expect((response as CorrectResponse<any>).responseObject()).toEqual(mockSuccessResponse);
+            expect((response as CorrectResponse<successResponseType>).responseObject()).toEqual(mockSuccessResponse);
         });
     });
 });
