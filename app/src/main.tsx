@@ -2,9 +2,9 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import {createBrowserRouter, RouterProvider} from 'react-router-dom';
 import { createRoutesFromElements, Route } from 'react-router-dom';
-
 import Example from "./Vues/Example.tsx";
 import Layout from "./Components/Utils/Layout.jsx";
+import './index.css';
 
 // Configuration des routes
 const routes = createRoutesFromElements(
