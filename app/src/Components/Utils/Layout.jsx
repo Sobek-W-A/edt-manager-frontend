@@ -1,21 +1,18 @@
 import React from 'react';
-import { Link, Outlet } from 'react-router-dom';
+import NavBar from "./Navbar.jsx";
+import Centre from "./Centre.jsx";
+import Footer from "./Footer.jsx";
 
-class Layout extends React.Component {
-    render() {
+function Layout() {
         return (
-            <div>
-                {/* Futur bandeau */}
-                <nav>
-                </nav>
-
-                {/* Outlet pour rendre les sous-routes */}
-                <div>
-                    <Outlet />
+            <div className='bg-gunmetal min-h-screen flex flex-col'>
+                <NavBar/>
+                <div className="flex-grow">
+                    <Centre/>
                 </div>
+                <Footer/>
             </div>
         );
-    }
 }
 
 export default Layout;
