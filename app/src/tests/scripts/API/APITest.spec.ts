@@ -9,7 +9,7 @@ import ErrorResponse from "../../../scripts/API/Responses/ErrorResponse.ts";
 import Storage from "../../../scripts/API/Storage.ts";
 
 
-global.fetch = vi.fn();
+globalThis.fetch = vi.fn();
 
 vi.mock('./Storage', () => ({
     default: {
@@ -29,7 +29,7 @@ beforeEach(() => {
 
 beforeAll(() => {
     // Mock the window object
-    global.window = {
+    globalThis.window = {
         location: {
             origin: 'http://localhost',
         },
@@ -50,12 +50,13 @@ describe('[TEST] - API class', () => {
             const content_type = ContentType.JSON;
             const headers = undefined;
             const mockResponse = { data: 'test' };
+            const mockedResponse = new Response(
+                JSON.stringify(mockResponse),
+                {status : 200}
+            );
 
             // Mock fetch to resolve with a successful response
-            vi.spyOn(global, 'fetch').mockResolvedValue({
-                status: 200,
-                json: vi.fn().mockResolvedValue(mockResponse)
-            });
+            vi.spyOn(globalThis, 'fetch').mockResolvedValue(mockedResponse);
 
             // Act
             const response = await api.request(method, url, body, content_type, headers);
@@ -85,17 +86,17 @@ describe('[TEST] - API class', () => {
             const content_type = ContentType.JSON;
             const headers = undefined;
             const mockErrorResponse = { detail: 'Not found' };
-
+            const mockedResponse = new Response(
+                JSON.stringify(mockErrorResponse),
+                {status : 404}
+            );
             type errorExpected = {
                 errorCode: number,
                 errorMessage: string;
             }
 
             // Mock fetch to resolve with an error response
-            vi.spyOn(global, 'fetch').mockResolvedValue({
-                status: 404,
-                json: vi.fn().mockResolvedValue(mockErrorResponse),
-            });
+            vi.spyOn(globalThis, 'fetch').mockResolvedValue(mockedResponse);
 
             // Act
             const response = await api.request(method, url, body, content_type, headers);
@@ -116,13 +117,17 @@ describe('[TEST] - API class', () => {
             const content_type = ContentType.JSON;
 
             const mockAccessToken = 'mockAccessToken';
-            (Storage.getAccessTokenFromStorage as vi.Mock).mockReturnValue(mockAccessToken);
+            vi.spyOn(Storage, 'getAccessTokenFromStorage').mockReturnValue(mockAccessToken);
 
-            const mockResponse = { data: 'protected data' };
-            vi.spyOn(global, 'fetch').mockResolvedValue({
+            const mockResponseData = { data: 'protected data' };
+
+            // Mock the fetch response, ensuring `json()` is mocked
+            const mockedResponse = {
                 status: 200,
-                json: vi.fn().mockResolvedValue(mockResponse),
-            });
+                json: vi.fn().mockResolvedValue(mockResponseData),
+            };
+
+            vi.spyOn(globalThis, 'fetch').mockResolvedValue(mockedResponse as unknown as Response);
 
             // Act
             const response = await api.requestLogged(method, url, body, content_type);
@@ -140,9 +145,11 @@ describe('[TEST] - API class', () => {
                 mode: 'cors',
                 body,
             });
+
             expect(response).toBeInstanceOf(CorrectResponse);
-            expect((response as CorrectResponse<successResponseType>).responseObject()).toEqual(mockResponse);
+            expect((response as CorrectResponse<successResponseType>).responseObject()).toEqual(mockResponseData);
         });
+
 
         it('[TEST] - Should refresh tokens and retry if 401 error occurs', async () => {
             // Arrange
@@ -153,26 +160,28 @@ describe('[TEST] - API class', () => {
 
             const mockOldAccessToken = 'oldAccessToken';
             const mockNewAccessToken = 'newAccessToken';
-            (Storage.getAccessTokenFromStorage as vi.Mock)
+            vi.spyOn(Storage, 'getAccessTokenFromStorage')
                 .mockReturnValueOnce(mockOldAccessToken) // Before refresh
                 .mockReturnValueOnce(mockNewAccessToken); // After refresh
 
             const mockErrorResponse   = { detail: 'Unauthorized' };
             const mockSuccessResponse = { data: 'protected data' };
+            const mockedErrorResponse = new Response(
+                JSON.stringify(mockErrorResponse),
+                {status : 401}
+            );
+            const mockedSuccessResponse = new Response(
+                JSON.stringify(mockSuccessResponse),
+                {status : 200}
+            );
 
             // Mock fetch to first return 401, then 200
-            vi.spyOn(global, 'fetch')
-                .mockResolvedValueOnce({
-                    status: 401,
-                    json: vi.fn().mockResolvedValue(mockErrorResponse),
-                })
-                .mockResolvedValueOnce({
-                    status: 200,
-                    json: vi.fn().mockResolvedValue(mockSuccessResponse),
-                });
+            vi.spyOn(globalThis, 'fetch')
+                .mockResolvedValueOnce(mockedErrorResponse)
+                .mockResolvedValueOnce(mockedSuccessResponse);
 
             // Mock AuthModel.refreshTokens to resolve
-            (AuthModel.refreshTokens as vi.Mock).mockResolvedValue(undefined);
+            vi.spyOn(AuthModel, 'refreshTokens').mockResolvedValue(undefined);
 
             // Act
             const response = await api.requestLogged(method, url, body, content_type);
