@@ -1,8 +1,8 @@
 import Storage from "../API/Storage.ts";
 import {TokenPair} from "../API/APITypes/Tokens.ts";
 import CorrectResponse from "../API/Responses/CorrectResponse.ts";
-import ErrorResponse from "../API/Responses/ErrorResponse.ts";
 import AuthAPI from "../API/ModelAPIs/AuthAPI.ts";
+import APIResponse from "../API/Responses/APIResponse.ts";
 
 /**
  * This class provides handling methods for the authentication process of the user.
@@ -22,7 +22,7 @@ export default class AuthModel {
      * Requires login and password to be set.
      * @returns A promise that resolves into a pair of tokens, or an error.
      */
-    async login(): Promise<CorrectResponse<TokenPair> | ErrorResponse> {
+    async login(): Promise<APIResponse<TokenPair>> {
         return await AuthAPI.loginRequest(this._login, this._password);
     }
 
