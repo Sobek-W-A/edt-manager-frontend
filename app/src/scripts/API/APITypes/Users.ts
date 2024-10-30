@@ -14,3 +14,12 @@ export type UserInPatchType = {
     password:               string | undefined;
     password_confirmation:  string | undefined;
 }
+
+export type UserInCreateType = {
+    login:                  string;
+    firstname:              string;
+    lastname:               string;
+    mail:                   string;
+    password:               string;
+    password_confirmation:  string;
+}

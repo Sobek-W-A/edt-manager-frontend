@@ -1,4 +1,4 @@
-import {UserInPatchType, UserType} from "../API/APITypes/Users.ts";
+import {UserInCreateType, UserInPatchType, UserType} from "../API/APITypes/Users.ts";
 import UserAPI from "../API/ModelAPIs/UserAPI.ts";
 import APIResponse from "../API/Responses/APIResponse.ts";
 import ErrorResponse from "../API/Responses/ErrorResponse.ts";
@@ -6,7 +6,7 @@ import ErrorResponse from "../API/Responses/ErrorResponse.ts";
 /**
  * A classic model that provides handling methods for actions that concerns a User.
  */
-export default class UserModel{
+export default class UserModel {
 
     private _id:               number;
     private _login:            string;
@@ -61,21 +61,46 @@ export default class UserModel{
     }
 
     /**
+     * This method creates the user described by the current user instance.
+     * @returns Either no response or an error response.
+     */
+    async createUser(): Promise<undefined | ErrorResponse<undefined>> {
+        const body: UserInCreateType = {
+            login: this._login,
+            mail: this._mail,
+            firstname: this._firstname,
+            lastname: this._firstname,
+            password: this._password === null ? "" : this._password,
+            password_confirmation: this._password_confirm === null ? "" : this._password_confirm,
+        }
+        const result: APIResponse<undefined> = await UserAPI.createUser(body);
+        return result.isError() ? (result as ErrorResponse<undefined>) : undefined;
+    }
+
+    /**
      * This method updates a user described by the current user instance.
      * @returns Either no response or an error response.
      */
     async updateUser(): Promise<undefined | ErrorResponse<undefined>> {
-        // Todo : ensure at least one field is provided correctly.
         const body: UserInPatchType = {
             login: this._login,
             mail: this._mail,
             firstname: this._firstname,
             lastname: this._firstname,
             password: this._password === null ? undefined : this._password,
-            password_confirmation: this._password_confirm=== null ? undefined : this._password_confirm,
+            password_confirmation: this._password_confirm === null ? undefined : this._password_confirm,
         }
         const response: APIResponse<undefined> = await UserAPI.updateUser(this._id, body);
         if (response.isError()) return (response as ErrorResponse<undefined>);
+    }
+
+    /**
+     * This method deletes the current user instance.
+     * @returns Either no response or an error response.
+     */
+    async deleteUser(): Promise<undefined | ErrorResponse<undefined>> {
+        const res : APIResponse<undefined> = await UserAPI.deleteUser(this._id);
+        return res.isError() ? (res as ErrorResponse<undefined>) : undefined;
     }
 
     get id(): number {

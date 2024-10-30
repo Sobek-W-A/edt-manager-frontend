@@ -94,8 +94,8 @@ class API {
                     if(response.status >= 200 && response.status < 300) {
                         resolve(new CorrectResponse<T>(data));
                     } else {
-                        const errorMessage = (data as APIErrorResponse).detail ||
-                                             (data as APIErrorResponse).message ||
+                        const errorMessage = (data as APIErrorResponse)["detail"] ||
+                                             (data as APIErrorResponse)["message"] ||
                                              "An unknown error occurred";
                         resolve(new ErrorResponse(response.status, errorMessage));
                     }
