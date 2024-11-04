@@ -6,6 +6,7 @@ import Example from "./Vues/Example.tsx";
 import LoginVue from "./Vues/LoginVue.tsx";
 import Layout from "./Components/Utils/Layout.jsx";
 import './index.css';
+import Register from "./Vues/Register.jsx";
 
 // Configuration des routes
 const routes = createRoutesFromElements(
