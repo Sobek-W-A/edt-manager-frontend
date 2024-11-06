@@ -1,6 +1,7 @@
 import {TokenPair} from "../APITypes/Tokens.ts";
 import {api} from "../API.ts";
 import {HTTPMethod} from "../Enums/HTTPMethod.ts";
+import {ContentType} from "../Enums/ContentType.ts";
 
 import {ConfirmationMessage} from "../APITypes/CommonTypes.ts";
 import APIResponse from "../Responses/APIResponse.ts";
@@ -20,15 +21,17 @@ export default class AuthAPI {
      * @returns A promise that is either a pair of token or an error.
      */
     static loginRequest(login: string, password: string): Promise<APIResponse<TokenPair>> {
-        const body = {
-            username: login,
-            password: password,
-        }
+        // Créer les données au format x-www-form-urlencoded
+        // Bien utiliser URLSearchParams pour éviter les problèmes de caractères spéciaux
+        const formData = new URLSearchParams();
+        formData.append('username', login);
+        formData.append('password', password);
+
         return api.request<TokenPair>(
             HTTPMethod.POST,
             AuthAPI.BASE_AUTH_URL + "/login",
-            JSON.stringify(body),
-            undefined,
+            formData.toString(),
+            ContentType.URL_ENCODED,
             undefined
         );
     }

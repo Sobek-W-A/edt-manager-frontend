@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import AuthModel from "../scripts/Models/AuthModel";
 
 function Login() {
-    const [email, setEmail] = useState("");
+    const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
 
@@ -11,7 +11,7 @@ function Login() {
         setError("");
         
         try {
-            const auth = new AuthModel(email, password);
+            const auth = new AuthModel(username, password);
             const response = await auth.login();
             
             if (response.isError()) {
@@ -19,7 +19,6 @@ function Login() {
                 return;
             }
             
-            // Redirection après connexion réussie
             window.location.reload();
         } catch (err) {
             setError("Une erreur est survenue");
@@ -35,18 +34,18 @@ function Login() {
                     {error && <div className="text-red-600 text-sm text-center">{error}</div>}
                     
                     <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-green-700">
-                            Adresse e-mail
+                        <label htmlFor="username" className="block text-sm font-medium text-green-700">
+                            Nom d'utilisateur
                         </label>
                         <input
-                            id="email"
-                            name="email"
-                            type="email"
+                            id="username"
+                            name="username"
+                            type="text"
                             required
                             className="w-full px-3 py-2 mt-1 text-green-900 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
-                            placeholder="exemple@domaine.com"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="Votre nom d'utilisateur"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
                         />
                     </div>
 
@@ -64,26 +63,6 @@ function Login() {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                         />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                            <input
-                                id="remember_me"
-                                name="remember_me"
-                                type="checkbox"
-                                className="w-4 h-4 text-green-600 border-green-300 rounded focus:ring-green-500"
-                            />
-                            <label htmlFor="remember_me" className="block ml-2 text-sm text-green-700">
-                                Se souvenir de moi
-                            </label>
-                        </div>
-
-                        <div className="text-sm">
-                            <a href="#" className="font-medium text-green-600 hover:text-green-500">
-                                Mot de passe oublié ?
-                            </a>
-                        </div>
                     </div>
 
                     <button
