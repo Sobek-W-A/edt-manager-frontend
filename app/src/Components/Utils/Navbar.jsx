@@ -1,20 +1,31 @@
-import {Link} from "react-router-dom";
+import { Link } from "react-router-dom";
 import '../../index.css';
-function Navbar () {
 
-    //grid grid-cols-10
-    return <div className="w-full bg-red-text mb-12 border-b-2 border-t-2 p-2 pb-3 text-2xl font-bold grid grid-cols-10">
-        <div className="col-start-1 col-end-1">
-            <Link className="" to='/' ><span className="align-middle ml-1  ">SOBEK W.A.</span></Link>
-        </div>
-
-            <div className="col-start-2 col-end-11  grid grid-cols-11">
-                <div className="col-start-1">
-                    <Link to='/example' className="text-sm">EXAMPLE</Link>
-                </div>
+function Navbar() {
+    return (
+        <div className="w-full bg-green-700 mb-12 border-b-2 border-t-2 p-2 pb-3 text-xl font-bold text-white grid grid-cols-10">
+            <div className="col-start-1 col-span-2 flex items-center">
+                <Link to="/">
+                    <span className="ml-2">SOBEK W.A.</span>
+                </Link>
             </div>
 
-    </div>
+            {/* Navbar Links */}
+            <div className="col-start-3 col-span-6 flex justify-center space-x-4 items-center">
+                <Link to="/example" className="text-sm hover:text-green-300 transition duration-200">
+                    EXAMPLE
+                </Link>
+                {/* Ajouter d'autres liens ici si nécessaire */}
+            </div>
+
+            {/* Login Link */}
+            <div className="col-start-10 col-span-1 flex justify-end items-center">
+                <Link to="/login" className="text-sm hover:text-green-300 transition duration-200">
+                    LOGIN
+                </Link>
+            </div>
+        </div>
+    );
 }
 
 export default Navbar;
