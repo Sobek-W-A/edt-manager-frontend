@@ -128,12 +128,20 @@ class API {
                 // Logout the user, redirect to login page, etc... are handled by the refresh tokens method
                 this.refreshLock = AuthModel.refreshTokens()
                     .then(() => { this.isRefreshing = false });
+
+                // Wait for the current refresh to complete before continuing
+                await this.refreshLock;
+                authHeader = {['Authorization'] : `Bearer ${ Storage.getAccessTokenFromStorage() }`};
+                return await this.request<T>(method, url, body, content_type, authHeader);
             }
+
+            return response;
+        } else {
+            // Wait for the current refresh to complete before continuing
+            await this.refreshLock;
+            authHeader = {['Authorization'] : `Bearer ${ Storage.getAccessTokenFromStorage() }`};
+            return await this.request<T>(method, url, body, content_type, authHeader);
         }
-        // Wait for the current refresh to complete before continuing
-        await this.refreshLock;
-        authHeader = {['Authorization'] : `Bearer ${ Storage.getAccessTokenFromStorage() }`};
-        return await this.request<T>(method, url, body, content_type, authHeader);
     }
 }
 export const api = new API();
