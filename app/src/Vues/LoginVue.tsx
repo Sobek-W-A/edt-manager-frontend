@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import AuthModel from "../scripts/Models/AuthModel";
+import { useNavigate } from "react-router-dom";
 
 function Login() {
+    const navigate = useNavigate();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
@@ -15,13 +17,18 @@ function Login() {
             const response = await auth.login();
             
             if (response.isError()) {
-                setError("Identifiants incorrects");
+                if (response.errorCode() === 401) {
+                    setError("Identifiants incorrects");
+                } else {
+                    setError(`Une erreur est survenue: ${response.errorMessage()}`);
+                }
                 return;
             }
             
-            window.location.reload();
+            navigate('/');
         } catch (err) {
-            setError("Une erreur est survenue");
+            const errorMessage = err instanceof Error ? err.message : "Une erreur est survenue";
+            setError(`Une erreur est survenue: ${errorMessage}`);
         }
     };
 
