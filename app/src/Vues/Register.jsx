@@ -1,13 +1,9 @@
 import React, {useState} from "react";
 import Input from "../components/Utils/Input.jsx";
 import {Link} from "react-router-dom";
-//import axios from "axios";
 import {AlertError, AlertSuccess} from "../components/Utils/Alert.jsx";
-import bcrypt from "bcryptjs";
 import PasswordInput from "../components/Account/PasswordInput.jsx";
-import {api} from "../scripts/API/API.ts";
-import {HTTPMethod} from "../scripts/API/Enums/HTTPMethod.ts";
-import UserAPI from "../scripts/API/ModelAPIs/UserAPI.ts";
+import UserModel from "../scripts/Models/UserModel.ts";
 
 function Register () {
 
@@ -16,45 +12,41 @@ function Register () {
     const [nom, setNom] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [login, setLogin] = useState('');
 
     const [emailError, setEmailError] = useState('');
     const [prenomError, setprenomError] = useState('');
     const [nomError, setnomError] = useState('');
     const [passwordError, setPasswordError] = useState('');
     const [confirmPasswordError, setConfirmPasswordError] = useState('');
+    const [loginError, setLoginError] = useState('');
 
     const [generalError, setGeneralError] = useState("");
     const [success, setSuccess] = useState(false);
 
-    const handleSignUp = () => {
+    const handleSignUp = async () => {
+                const userData = {
+                    id: null,
+                    login: login,
+                    firstname: prenom,
+                    lastname: nom,
+                    mail: email
+                };
 
-        bcrypt.hash(password, 10, function (err, result){
-            if (!err){
-                api.requestLogged(HTTPMethod.POST, UserAPI.BASE_USER_URL, {
-                    "password" : password,
-                    "password_confirm" : confirmPassword,
-                    "login" : "matthieug1",
-                    "firstname" : prenom,
-                    "lastname" : nom,
-                    "mail" : email
-                },
-                    )
-                    .then(() => {
-                        setGeneralError("");
-                        setSuccess(true)
-                    })
-                    .catch((e) => {
-                        console.log(e)
-                        setGeneralError(e.response);
-                        setSuccess(false)
-                    });
-            }else {
-                setGeneralError("problème de hachage");
-                setSuccess(false)
-            }
-        });
+                const userModel = new UserModel(userData);
+                userModel.password = password
+                userModel.password_confirm = confirmPassword;
+                const response = await userModel.createUser();
 
-
+                if (response.isError()) {
+                    console.log(response.data)
+                    setGeneralError("ErrorResponse");
+                    setSuccess(false)
+                } else {
+                    // Gérer le succès
+                    setGeneralError("");
+                    setSuccess(true)
+                }
     };
 
     const handleMailType = (e) => {
@@ -89,6 +81,17 @@ function Register () {
             setnomError("Veuillez entrer un nom valide, d'au moins 2 caractères.")
         }
         setNom(e.target.value)
+    };
+
+    const handleLogin = (e) => {
+
+        if (e.target.value.length >= 2){
+            setLoginError("")
+
+        }else {
+            setLoginError("Veuillez entrer un login valide, d'au moins 2 caractères.")
+        }
+        setLogin(e.target.value)
     };
 
     const handleMotDePasse = (e) => {
@@ -146,6 +149,15 @@ function Register () {
                 error={nomError}
                 value={nom}
                 onChange={handleNom}
+            />
+
+            <Input
+                label="Login"
+                type="text"
+                placeholder="Login"
+                error={loginError}
+                value={login}
+                onChange={handleLogin}
             />
 
             <PasswordInput
