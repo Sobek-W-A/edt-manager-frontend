@@ -41,7 +41,7 @@ export default class UserAPI {
     static getAllUsers(): Promise<APIResponse<UserType[]>> {
         return api.requestLogged<UserType[]>(
             HTTPMethod.GET,
-            UserAPI.BASE_USER_URL + "/all",
+            UserAPI.BASE_USER_URL + "/",
             undefined
         );
     }

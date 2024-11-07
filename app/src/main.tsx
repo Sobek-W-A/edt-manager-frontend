@@ -4,6 +4,7 @@ import {createBrowserRouter, RouterProvider} from 'react-router-dom';
 import { createRoutesFromElements, Route } from 'react-router-dom';
 import Example from "./Vues/Example.tsx";
 import LoginVue from "./Vues/LoginVue.tsx";
+import AddRole from "./Vues/AddRole.tsx";
 import Layout from "./Components/Utils/Layout.jsx";
 import './index.css';
 
@@ -12,6 +13,7 @@ const routes = createRoutesFromElements(
         <Route path="/" element={<Layout/>}>
             <Route path="example" element={<Example/>} />
             <Route path="login" element={<LoginVue/>} />
+            <Route path="add-role" element={<AddRole/>} />
         </Route>
 );
 
