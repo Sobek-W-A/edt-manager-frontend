@@ -4,6 +4,8 @@ import {Link} from "react-router-dom";
 import {AlertError, AlertSuccess} from "../components/Utils/Alert.jsx";
 import PasswordInput from "../components/Account/PasswordInput.jsx";
 import UserModel from "../scripts/Models/UserModel.ts";
+import ErrorResponse from "../scripts/API/Responses/ErrorResponse.ts";
+import '../index.css';
 
 function Register () {
 
@@ -26,26 +28,37 @@ function Register () {
 
     const handleSignUp = async () => {
                 const userData = {
-                    id: null,
+                    id : 0,
                     login: login,
                     firstname: prenom,
                     lastname: nom,
-                    mail: email
+                    mail: email,
                 };
 
-                const userModel = new UserModel(userData);
-                userModel.password = password
-                userModel.password_confirm = confirmPassword;
-                const response = await userModel.createUser();
+                setSuccess(true)
 
-                if (response.isError()) {
-                    console.log(response.data)
-                    setGeneralError("ErrorResponse");
+                try {
+
+                    const userModel = new UserModel(userData);
+                    userModel.password = password
+                    userModel.password_confirm = confirmPassword
+
+                    const response = await userModel.createUser();
+
+                    if (response instanceof ErrorResponse) {
+                        setSuccess(false)
+                        if (response.errorCode() === 401) {
+                            setGeneralError("Identifiants incorrects");
+                        } else {
+                            setGeneralError(`Une erreur est survenue: ${response.errorMessage()}`);
+                        }
+                        return;
+                    }
+
+                } catch (err) {
                     setSuccess(false)
-                } else {
-                    // Gérer le succès
-                    setGeneralError("");
-                    setSuccess(true)
+                    const errorMessage = err instanceof Error ? err.message : "Une erreur est survenue";
+                    setGeneralError(`Une erreur est survenue: ${errorMessage}`);
                 }
     };
 
@@ -114,8 +127,8 @@ function Register () {
 
     return <div className="mx-auto flex w-full max-w-sm flex-col gap-6 mt-12">
         <div className="flex flex-col items-center">
-            <h1 className="text-4xl font-semibold">Inscription</h1>
-            <p className="text-sm">Creez un compte pour accéder à CrocoSheets</p>
+            <h1 className="text-4xl font-semibold">Création de compte</h1>
+            <p className="text-sm">Creez un nouvel utilisateur</p>
         </div>
 
         {generalError !== "" && <AlertError title={"Oups ! Une erreur est survenue."} details={"" + generalError} />}
@@ -175,16 +188,10 @@ function Register () {
             />
 
             <div className="form-field pt-5">
-                <div className="form-control justify-between">
-                    <button type="button" className="btn btn-success w-full" onClick={handleSignUp}>
-                        S'inscrire
+                <div className="form-control justify-between mb-6">
+                    <button type="button" className="w-full px-4 py-2 text-white rounded hover:border-green-300 bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500" onClick={handleSignUp}>
+                        Créer compte
                     </button>
-                </div>
-            </div>
-
-            <div className="form-field mb-6">
-                <div className="form-control justify-center">
-                    <Link to="/login" className="link link-underline-hover link-primary text-sm">Vous avez déjà un compte? Connectez-vous !</Link>
                 </div>
             </div>
         </div>
