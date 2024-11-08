@@ -26,7 +26,6 @@ function AddRoleCard({ user, rolesList, openRoleMenu, setOpenRoleMenu, addRoleTo
       if (userRolesResponse.isError()) {
         setNotification({ message: `Une erreur est survenue : ${userRolesResponse.errorMessage()}.`, color: 'red' });
         setShowNotification(true);
-        console.log("Rôles de l'utilisateur récupérés : " + userRolesResponse.responseObject().join(","));
         setUserRoles([{ id: user.id, roles: [] }]);
       } else {
         setUserRoles([{ id: user.id, roles: userRolesResponse.responseObject() }]);

@@ -85,7 +85,6 @@ function AddRole() {
     };
 
     const removeRoleFromUser = (user: UserType, roleToRemove: string) => {
-        console.log("User Remove : " + user.lastname + " " + user.firstname + " - Role : " + roleToRemove);
         setUsers(prevUsers =>
             prevUsers.map(userTmp =>
                 userTmp.id === user.id
