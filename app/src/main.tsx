@@ -5,7 +5,7 @@ import { createRoutesFromElements, Route } from 'react-router-dom';
 import Example from "./Vues/Example.tsx";
 import Layout from "./Components/Utils/Layout.jsx";
 import './index.css';
-import Register from "./Vues/Register.jsx";
+import Register from "./Vues/Register.tsx";
 import LoginVue from "./Vues/LoginVue.tsx";
 
 // Configuration des routes

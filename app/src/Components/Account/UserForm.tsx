@@ -1,54 +1,84 @@
 import React from 'react';
-import Input from "../Utils/Input.jsx";
-import PasswordInput from "./PasswordInput.jsx";
+import Input from "../Utils/Input.tsx";
+import PasswordInput from "./PasswordInput.tsx";
 
-function UserForm({
-                      email,
-                      setEmail,
-                      prenom,
-                      setPrenom,
-                      nom,
-                      setNom,
-                      login,
-                      setLogin,
-                      password,
-                      setPassword,
-                      confirmPassword,
-                      setConfirmPassword,
-                      handleSubmit,
-                      errors
-                  }) {
+interface UserFormProps {
+    email: string;
+    setEmail: (value: string) => void;
+    prenom: string;
+    setPrenom: (value: string) => void;
+    nom: string;
+    setNom: (value: string) => void;
+    login: string;
+    setLogin: (value: string) => void;
+    password: string;
+    setPassword: (value: string) => void;
+    confirmPassword: string;
+    setConfirmPassword: (value: string) => void;
+    handleSubmit: () => void;
+    errors: {
+        emailError: string;
+        setEmailError: (value: string) => void;
+        prenomError: string;
+        setPrenomError: (value: string) => void;
+        nomError: string;
+        setNomError: (value: string) => void;
+        loginError: string;
+        setLoginError: (value: string) => void;
+        passwordError: string;
+        setPasswordError: (value: string) => void;
+        confirmPasswordError: string;
+        setConfirmPasswordError: (value: string) => void;
+    };
+}
 
-    // Handlers de validation internes
-    const handleMailType = (e) => {
+const UserForm: React.FC<UserFormProps> = ({
+                                               email,
+                                               setEmail,
+                                               prenom,
+                                               setPrenom,
+                                               nom,
+                                               setNom,
+                                               login,
+                                               setLogin,
+                                               password,
+                                               setPassword,
+                                               confirmPassword,
+                                               setConfirmPassword,
+                                               handleSubmit,
+                                               errors
+                                           }) => {
+
+    // Handlers de validation internes avec types
+    const handleMailType = (e: React.ChangeEvent<HTMLInputElement>) => {
         const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         setEmail(e.target.value);
         errors.setEmailError(re.test(e.target.value) ? "" : "Veuillez entrer une adresse email valide.");
     };
 
-    const handlePrenom = (e) => {
+    const handlePrenom = (e: React.ChangeEvent<HTMLInputElement>) => {
         setPrenom(e.target.value);
         errors.setPrenomError(e.target.value.length >= 2 ? "" : "Veuillez entrer un prénom valide, d'au moins 2 caractères.");
     };
 
-    const handleNom = (e) => {
+    const handleNom = (e: React.ChangeEvent<HTMLInputElement>) => {
         setNom(e.target.value);
         errors.setNomError(e.target.value.length >= 2 ? "" : "Veuillez entrer un nom valide, d'au moins 2 caractères.");
     };
 
-    const handleLogin = (e) => {
+    const handleLogin = (e: React.ChangeEvent<HTMLInputElement>) => {
         setLogin(e.target.value);
         errors.setLoginError(e.target.value.length >= 2 ? "" : "Veuillez entrer un login valide, d'au moins 2 caractères.");
     };
 
-    const handleMotDePasse = (e) => {
-        const re = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+{}:;<>,.?~\[\]\-\\/])[\\w!@#$%^&*()_+{}:;<>,.?~\[\]\-\\/]{8,}$/;
+    const handleMotDePasse = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const re = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+{}:;<>,.?~\[\]\-\\/])[a-zA-Z0-9!@#$%^&*()_+{}:;<>,.?~\[\]\-\\/]{8,}$/;
         setPassword(e.target.value);
         errors.setPasswordError(re.test(e.target.value) ? "" : "Veuillez entrer un mot de passe conforme.");
         errors.setConfirmPasswordError(e.target.value !== confirmPassword ? "Les mots de passe doivent être identiques." : "");
     };
 
-    const handleMdpConfirmation = (e) => {
+    const handleMdpConfirmation = (e: React.ChangeEvent<HTMLInputElement>) => {
         setConfirmPassword(e.target.value);
         errors.setConfirmPasswordError(e.target.value !== password ? "Les mots de passe doivent être identiques." : "");
     };

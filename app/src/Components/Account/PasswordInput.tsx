@@ -1,8 +1,15 @@
 import EyeSlashIcon from "./icons/EyeSlashIcon.jsx";
 import EyeIcon from "./icons/EyeIcon.jsx";
-import React, {useState} from "react";
+import React, {ChangeEventHandler, useState} from "react";
 
-function PasswordInput (props) {
+interface InputPasswordProps {
+    label : string;
+    error: string;
+    value: string;
+    onChange: ChangeEventHandler<HTMLInputElement>;
+}
+
+function PasswordInput (props:InputPasswordProps) {
 
     const [showPassword, setShowPassword] = useState(false);
 

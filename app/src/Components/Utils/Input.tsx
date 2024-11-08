@@ -1,6 +1,15 @@
-import React from "react";
+import React, {ChangeEventHandler} from "react";
 
-function Input (props) {
+interface InputProps {
+    label : string;
+    placeholder: string;
+    type: string;
+    error: string;
+    value: string;
+    onChange: ChangeEventHandler<HTMLInputElement>;
+}
+
+function Input (props:InputProps) {
 
     return <div className="form-field ">
         <label className="form-label block text-sm font-medium text-green-700">{props.label}</label>

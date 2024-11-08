@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import UserForm from "../components/Account/UserForm.jsx";
-import { AlertError, AlertSuccess } from "../components/Utils/Alert.jsx";
+import UserForm from "../Components/Account/UserForm.tsx";
+import { AlertError, AlertSuccess } from "../Components/Utils/Alert.tsx";
 import UserModel from "../scripts/Models/UserModel.ts";
 import ErrorResponse from "../scripts/API/Responses/ErrorResponse.ts";
 
@@ -36,7 +36,7 @@ function Register() {
     const handleSignUp = async () => {
         const userData = {
             id: 0,
-            login,
+            login: login,
             firstname: prenom,
             lastname: nom,
             mail: email,
@@ -57,7 +57,7 @@ function Register() {
                     ? "Identifiants incorrects"
                     : `Une erreur est survenue: ${response.errorMessage()}`
                 );
-                return;
+
             }
 
         } catch (err) {
