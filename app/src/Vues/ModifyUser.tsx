@@ -1,10 +1,12 @@
-import React, { useState } from "react";
-import UserForm from "../Components/Account/UserForm.tsx";
-import { AlertError, AlertSuccess } from "../Components/Utils/Alert.tsx";
+import React, {useEffect, useState} from 'react';
 import UserModel from "../scripts/Models/UserModel.ts";
 import ErrorResponse from "../scripts/API/Responses/ErrorResponse.ts";
+import {AlertError, AlertSuccess} from "../Components/Utils/Alert.tsx";
+import UserForm from "../Components/Account/UserForm.tsx";
+import {useParams} from "react-router";
 
-function Register() {
+const ModifyUser = () => {
+    const [id, setId] = useState('');
     const [email, setEmail] = useState('');
     const [prenom, setPrenom] = useState('');
     const [nom, setNom] = useState('');
@@ -14,6 +16,8 @@ function Register() {
 
     const [generalError, setGeneralError] = useState("");
     const [success, setSuccess] = useState(false);
+
+    const params = useParams();
 
     // Gestion des erreurs dans un objet pour les transmettre au formulaire
     const [errors, setErrors] = useState({
@@ -25,6 +29,33 @@ function Register() {
         loginError: ''
     });
 
+    useEffect(() => {
+        const getUserForUpdate = UserModel.getUserById(Number(params.id));
+
+        getUserForUpdate
+            .then((user) => {
+                if (user) {
+                    console.log(user); // Vérifiez la structure de l'objet ici
+
+                    // Accéder aux propriétés sans underscore
+                    setId(user.id || '');
+                    setEmail(user.mail || '');
+                    setPrenom(user.firstname || '');
+                    setNom(user.lastname || '');
+                    setLogin(user.login || '');
+                    // Laisser les champs de mot de passe vides pour des raisons de sécurité
+                    setPassword('');
+                    setConfirmPassword('');
+                } else {
+                    setGeneralError("Utilisateur non trouvé.");
+                }
+            })
+            .catch((error) => {
+                setGeneralError("Erreur lors de la récupération de l'utilisateur.");
+                console.error("Erreur de chargement de l'utilisateur:", error);
+            });
+    }, [params.id]);
+
     // Mises à jour simplifiées pour chaque message d'erreur
     const setEmailError = (error) => setErrors(prev => ({ ...prev, emailError: error }));
     const setPrenomError = (error) => setErrors(prev => ({ ...prev, prenomError: error }));
@@ -34,8 +65,11 @@ function Register() {
     const setLoginError = (error) => setErrors(prev => ({ ...prev, loginError: error }));
 
     const handleSignUp = async () => {
+
+
+
         const userData = {
-            id: 0,
+            id: Number(id),
             login: login,
             firstname: prenom,
             lastname: nom,
@@ -49,7 +83,7 @@ function Register() {
             userModel.password = password;
             userModel.password_confirm = confirmPassword;
 
-            const response = await userModel.createUser();
+            const response = await userModel.updateUser();
 
             if (response instanceof ErrorResponse) {
                 setSuccess(false);
@@ -69,12 +103,12 @@ function Register() {
     return (
         <div className="mx-auto flex w-full max-w-sm flex-col gap-6 mt-12 mb-6">
             <div className="flex flex-col items-center">
-                <h1 className="text-4xl font-semibold">Création de compte</h1>
-                <p className="text-sm">Créez un nouvel utilisateur</p>
+                <h1 className="text-4xl font-semibold">Modifer un compte</h1>
+                <p className="text-sm">Modifier l'utilisateur {login}</p>
             </div>
 
             {generalError && <AlertError title="Oups ! Une erreur est survenue." details={generalError} />}
-            {success && <AlertSuccess title="Succès !" details="L'inscription a été réalisée avec succès !" />}
+            {success && <AlertSuccess title="Succès !" details="La mise à jour a été réalisée avec succès !" />}
 
             <UserForm
                 email={email} setEmail={setEmail}
@@ -96,6 +130,6 @@ function Register() {
             />
         </div>
     );
-}
+};
 
-export default Register;
+export default ModifyUser;

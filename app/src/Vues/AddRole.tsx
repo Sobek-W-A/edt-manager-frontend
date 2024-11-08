@@ -109,7 +109,7 @@ const AddRole:React.FC = () => {
     return (
         <div className="w-full p-6">
             <div className="max-w-7xl mx-auto text-center mb-6">
-            <h2 className="text-2xl font-bold text-center text-green-800">Ajouter un rôle</h2>
+            <h2 className="text-2xl font-bold text-center text-green-800">Liste des utilisateurs</h2>
 
                 {/* Barre de recherche */}
                 <input

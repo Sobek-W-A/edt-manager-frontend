@@ -1,5 +1,6 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faTimes, faEnvelope } from "@fortawesome/free-solid-svg-icons";
+import {Link} from "react-router-dom";
 
 const AddRoleCard = ({ user, rolesList, openRoleMenu, setOpenRoleMenu, handleRoleChange, removeRoleFromUser }) => {
   return (
@@ -8,14 +9,21 @@ const AddRoleCard = ({ user, rolesList, openRoleMenu, setOpenRoleMenu, handleRol
         <h3 className="text-xl font-semibold">{user.firstname} {user.lastname}</h3>
         <p className="text-gray-500"><FontAwesomeIcon icon={faEnvelope} /> {user.mail}</p>
 
+          <button
+              className="bg-green-800 text-white hover:bg-green-900 px-2 py-1 my-2 rounded flex items-center gap-2"
+              onClick={() => setOpenRoleMenu(user.id === openRoleMenu ? null : user.id)}
+          >
+              <FontAwesomeIcon icon={faPlus} />
+              Ajouter un rôle
+          </button>
+
         {/* Bouton jouter un rôle */}
-        <button
+        <Link
           className="bg-green-800 text-white hover:bg-green-900 px-2 py-1 my-2 rounded flex items-center gap-2"
-          onClick={() => setOpenRoleMenu(user.id === openRoleMenu ? null : user.id)}
-        >
-          <FontAwesomeIcon icon={faPlus} />
-          Ajouter un rôle
-        </button>
+         to={"/modify/"+user.id}>
+          Modifier l'utilisateur
+        </Link>
+
 
         {/* Menu déroulant des rôles */}
         {openRoleMenu === user.id && (
