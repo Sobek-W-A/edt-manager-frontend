@@ -12,7 +12,7 @@ export type UserInPatchType = {
     lastname:               string | undefined;
     mail:                   string | undefined;
     password:               string | undefined;
-    password_confirmation:  string | undefined;
+    password_confirm:       string | undefined;
 }
 
 export type UserInCreateType = {
@@ -21,5 +21,5 @@ export type UserInCreateType = {
     lastname:               string;
     mail:                   string;
     password:               string;
-    password_confirmation:  string;
+    password_confirm:       string;
 }
