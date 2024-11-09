@@ -24,6 +24,13 @@ function Navbar() {
                     LOGIN
                 </Link>
             </div>
+
+            {/* Add Role Link */}
+            <div className="col-start-10 col-span-1 flex justify-end items-center">
+                <Link to="/add-role" className="text-sm hover:text-green-300 transition duration-200">
+                    ADD ROLE
+                </Link>
+            </div>
         </div>
     );
 }
