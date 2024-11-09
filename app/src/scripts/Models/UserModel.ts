@@ -71,7 +71,7 @@ export default class UserModel {
             firstname: this._firstname,
             lastname: this._firstname,
             password: this._password === null ? "" : this._password,
-            password_confirmation: this._password_confirm === null ? "" : this._password_confirm,
+            password_confirm: this._password_confirm === null ? "" : this._password_confirm,
         }
         const result: APIResponse<undefined> = await UserAPI.createUser(body);
         return result.isError() ? (result as ErrorResponse<undefined>) : undefined;
@@ -88,7 +88,7 @@ export default class UserModel {
             firstname: this._firstname,
             lastname: this._firstname,
             password: this._password === null ? undefined : this._password,
-            password_confirmation: this._password_confirm === null ? undefined : this._password_confirm,
+            password_confirm: this._password_confirm === null ? undefined : this._password_confirm,
         }
         const response: APIResponse<undefined> = await UserAPI.updateUser(this._id, body);
         if (response.isError()) return (response as ErrorResponse<undefined>);
