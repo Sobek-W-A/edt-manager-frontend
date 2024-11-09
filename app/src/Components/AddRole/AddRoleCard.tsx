@@ -1,9 +1,8 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus, faTimes, faEnvelope } from "@fortawesome/free-solid-svg-icons";
-import { useState, useEffect } from "react";
-import { UserType } from "../../scripts/API/APITypes/Users";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faEnvelope, faPlus, faTimes} from "@fortawesome/free-solid-svg-icons";
+import {useEffect, useState} from "react";
+import {UserType} from "../../scripts/API/APITypes/Users";
 import RoleAPI from "../../scripts/API/ModelAPIs/RoleAPI";
-import APIResponse from "../../scripts/API/Responses/APIResponse";
 
 interface AddRoleCardProps {
   user: UserType;
@@ -41,34 +40,32 @@ function AddRoleCard({ user, rolesList, openRoleMenu, setOpenRoleMenu, addRoleTo
       }
     };
 
-    fetchData();
+    fetchData().then();
   }, [user.id, rolesList]);
 
   const handleAddRole = (user: UserType, role: string) => {
     setUserRoles(prevUserRoles => {
-        const updatedRoles = prevUserRoles.map(userRole => {
+        return prevUserRoles.map(userRole => {
             if (userRole.id === user.id) {
                 if (!userRole.roles.includes(role)) {
                     addRoleToUser(user, role);
-                    return { ...userRole, roles: [...userRole.roles, role] };
+                    return {...userRole, roles: [...userRole.roles, role]};
                 }
             }
             return userRole;
         });
-        return updatedRoles;
     });
   };
 
   const handleRemoveRole = (user: UserType, role: string) => {
     removeRoleFromUser(user, role);
     setUserRoles(prevUserRoles => {
-        const updatedRoles = prevUserRoles.map(userRole => {
+        return prevUserRoles.map(userRole => {
             if (userRole.id === user.id) {
-                return { ...userRole, roles: userRole.roles.filter(r => r !== role) };
+                return {...userRole, roles: userRole.roles.filter(r => r !== role)};
             }
             return userRole;
         });
-        return updatedRoles;
     });
   };
 

@@ -39,7 +39,7 @@ function AddRole() {
             }
         };
 
-        fetchData();
+        fetchData().then();
     }, []);
 
     // Utilisation de useEffect pour fermer la notification après 3 secondes
@@ -155,6 +155,6 @@ function AddRole() {
 
         </div>
     );
-};
+}
 
 export default AddRole;
