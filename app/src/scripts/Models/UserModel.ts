@@ -69,7 +69,7 @@ export default class UserModel {
             login: this._login,
             mail: this._mail,
             firstname: this._firstname,
-            lastname: this._firstname,
+            lastname: this._lastname,
             password: this._password === null ? "" : this._password,
             password_confirm: this._password_confirm === null ? "" : this._password_confirm,
         }
@@ -86,7 +86,7 @@ export default class UserModel {
             login: this._login,
             mail: this._mail,
             firstname: this._firstname,
-            lastname: this._firstname,
+            lastname: this._lastname,
             password: this._password === null ? undefined : this._password,
             password_confirm: this._password_confirm === null ? undefined : this._password_confirm,
         }

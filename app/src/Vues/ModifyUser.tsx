@@ -14,6 +14,13 @@ const ModifyUser = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [login, setLogin] = useState('');
 
+    const [emailTmp, setEmailTmp] = useState('');
+    const [prenomTmp, setPrenomTmp] = useState('');
+    const [nomTmp, setNomTmp] = useState('');
+    const [passwordTmp, setPasswordTmp] = useState('');
+    const [confirmPasswordTmp, setConfirmPasswordTmp] = useState('');
+    const [loginTmp, setLoginTmp] = useState('');
+
     const [generalError, setGeneralError] = useState("");
     const [success, setSuccess] = useState(false);
 
@@ -46,6 +53,12 @@ const ModifyUser = () => {
                     // Laisser les champs de mot de passe vides pour des raisons de sécurité
                     setPassword('');
                     setConfirmPassword('');
+
+                    setEmailTmp(user.mail || '');
+                    setPrenomTmp(user.firstname || '');
+                    setNomTmp(user.lastname || '');
+                    setLoginTmp(user.login || '');
+
                 } else {
                     setGeneralError("Utilisateur non trouvé.");
                 }
@@ -66,16 +79,26 @@ const ModifyUser = () => {
 
     const handleSignUp = async () => {
 
-
-
         const userData = {
             id: Number(id),
-            login: login,
-            firstname: prenom,
-            lastname: nom,
-            mail: email,
         };
 
+
+        if (nom !== nomTmp){
+            userData["lastname"] = nom
+        }
+
+        if (prenom !== prenomTmp){
+            userData["firstname"] = prenom
+        }
+
+        if (email !== emailTmp){
+            userData["mail"] = email
+        }
+
+        if (login !== loginTmp){
+            userData["login"] = login
+        }
         setSuccess(true);
 
         try {
