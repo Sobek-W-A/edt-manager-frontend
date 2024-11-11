@@ -17,8 +17,6 @@ const ModifyUser = () => {
     const [emailTmp, setEmailTmp] = useState('');
     const [prenomTmp, setPrenomTmp] = useState('');
     const [nomTmp, setNomTmp] = useState('');
-    const [passwordTmp, setPasswordTmp] = useState('');
-    const [confirmPasswordTmp, setConfirmPasswordTmp] = useState('');
     const [loginTmp, setLoginTmp] = useState('');
 
     const [generalError, setGeneralError] = useState("");
@@ -99,7 +97,17 @@ const ModifyUser = () => {
         if (login !== loginTmp){
             userData["login"] = login
         }
+
+        if (password !== ''){
+            userData["password"] = password
+        }
+
+        if (confirmPassword !== ''){
+            userData["password_confirm"] = confirmPassword
+        }
         setSuccess(true);
+
+        console.log(userData)
 
         try {
             const userModel = new UserModel(userData);
