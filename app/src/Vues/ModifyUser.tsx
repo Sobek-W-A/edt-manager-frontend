@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import UserModel from "../scripts/Models/UserModel.ts";
 import ErrorResponse from "../scripts/API/Responses/ErrorResponse.ts";
 import {AlertError, AlertSuccess} from "../Components/Utils/Alert.tsx";
@@ -7,7 +7,6 @@ import {useParams} from "react-router";
 import {UserInPatchType} from "../scripts/API/APITypes/Users.ts";
 
 const ModifyUser = () => {
-    const [id, setId] = useState('');
     const [email, setEmail] = useState('');
     const [prenom, setPrenom] = useState('');
     const [nom, setNom] = useState('');
@@ -24,8 +23,8 @@ const ModifyUser = () => {
     const [success, setSuccess] = useState(false);
 
     const params = useParams();
+    const userModel = useRef<UserModel>();
 
-    const getUserForUpdate = UserModel.getUserById(Number(params.id));
     // Gestion des erreurs dans un objet pour les transmettre au formulaire
     const [errors, setErrors] = useState({
         emailError: '',
@@ -37,18 +36,16 @@ const ModifyUser = () => {
     });
 
     useEffect(() => {
-
-
+        const getUserForUpdate = UserModel.getUserById(Number(params.id));
         getUserForUpdate
             .then((user) => {
                 if (user instanceof UserModel) {
-
+                    userModel.current = user;
                     // Accéder aux propriétés sans underscore
-                    setId(`${user.id}` || '');
-                    setEmail(user.mail || '');
-                    setPrenom(user.firstname || '');
-                    setNom(user.lastname || '');
-                    setLogin(user.login || '');
+                    setEmail(userModel.current.mail || '');
+                    setPrenom(userModel.current.firstname || '');
+                    setNom(userModel.current.lastname || '');
+                    setLogin(userModel.current.login || '');
                     // Laisser les champs de mot de passe vides pour des raisons de sécurité
                     setPassword('');
                     setConfirmPassword('');
@@ -87,12 +84,12 @@ const ModifyUser = () => {
             password_confirm : confirmPassword ? confirmPassword : undefined
         };
 
-
-
-
         try {
-
-            const response = await userModel.updateUser();
+            if (!userModel.current) {
+                setGeneralError("Utilisateur non trouvé.");
+                return;
+            }
+            const response = await userModel.current.updateUser(userData);
 
             if (response instanceof ErrorResponse) {
                 setSuccess(false);
