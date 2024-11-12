@@ -1,9 +1,10 @@
-import React, {useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 import UserModel from "../scripts/Models/UserModel.ts";
 import ErrorResponse from "../scripts/API/Responses/ErrorResponse.ts";
 import {AlertError, AlertSuccess} from "../Components/Utils/Alert.tsx";
 import UserForm from "../Components/Account/UserForm.tsx";
 import {useParams} from "react-router";
+import {UserInPatchType} from "../scripts/API/APITypes/Users.ts";
 
 const ModifyUser = () => {
     const [id, setId] = useState('');
@@ -24,6 +25,7 @@ const ModifyUser = () => {
 
     const params = useParams();
 
+    const getUserForUpdate = UserModel.getUserById(Number(params.id));
     // Gestion des erreurs dans un objet pour les transmettre au formulaire
     const [errors, setErrors] = useState({
         emailError: '',
@@ -35,15 +37,14 @@ const ModifyUser = () => {
     });
 
     useEffect(() => {
-        const getUserForUpdate = UserModel.getUserById(Number(params.id));
+
 
         getUserForUpdate
             .then((user) => {
-                if (user) {
-                    console.log(user); // Vérifiez la structure de l'objet ici
+                if (user instanceof UserModel) {
 
                     // Accéder aux propriétés sans underscore
-                    setId(user.id || '');
+                    setId(`${user.id}` || '');
                     setEmail(user.mail || '');
                     setPrenom(user.firstname || '');
                     setNom(user.lastname || '');
@@ -68,52 +69,28 @@ const ModifyUser = () => {
     }, [params.id]);
 
     // Mises à jour simplifiées pour chaque message d'erreur
-    const setEmailError = (error) => setErrors(prev => ({ ...prev, emailError: error }));
-    const setPrenomError = (error) => setErrors(prev => ({ ...prev, prenomError: error }));
-    const setNomError = (error) => setErrors(prev => ({ ...prev, nomError: error }));
-    const setPasswordError = (error) => setErrors(prev => ({ ...prev, passwordError: error }));
-    const setConfirmPasswordError = (error) => setErrors(prev => ({ ...prev, confirmPasswordError: error }));
-    const setLoginError = (error) => setErrors(prev => ({ ...prev, loginError: error }));
+    const setEmailError = (error : string) => setErrors(prev => ({ ...prev, emailError: error }));
+    const setPrenomError = (error : string) => setErrors(prev => ({ ...prev, prenomError: error }));
+    const setNomError = (error : string) => setErrors(prev => ({ ...prev, nomError: error }));
+    const setPasswordError = (error : string) => setErrors(prev => ({ ...prev, passwordError: error }));
+    const setConfirmPasswordError = (error : string) => setErrors(prev => ({ ...prev, confirmPasswordError: error }));
+    const setLoginError = (error : string) => setErrors(prev => ({ ...prev, loginError: error }));
 
     const handleSignUp = async () => {
 
-        const userData = {
-            id: Number(id),
+        const userData : UserInPatchType = {
+            lastname : nom !== nomTmp ? nom : undefined,
+            firstname : prenom !== prenomTmp ? prenom : undefined,
+            mail : email !== emailTmp ? email : undefined,
+            login : login !== loginTmp ? login : undefined,
+            password : password ? password : undefined,
+            password_confirm : confirmPassword ? confirmPassword : undefined
         };
 
 
-        if (nom !== nomTmp){
-            userData["lastname"] = nom
-        }
-
-        if (prenom !== prenomTmp){
-            userData["firstname"] = prenom
-        }
-
-        if (email !== emailTmp){
-            userData["mail"] = email
-        }
-
-        if (login !== loginTmp){
-            userData["login"] = login
-        }
-
-        if (password !== ''){
-            userData["password"] = password
-        }
-
-        if (confirmPassword !== ''){
-            userData["password_confirm"] = confirmPassword
-        }
-        setSuccess(true);
 
 
         try {
-            const userModel = new UserModel(userData);
-            if (password && confirmPassword) {
-                userModel.password = password;
-                userModel.password_confirm = confirmPassword;
-            }
 
             const response = await userModel.updateUser();
 
@@ -130,6 +107,8 @@ const ModifyUser = () => {
             setSuccess(false);
             setGeneralError(`Une erreur est survenue: ${err instanceof Error ? err.message : "Erreur inconnue"}`);
         }
+
+        setSuccess(true);
     };
 
     return (
