@@ -79,16 +79,13 @@ const ModifyUser = () => {
                 return;
             }
             const response = await userModel.current.updateUser(userData);
-
             if (response instanceof ErrorResponse) {
                 setSuccess(false);
                 setGeneralError(response.errorCode() === 401
                     ? "Identifiants incorrects"
                     : `Une erreur est survenue: ${response.errorMessage()}`
                 );
-
             }
-
         } catch (err) {
             setSuccess(false);
             setGeneralError(`Une erreur est survenue: ${err instanceof Error ? err.message : "Erreur inconnue"}`);
