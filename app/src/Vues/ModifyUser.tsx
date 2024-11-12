@@ -68,8 +68,8 @@ const ModifyUser = () => {
             firstname : prenom,
             mail : email,
             login : login,
-            password : password,
-            password_confirm : confirmPassword
+            password : password ? password : undefined,
+            password_confirm : confirmPassword ? confirmPassword : undefined
         };
 
         try {
