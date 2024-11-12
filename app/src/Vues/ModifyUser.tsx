@@ -107,7 +107,6 @@ const ModifyUser = () => {
         }
         setSuccess(true);
 
-        console.log(userData)
 
         try {
             const userModel = new UserModel(userData);
