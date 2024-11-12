@@ -111,8 +111,10 @@ const ModifyUser = () => {
 
         try {
             const userModel = new UserModel(userData);
-            userModel.password = password;
-            userModel.password_confirm = confirmPassword;
+            if (password && confirmPassword) {
+                userModel.password = password;
+                userModel.password_confirm = confirmPassword;
+            }
 
             const response = await userModel.updateUser();
 
