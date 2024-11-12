@@ -2,38 +2,44 @@ import React, { useState, useEffect } from "react";
 import AddRoleCard from "../Components/AddRole/AddRoleCard";
 import Notification from "../Components/AddRole/AddRolePopUp";
 import UserApi from "../scripts/API/ModelAPIs/UserAPI";
+import RoleAPI from "../scripts/API/ModelAPIs/RoleAPI";
 import { UserType } from "../scripts/API/APITypes/Users.ts";
 import APIResponse from "../scripts/API/Responses/APIResponse.ts";
-
-const rolesList = [
-    "Responsable de département",
-    "Responsable de formation",
-    "Secrétariat pédagogique",
-    "Enseignant"
-];
-
-const usersList: UserType[] = [];
+import { ConfirmationMessage } from "../scripts/API/APITypes/CommonTypes";
 
 
-const AddRole:React.FC = () => {
-    const [users, setUsers] = useState(usersList);
+function AddRole() {
+    const [users, setUsers] = useState<UserType[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
-    const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
-    const [openRoleMenu, setOpenRoleMenu] = useState(null);
+    const [openRoleMenu, setOpenRoleMenu] = useState<string | null>(null);
     const [notification, setNotification] = useState({ message: '', color: '' });
     const [showNotification, setShowNotification] = useState(false);
 
+    const [rolesList, setRolesList] = useState<string[]>([]);
 
-    // Utilisation de useEffect pour récupérer les utilisateurs
+
+    // Utilisation de useEffect pour récupérer les utilisateurs et les rôles
     useEffect(() => {
-        UserApi.getAllUsers().then((response: APIResponse<UserType[]>) => {
-            if (response.isError()) {
-                setNotification({ message: `Une erreur est survenue : ${response.errorMessage()}.`, color: 'red' });
+        const fetchData = async () => {
+            const userResponse = await UserApi.getAllUsers();
+            if (userResponse.isError()) {
+                setNotification({ message: `Une erreur est survenue : ${userResponse.errorMessage()}.`, color: 'red' });
                 setShowNotification(true);
             } else {
-                setUsers(response.responseObject());
+                setUsers(userResponse.responseObject());
             }
-        });
+
+            const roleResponse = await RoleAPI.getRoles();
+            if (roleResponse.isError()) {
+                setNotification({ message: `Une erreur est survenue : ${roleResponse.errorMessage()}.`, color: 'red' });
+                setShowNotification(true);
+            } else {
+                const uniqueRoles = Array.from(new Set(roleResponse.responseObject()));
+                setRolesList(uniqueRoles);
+            }
+        };
+
+        fetchData().then();
     }, []);
 
     // Utilisation de useEffect pour fermer la notification après 3 secondes
@@ -47,26 +53,26 @@ const AddRole:React.FC = () => {
         }
     }, [showNotification]);
 
-    const handleSearchChange = (e) => {
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(e.target.value.toLowerCase());
     };
 
-    /*const toggleRole = (role: string) => {
-        if (selectedRoles.includes(role)) {
-            setSelectedRoles(selectedRoles.filter(selectedRole => selectedRole !== role));
-        } else {
-            setSelectedRoles([...selectedRoles, role]);
-        }
-    };*/
-
-    /*const handleRoleChange = (user: UserType, selectedRole: string) => {
-        console.log("User Add : " + user.lastname + " " + user.firstname + " - Role : " + selectedRole);
+    const addRoleToUser = (user: UserType, selectedRole: string) => {
         setUsers(prevUsers =>
             prevUsers.map(userTmp =>
                 userTmp.id === user.id
                     ? {
                         ...userTmp,
-                        //roles: userTmp.roles.includes(selectedRole) ? userTmp.roles : [...userTmp.roles, selectedRole]
+                        roles : (RoleAPI.addRoleToUser(user.id, selectedRole).then((response: APIResponse<{ roles: string[], message: ConfirmationMessage }>) => {
+                            if (response.isError()) {
+                                setNotification({ message: `Une erreur est survenue : ${response.errorMessage()}.`, color: 'red' });
+                                setShowNotification(true);
+                            } else {
+                                setNotification({ message: `Rôle "${selectedRole}" ajouté à ${user.firstname} ${user.lastname}.`, color: 'green' });
+                                setShowNotification(true);
+                                return response.responseObject().roles;
+                            }
+                        }))
                     }
                     : userTmp
             )
@@ -76,16 +82,24 @@ const AddRole:React.FC = () => {
         // Afficher la notification d'ajout de rôle
         setNotification({ message: `Rôle "${selectedRole}" ajouté à ${user.firstname} ${user.lastname}.`, color: 'green' });
         setShowNotification(true); // Affiche la notification
-    };*/
+    };
 
-    /*const removeRoleFromUser = (user: UserType, roleToRemove: string) => {
-        console.log("User Remove : " + user.lastname + " " + user.firstname + " - Role : " + roleToRemove);
+    const removeRoleFromUser = (user: UserType, roleToRemove: string) => {
         setUsers(prevUsers =>
             prevUsers.map(userTmp =>
                 userTmp.id === user.id
                     ? {
                         ...userTmp,
-                        //roles: userTmp.roles.filter(role => role !== roleToRemove)
+                        roles : (RoleAPI.removeRoleFromUser(user.id, roleToRemove).then((response: APIResponse<{ roles: string[], message: ConfirmationMessage }>) => {
+                            if (response.isError()) {
+                                setNotification({ message: `Une erreur est survenue : ${response.errorMessage()}.`, color: 'red' });
+                                setShowNotification(true);
+                            } else {
+                                setNotification({ message: `Rôle "${roleToRemove}" retiré à ${user.firstname} ${user.lastname}.`, color: 'green' });
+                                setShowNotification(true);
+                                return response.responseObject().roles;
+                            }
+                        }))
                     }
                     : userTmp
             )
@@ -94,16 +108,14 @@ const AddRole:React.FC = () => {
         // Affiche la notification de rôle retiré
         setNotification({ message: `Rôle "${roleToRemove}" retiré à ${user.firstname} ${user.lastname}.`, color: 'red' });
         setShowNotification(true);
-    };*/
+    };
 
     const filteredUsers = users.filter(user => {
-        const matchesSearch = user.lastname.toLowerCase().includes(searchTerm) ||
+        return (
+            user.lastname.toLowerCase().includes(searchTerm) ||
             user.firstname.toLowerCase().includes(searchTerm) ||
-            user.mail.toLowerCase().includes(searchTerm);
-
-        //const matchesRoles = selectedRoles.length === 0 || selectedRoles.every(role => user.roles.includes(role));
-
-        return matchesSearch /*&& matchesRoles*/;
+            user.mail.toLowerCase().includes(searchTerm)
+        );
     });
 
     return (
@@ -117,22 +129,8 @@ const AddRole:React.FC = () => {
                     placeholder="Rechercher par nom, prénom ou email"
                     value={searchTerm}
                     onChange={handleSearchChange}
-                    className="w-full py-2 px-3 text-green-900 border rounded focus:outline-none focus:ring-2 focus:ring-green-500 mb-4"
+                    className="w-full py-2 px-3 text-green-900 border rounded focus:outline-none focus:ring-2 focus:ring-green-500 mb-4 mt-6"
                 />
-
-                {/* Système de tags pour les rôles */}
-                <div className="flex flex-wrap justify-center gap-2">
-                    <h3 className="text-xl font-semibold text-green-800">Tags : </h3>
-                    {rolesList.map((role, index) => (
-                        <span
-                            key={index}
-                            className={`cursor-pointer px-4 py-2 rounded ${selectedRoles.includes(role) ? 'bg-green-800 text-white hover:bg-green-900' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-                            /*onClick={() => toggleRole(role)}*/
-                        >
-                            {role}
-                        </span>
-                    ))}
-                </div>
             </div>
 
             {/* Grille des utilisateurs */}
@@ -144,8 +142,8 @@ const AddRole:React.FC = () => {
                         rolesList={rolesList}
                         openRoleMenu={openRoleMenu}
                         setOpenRoleMenu={setOpenRoleMenu}
-                        /*handleRoleChange={handleRoleChange}
-                        removeRoleFromUser={removeRoleFromUser}*/
+                        addRoleToUser={addRoleToUser}
+                        removeRoleFromUser={removeRoleFromUser}
                     />
                 ))}
             </div>
@@ -157,6 +155,6 @@ const AddRole:React.FC = () => {
 
         </div>
     );
-};
+}
 
 export default AddRole;
