@@ -14,11 +14,6 @@ const ModifyUser = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [login, setLogin] = useState('');
 
-    const [emailTmp, setEmailTmp] = useState('');
-    const [prenomTmp, setPrenomTmp] = useState('');
-    const [nomTmp, setNomTmp] = useState('');
-    const [loginTmp, setLoginTmp] = useState('');
-
     const [generalError, setGeneralError] = useState("");
     const [success, setSuccess] = useState(false);
 
@@ -37,28 +32,21 @@ const ModifyUser = () => {
 
     useEffect(() => {
         const getUserForUpdate = UserModel.getUserById(Number(params.id));
-        getUserForUpdate
-            .then((user) => {
-                if (user instanceof UserModel) {
-                    userModel.current = user;
-                    // Accéder aux propriétés sans underscore
-                    setEmail(userModel.current.mail || '');
-                    setPrenom(userModel.current.firstname || '');
-                    setNom(userModel.current.lastname || '');
-                    setLogin(userModel.current.login || '');
-                    // Laisser les champs de mot de passe vides pour des raisons de sécurité
-                    setPassword('');
-                    setConfirmPassword('');
-
-                    setEmailTmp(user.mail || '');
-                    setPrenomTmp(user.firstname || '');
-                    setNomTmp(user.lastname || '');
-                    setLoginTmp(user.login || '');
-
-                } else {
-                    setGeneralError("Utilisateur non trouvé.");
-                }
-            })
+        getUserForUpdate.then((user) => {
+            // We check if we could get a user.
+            if (user instanceof UserModel) {
+                userModel.current = user;
+                // Accéder aux propriétés sans underscore
+                setEmail(userModel.current.mail || '');
+                setPrenom(userModel.current.firstname || '');
+                setNom(userModel.current.lastname || '');
+                setLogin(userModel.current.login || '');
+                // Laisser les champs de mot de passe vides pour des raisons de sécurité
+                setPassword('');
+                setConfirmPassword('');
+            } else {
+                setGeneralError("Utilisateur non trouvé.");
+            }})
             .catch((error) => {
                 setGeneralError("Erreur lors de la récupération de l'utilisateur.");
                 console.error("Erreur de chargement de l'utilisateur:", error);
@@ -76,30 +64,28 @@ const ModifyUser = () => {
     const handleSignUp = async () => {
 
         const userData : UserInPatchType = {
-            lastname : nom !== nomTmp ? nom : undefined,
-            firstname : prenom !== prenomTmp ? prenom : undefined,
-            mail : email !== emailTmp ? email : undefined,
-            login : login !== loginTmp ? login : undefined,
+            lastname : nom,
+            firstname : prenom,
+            mail : email,
+            login : login,
             password : password ? password : undefined,
             password_confirm : confirmPassword ? confirmPassword : undefined
         };
 
         try {
+            // We check if the user has been successfully fetched.
             if (!userModel.current) {
                 setGeneralError("Utilisateur non trouvé.");
                 return;
             }
             const response = await userModel.current.updateUser(userData);
-
             if (response instanceof ErrorResponse) {
                 setSuccess(false);
                 setGeneralError(response.errorCode() === 401
                     ? "Identifiants incorrects"
                     : `Une erreur est survenue: ${response.errorMessage()}`
                 );
-
             }
-
         } catch (err) {
             setSuccess(false);
             setGeneralError(`Une erreur est survenue: ${err instanceof Error ? err.message : "Erreur inconnue"}`);
