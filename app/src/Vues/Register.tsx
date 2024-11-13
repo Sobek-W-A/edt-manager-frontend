@@ -74,7 +74,7 @@ function Register() {
             </div>
 
             {generalError && <AlertError title="Oups ! Une erreur est survenue." details={generalError} />}
-            {success && <AlertSuccess title="Succès !" details="Votre inscription a été réalisée avec succès !" />}
+            {success && <AlertSuccess title="Succès !" details="L'inscription a été réalisée avec succès !" />}
 
             <UserForm
                 email={email} setEmail={setEmail}

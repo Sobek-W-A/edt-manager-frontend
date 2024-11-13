@@ -23,7 +23,14 @@ export default class AuthModel {
      * @returns A promise that resolves into a pair of tokens, or an error.
      */
     async login(): Promise<APIResponse<TokenPair>> {
-        return await AuthAPI.loginRequest(this._login, this._password);
+        const res: APIResponse<TokenPair> = await AuthAPI.loginRequest(this._login, this._password);
+        if (!res.isError()) {
+            Storage.setTokensInStorage(
+                (res as CorrectResponse<TokenPair>).responseObject().access_token,
+                (res as CorrectResponse<TokenPair>).responseObject().refresh_token
+            );
+        }
+        return res;
     }
 
     /**

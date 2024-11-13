@@ -69,7 +69,7 @@ export default class UserModel {
             login: this._login,
             mail: this._mail,
             firstname: this._firstname,
-            lastname: this._firstname,
+            lastname: this._lastname,
             password: this._password === null ? "" : this._password,
             password_confirm: this._password_confirm === null ? "" : this._password_confirm,
         }
@@ -81,14 +81,14 @@ export default class UserModel {
      * This method updates a user described by the current user instance.
      * @returns Either no response or an error response.
      */
-    async updateUser(): Promise<undefined | ErrorResponse<undefined>> {
+    async updateUser(newData: UserInPatchType): Promise<undefined | ErrorResponse<undefined>> {
         const body: UserInPatchType = {
-            login: this._login,
-            mail: this._mail,
-            firstname: this._firstname,
-            lastname: this._firstname,
-            password: this._password === null ? undefined : this._password,
-            password_confirm: this._password_confirm === null ? undefined : this._password_confirm,
+            login: newData.login === this._login ? undefined : newData.login,
+            mail: newData.mail === this._mail ? undefined : newData.mail,
+            firstname: newData.firstname === this._firstname ? undefined : newData.firstname,
+            lastname: newData.lastname === this._lastname ? undefined : newData.lastname,
+            password: newData.password,
+            password_confirm: newData.password_confirm,
         }
         const response: APIResponse<undefined> = await UserAPI.updateUser(this._id, body);
         if (response.isError()) return (response as ErrorResponse<undefined>);

@@ -90,14 +90,19 @@ class API {
                 })
                 .then(async (response) => {
                     // When we got our response, we check the status code.
-                    const data: T = await response.json();
-                    if(response.status >= 200 && response.status < 300) {
-                        resolve(new CorrectResponse<T>(data));
+                    // If it is a no content response, we resolve this as nothing.
+                    if (response.status === 204 || response.status === 205) {
+                        resolve(new CorrectResponse<T>(undefined as T));
                     } else {
-                        const errorMessage = (data as APIErrorResponse)["detail"] ||
-                                             (data as APIErrorResponse)["message"] ||
-                                             "An unknown error occurred";
-                        resolve(new ErrorResponse(response.status, errorMessage));
+                        const data: T = await response.json();
+                        if(response.status >= 200 && response.status < 300) {
+                            resolve(new CorrectResponse<T>(data));
+                        } else {
+                            const errorMessage = (data as APIErrorResponse)["detail"] ||
+                                (data as APIErrorResponse)["message"] ||
+                                "An unknown error occurred";
+                            resolve(new ErrorResponse(response.status, errorMessage));
+                        }
                     }
                 })
         });

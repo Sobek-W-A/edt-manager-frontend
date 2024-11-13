@@ -1,8 +1,9 @@
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import {faEnvelope, faPlus, faTimes} from "@fortawesome/free-solid-svg-icons";
+import {faEnvelope, faPlus,faTimes} from "@fortawesome/free-solid-svg-icons";
 import {useEffect, useState} from "react";
 import {UserType} from "../../scripts/API/APITypes/Users";
 import RoleAPI from "../../scripts/API/ModelAPIs/RoleAPI";
+import {Link} from "react-router-dom";
 
 interface AddRoleCardProps {
   user: UserType;
@@ -83,6 +84,14 @@ function AddRoleCard({ user, rolesList, openRoleMenu, setOpenRoleMenu, addRoleTo
           <FontAwesomeIcon icon={faPlus} />
           Ajouter un rôle
         </button>
+
+        {/* Bouton jouter un rôle */}
+        <Link
+          className="bg-green-800 text-white hover:bg-green-900 px-2 py-1 my-2 rounded flex items-center gap-2"
+         to={"/modify/"+user.id}>
+          Modifier l'utilisateur
+        </Link>
+
 
         {/* Menu déroulant des rôles */}
         {openRoleMenu === user.id.toString() && (
