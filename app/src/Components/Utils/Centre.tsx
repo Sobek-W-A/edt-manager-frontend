@@ -1,7 +1,5 @@
 import {Outlet} from "react-router-dom";
 
-
-
 function Centre() {
     return (
         <div className=" grid grid-cols-6 grid-column: auto; pt-20; pb-12">

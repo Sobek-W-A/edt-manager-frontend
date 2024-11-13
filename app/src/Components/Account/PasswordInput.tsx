@@ -1,6 +1,6 @@
-import EyeSlashIcon from "./icons/EyeSlashIcon.jsx";
-import EyeIcon from "./icons/EyeIcon.jsx";
-import React, {ChangeEventHandler, useState} from "react";
+import EyeSlashIcon from "./icons/EyeSlashIcon.tsx";
+import EyeIcon from "./icons/EyeIcon.tsx";
+import {ChangeEventHandler, useState} from "react";
 
 interface InputPasswordProps {
     label : string;

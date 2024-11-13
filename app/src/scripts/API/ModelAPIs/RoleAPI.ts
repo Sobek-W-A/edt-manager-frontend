@@ -16,7 +16,6 @@ export default class RoleAPI {
 
     /**
      * Simulate getting the roles
-     * @param user The user object.
      */
     static getRoles(): Promise<APIResponse<string[]>> {
         return Promise.resolve({
@@ -29,7 +28,7 @@ export default class RoleAPI {
 
     /**
      * Simulate getting the roles of a user.
-     * @param user The user object.
+     * @param userId The user id to fetch for.
      */
     static getUserRoles(userId: number): Promise<APIResponse<string[]>> {
         const user = this.usersRoles.find(user => user.id === userId);
@@ -52,7 +51,7 @@ export default class RoleAPI {
 
     /**
      * Simulate adding a role to a user.
-     * @param user The user object.
+     * @param userId The user's id.
      * @param role The role to add.
      */
     static addRoleToUser(userId: number, role: string): Promise<APIResponse<{ roles: string[], message: ConfirmationMessage }>> {
@@ -72,7 +71,7 @@ export default class RoleAPI {
 
     /**
      * Simulate removing a role from a user.
-     * @param user The user object.
+     * @param userId The user's ID.
      * @param role The role to remove.
      */
     static removeRoleFromUser(userId: number, role: string): Promise<APIResponse<{ roles: string[], message: ConfirmationMessage }>> {

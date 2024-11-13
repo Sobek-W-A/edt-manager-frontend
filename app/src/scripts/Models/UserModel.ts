@@ -103,6 +103,16 @@ export default class UserModel {
         return res.isError() ? (res as ErrorResponse<undefined>) : undefined;
     }
 
+    /**
+     * This method simply sets the passwords provided into the current object.
+     * @param password Password to set
+     * @param password_confirm Password confirmation to set
+     */
+    setPasswords(password: string, password_confirm: string): void {
+        this._password = password;
+        this._password_confirm = password_confirm;
+    }
+
     get id(): number {
         return this._id;
     }

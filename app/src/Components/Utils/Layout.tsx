@@ -1,7 +1,6 @@
-import React from 'react';
-import NavBar from "./Navbar.jsx";
-import Centre from "./Centre.jsx";
-import Footer from "./Footer.jsx";
+import NavBar from "./Navbar.tsx";
+import Centre from "./Centre.tsx";
+import Footer from "./Footer.tsx";
 
 function Layout() {
         return (

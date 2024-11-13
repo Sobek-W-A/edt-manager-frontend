@@ -15,10 +15,10 @@ interface AddRoleCardProps {
 }
 
 function AddRoleCard({ user, rolesList, openRoleMenu, setOpenRoleMenu, addRoleToUser, removeRoleFromUser }: AddRoleCardProps) {
-  const [roles, setRoles] = useState<string[]>([]);
+  const [, setRoles] = useState<string[]>([]);
   const [userRoles, setUserRoles] = useState<{ id: number, roles: string[] }[]>([]);
-  const [notification, setNotification] = useState<{ message: string; color: string } | null>(null);
-  const [showNotification, setShowNotification] = useState<boolean>(false);
+  const [, setNotification] = useState<{ message: string; color: string } | null>(null);
+  const [, setShowNotification] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchData = async () => {

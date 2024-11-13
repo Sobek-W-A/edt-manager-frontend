@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import UserForm from "../Components/Account/UserForm.tsx";
 import { AlertError, AlertSuccess } from "../Components/Utils/Alert.tsx";
 import UserModel from "../scripts/Models/UserModel.ts";
@@ -26,12 +26,12 @@ function Register() {
     });
 
     // Mises à jour simplifiées pour chaque message d'erreur
-    const setEmailError = (error) => setErrors(prev => ({ ...prev, emailError: error }));
-    const setPrenomError = (error) => setErrors(prev => ({ ...prev, prenomError: error }));
-    const setNomError = (error) => setErrors(prev => ({ ...prev, nomError: error }));
-    const setPasswordError = (error) => setErrors(prev => ({ ...prev, passwordError: error }));
-    const setConfirmPasswordError = (error) => setErrors(prev => ({ ...prev, confirmPasswordError: error }));
-    const setLoginError = (error) => setErrors(prev => ({ ...prev, loginError: error }));
+    const setEmailError = (error: string) => setErrors(prev => ({ ...prev, emailError: error }));
+    const setPrenomError = (error: string) => setErrors(prev => ({ ...prev, prenomError: error }));
+    const setNomError = (error: string) => setErrors(prev => ({ ...prev, nomError: error }));
+    const setPasswordError = (error: string) => setErrors(prev => ({ ...prev, passwordError: error }));
+    const setConfirmPasswordError = (error: string) => setErrors(prev => ({ ...prev, confirmPasswordError: error }));
+    const setLoginError = (error: string) => setErrors(prev => ({ ...prev, loginError: error }));
 
     const handleSignUp = async () => {
         const userData = {
@@ -45,9 +45,8 @@ function Register() {
         setSuccess(true);
 
         try {
-            const userModel = new UserModel(userData);
-            userModel.password = password;
-            userModel.password_confirm = confirmPassword;
+            const userModel: UserModel = new UserModel(userData);
+            userModel.setPasswords(password, confirmPassword)
 
             const response = await userModel.createUser();
 

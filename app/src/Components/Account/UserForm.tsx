@@ -72,7 +72,7 @@ const UserForm: React.FC<UserFormProps> = ({
     };
 
     const handleMotDePasse = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const re = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+{}:;<>,.?~\[\]\-\\/])[a-zA-Z0-9!@#$%^&*()_+{}:;<>,.?~\[\]\-\\/]{8,}$/;
+        const re = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+{}:;<>,.?~[\]\-\\/])[a-zA-Z0-9!@#$%^&*()_+{}:;<>,.?~[\]\-\\/]{8,}$/;
         setPassword(e.target.value);
         errors.setPasswordError(re.test(e.target.value) ? "" : "Veuillez entrer un mot de passe conforme.");
         errors.setConfirmPasswordError(e.target.value !== confirmPassword ? "Les mots de passe doivent être identiques." : "");
