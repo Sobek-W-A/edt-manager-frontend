@@ -66,7 +66,8 @@ function Register() {
     };
 
     return (
-        <div className="mx-auto flex w-full max-w-sm flex-col gap-6 mt-12 mb-6">
+        <div className="flex flex-col items-center justify-center pt-12 pb-12">
+            <div className="w-full max-w-md p-8 space-y-6 rounded-lg shadow-md">
             <div className="flex flex-col items-center">
                 <h1 className="text-4xl font-semibold">Création de compte</h1>
                 <p className="text-sm">Créez un nouvel utilisateur</p>
@@ -93,6 +94,7 @@ function Register() {
                     setLoginError
                 }}
             />
+            </div>
         </div>
     );
 }

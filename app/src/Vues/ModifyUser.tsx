@@ -95,35 +95,37 @@ const ModifyUser = () => {
     };
 
     return (
-        <div className="mx-auto flex w-full max-w-sm flex-col gap-6 mt-12 mb-6">
-            <div className="flex flex-col items-center">
-                <h1 className="text-4xl font-semibold">Modifer un compte</h1>
-                <p className="text-sm">Modifier l'utilisateur {login}</p>
+        <div className="flex flex-col items-center justify-center pt-12 pb-12">
+            <div className="w-full max-w-md p-8 space-y-6 rounded-lg shadow-md">
+                <div className="flex flex-col items-center">
+                    <h1 className="text-4xl font-semibold">Modifer un compte</h1>
+                    <p className="text-sm">Modifier l'utilisateur {login}</p>
+                </div>
+
+                {generalError && <AlertError title="Oups ! Une erreur est survenue." details={generalError}/>}
+                {success && <AlertSuccess title="Succès !" details="La mise à jour a été réalisée avec succès !"/>}
+
+                <UserForm
+                    email={email} setEmail={setEmail}
+                    prenom={prenom} setPrenom={setPrenom}
+                    nom={nom} setNom={setNom}
+                    login={login} setLogin={setLogin}
+                    password={password} setPassword={setPassword}
+                    confirmPassword={confirmPassword} setConfirmPassword={setConfirmPassword}
+                    handleSubmit={handleSignUp}
+                    errors={{
+                        ...errors,
+                        setEmailError,
+                        setPrenomError,
+                        setNomError,
+                        setPasswordError,
+                        setConfirmPasswordError,
+                        setLoginError
+                    }}
+                />
+                </div>
             </div>
+            );
+            };
 
-            {generalError && <AlertError title="Oups ! Une erreur est survenue." details={generalError} />}
-            {success && <AlertSuccess title="Succès !" details="La mise à jour a été réalisée avec succès !" />}
-
-            <UserForm
-                email={email} setEmail={setEmail}
-                prenom={prenom} setPrenom={setPrenom}
-                nom={nom} setNom={setNom}
-                login={login} setLogin={setLogin}
-                password={password} setPassword={setPassword}
-                confirmPassword={confirmPassword} setConfirmPassword={setConfirmPassword}
-                handleSubmit={handleSignUp}
-                errors={{
-                    ...errors,
-                    setEmailError,
-                    setPrenomError,
-                    setNomError,
-                    setPasswordError,
-                    setConfirmPasswordError,
-                    setLoginError
-                }}
-            />
-        </div>
-    );
-};
-
-export default ModifyUser;
+            export default ModifyUser;
