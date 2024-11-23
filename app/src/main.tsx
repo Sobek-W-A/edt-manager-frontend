@@ -8,6 +8,7 @@ import Layout from "./Components/Utils/Layout.tsx";
 import './index.css';
 import Register from "./Vues/Register.tsx";
 import ModifyUser from "./Vues/ModifyUser.tsx";
+import ProfessorVue from './Vues/ProfessorVue.tsx';
 
 // Configuration des routes
 const routes = createRoutesFromElements(
@@ -16,6 +17,7 @@ const routes = createRoutesFromElements(
         <Route path="add-role" element={<AddRole />} />
         <Route path="accountcreation" element={<Register />} />
         <Route path="modify/:id" element={<ModifyUser />} />
+        <Route path="professor" element={<ProfessorVue />} />
     </Route>
 );
 
