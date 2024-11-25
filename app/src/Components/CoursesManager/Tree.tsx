@@ -108,6 +108,9 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         y: number;
         folderId: string | null;
     }>({ visible: false, x: 0, y: 0, folderId: null });
+    const [dataState, setDataState] = useState<Folder>(data);
+    const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
+    const [newFolderName, setNewFolderName] = useState<string>("");
 
     const toggleFolder = (id: string) => {
         setOpenFolders((prev) => {
@@ -126,7 +129,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         const menuWidth = 200;
         const menuHeight = 100;
         const x = e.clientX + 0;
-        const y = e.clientY - 50;
+        const y = e.clientY - 40;
         setContextMenu({ visible: true, x: x, y: y, folderId });
     };
 
@@ -136,9 +139,64 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
 
     const handleAction = (action: string) => {
         if (contextMenu.folderId) {
-            console.log(`Action "${action}" on folder "${contextMenu.folderId}"`);
+            const folder = findFolder(dataState, contextMenu.folderId);
+            if (action === "Ajouter Dossier") {
+                const newFolder: Folder = {
+                    type: "folder",
+                    id: `folder-${Date.now()}`,
+                    name: "Nouveau Dossier",
+                    children: [],
+                };
+                folder.children.push(newFolder);
+            } else if (action === "Ajouter UE") {
+                const newCourse: Course = {
+                    type: "course",
+                    id: `course-${Date.now()}`,
+                    title: "Nouvelle UE",
+                    department: "Informatique",
+                    responsible: "Professeur Inconnu",
+                    hoursUnassigned: 0,
+                    sessions: [],
+                };
+                folder.children.push(newCourse);
+            } else if (action === "Supprimer") {
+                const index = folder.children.findIndex(child => child.id === contextMenu.folderId);
+                if (index > -1) {
+                    folder.children.splice(index, 1);
+                }
+            }
+            setDataState({ ...dataState });
         }
         closeContextMenu();
+    };
+
+    const findFolder = (node: Folder, id: string): Folder => {
+        if (node.id === id) return node;
+        for (const child of node.children) {
+            if (child.type === "folder") {
+                const found = findFolder(child, id);
+                if (found) return found;
+            }
+        }
+        return null!;
+    };
+
+    const handleDoubleClick = (id: string, name: string) => {
+        setEditingFolderId(id);
+        setNewFolderName(name);
+    };
+
+    const handleFolderNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setNewFolderName(e.target.value);
+    };
+
+    const handleFolderNameSubmit = (id: string) => {
+        const folder = findFolder(dataState, id);
+        if (folder) {
+            folder.name = newFolderName;
+            setDataState({ ...dataState });
+        }
+        setEditingFolderId(null);
     };
 
     const renderFolder = (node: Folder | Course) => {
@@ -156,20 +214,28 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
             const isOpen = openFolders.has(node.id);
             return (
                 <div key={node.id} className="ml-4">
-                    {/* Bouton et titre du dossier */}
-                    <div className="flex items-center gap-2 cursor-pointer hover:text-gray-700">
+                    <div className="flex items-center gap-2 cursor-pointer hover:text-gray-700" onContextMenu={(e) => handleContextMenu(e, node.id)}>
                         <button className="text-lg font-bold" onClick={() => toggleFolder(node.id)}>
                             {isOpen ? "∨" : ">"}
                         </button>
-                        <span
-                            className="text-lg font-semibold"
-                            onContextMenu={(e) => handleContextMenu(e, node.id)} // Seulement ici !
-                        >
-                            {node.name}
-                        </span>
+                        {editingFolderId === node.id ? (
+                            <input
+                                type="text"
+                                value={newFolderName}
+                                onChange={handleFolderNameChange}
+                                onBlur={() => handleFolderNameSubmit(node.id)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleFolderNameSubmit(node.id)}
+                                className="text-lg font-semibold"
+                            />
+                        ) : (
+                            <span
+                                className="text-lg font-semibold"
+                                onDoubleClick={() => handleDoubleClick(node.id, node.name)}
+                            >
+                                {node.name}
+                            </span>
+                        )}
                     </div>
-
-                    {/* Contenu du dossier */}
                     {isOpen && (
                         <div className="mt-2">
                             {node.children.map((child) => renderFolder(child))}
@@ -181,22 +247,13 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
     };
 
     return (
-        <div className="relative p-4 flex flex-col" onClick={closeContextMenu}>
-            {/* Arbre des dossiers */}
-            <div className="flex-grow">{data.children.map((child) => renderFolder(child))}</div>
-
-            {/* Menu contextuel */}
+        <div className="relative p-4" onClick={closeContextMenu}>
+            <div className="flex-grow">{dataState.children.map((child) => renderFolder(child))}</div>
             {contextMenu.visible && (
                 <div
                     className="absolute bg-white border border-gray-300 rounded shadow-md"
                     style={{ top: contextMenu.y, left: contextMenu.x }}
                 >
-                    <button
-                        className="block px-4 py-2 text-left hover:bg-gray-100 w-full"
-                        onClick={() => handleAction("Supprimer")}
-                    >
-                        Supprimer
-                    </button>
                     <button
                         className="block px-4 py-2 text-left hover:bg-gray-100 w-full"
                         onClick={() => handleAction("Ajouter Dossier")}
@@ -209,15 +266,14 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                     >
                         Ajouter UE
                     </button>
+                    <button
+                        className="block px-4 py-2 text-left hover:bg-gray-100 w-full"
+                        onClick={() => handleAction("Supprimer")}
+                    >
+                        Supprimer
+                    </button>
                 </div>
             )}
-
-            {/* Bouton Valider */}
-            <div className="mt-4 flex justify-center">
-                <button className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                    Valider
-                </button>
-            </div>
         </div>
     );
 };
