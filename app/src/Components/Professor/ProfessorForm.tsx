@@ -6,9 +6,7 @@ interface ProfessorFormData {
     firstname: string;
     email: string;
     phoneNumber: string;
-    departement: string;
     numberHoursToAssign: number;
-    speciality: string;
     status: string;
 }
 
@@ -92,37 +90,12 @@ const ProfessorForm: React.FC<ProfessorFormProps> = ({formData, setFormData, err
             <div className="flex gap-4">
                 <div className="flex-1">
                     <Input
-                        label="Département"
-                        type="text"
-                        name="departement"
-                        placeholder="Département"
-                        error={errors.departement}
-                        value={formData.departement}
-                        onChange={handleChange}
-                    />
-                </div>
-                <div className="flex-1">
-                    <Input
                         label="Nombre d'heure à affecter"
                         type="number"
                         name="numberHoursToAssign"
                         placeholder="192"
                         error={errors.numberHoursToAssign}
                         value={formData.numberHoursToAssign}
-                        onChange={handleChange}
-                    />
-                </div>
-            </div>
-            
-            <div className="flex gap-4">
-                <div className="flex-1">
-                    <Input
-                        label="Spécialité"
-                        type="text"
-                        name="speciality"
-                        placeholder="Informatique"
-                        error={errors.speciality}
-                        value={formData.speciality}
                         onChange={handleChange}
                     />
                 </div>
