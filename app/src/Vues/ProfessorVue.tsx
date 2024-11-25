@@ -59,13 +59,20 @@ const ProfessorVue: React.FC = () => {
     }
 
     return(
-        <ProfessorForm
-            formData={formData}
-            setFormData={setFormData}
-            errors={errors}
-            setErrors={setErrors}
-            inputValidators={inputValidators}
-            onSubmit={handleSubmit}/>
+        <div className="flex flex-col justify-center items-center pt-12 pb-12">
+            <div className="w-full max-w-2xl p-2 space-y-6 rounded-lg shadow-md">
+            <div className="text-center">
+                <h1 className="text-2xl font-semibold">Ajouter un professeur</h1>
+            </div>
+                <ProfessorForm
+                    formData={formData}
+                    setFormData={setFormData}
+                    errors={errors}
+                    setErrors={setErrors}
+                    inputValidators={inputValidators}
+                    onSubmit={handleSubmit}/>
+            </div>
+        </div>
     )
 }
 
