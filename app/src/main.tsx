@@ -8,15 +8,17 @@ import Layout from "./Components/Utils/Layout.tsx";
 import './index.css';
 import Register from "./Vues/Register.tsx";
 import ModifyUser from "./Vues/ModifyUser.tsx";
+import ManageHumanResources from "./Vues/ManageHumanResources.tsx";
 import ModuleVue from "./Vues/ModuleVue.tsx";
 
 // Configuration des routes
 const routes = createRoutesFromElements(
     <Route path="/" element={<Layout />}>
-        <Route path="login" element={<LoginVue />} />
         <Route path="add-role" element={<AddRole />} />
         <Route path="accountcreation" element={<Register />} />
         <Route path="modify/:id" element={<ModifyUser />} />
+        <Route path="management" element={<ManageHumanResources/>}/>
+        <Route path="login" element={<LoginVue />} />
         <Route path="modules" element={<ModuleVue />} />
     </Route>
 );
