@@ -6,9 +6,7 @@ interface ProfessorFormData {
     firstname: string;
     email: string;
     phoneNumber: string;
-    departement: string;
     numberHoursToAssign: number;
-    speciality: string;
     status: string;
 }
 
@@ -20,9 +18,7 @@ const ProfessorVue: React.FC = () => {
             firstname: "",
             email: "",
             phoneNumber: "",
-            departement: "",
             numberHoursToAssign: 0,
-            speciality: "",
             status: "",
         }
     );
@@ -39,11 +35,7 @@ const ProfessorVue: React.FC = () => {
 
         phoneNumber: (value) => typeof value == "string" && /^\d{10}$/.test(value) ? "" : "Veuillez entrer un numéro de téléphone valide.",
 
-        departement: (value) => typeof value == "string" && value.length >= 2 ? "" : "Veuillez entrer un département valide.",
-
-        numberHoursToAssign: (value) => typeof value == "number" && value > 0 ? "" : "Veuillez entrer numéro d'heures valide",
-
-        speciality: (value) => typeof value == "string" && value.length >= 2 ? "" : "Veuillez entrer une spécialité valide",
+        numberHoursToAssign: (value) => Number(value) > 0 ? "" : "Veuillez entrer numéro d'heures valide ",
 
         status: (value) => typeof value == "string" && value.length >= 2 ? "" : "Veuillez choisir un status valide",
     }
