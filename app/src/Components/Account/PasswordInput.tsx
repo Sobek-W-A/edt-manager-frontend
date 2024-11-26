@@ -19,7 +19,7 @@ function PasswordInput (props:InputPasswordProps) {
 
     return <div className="form-field">
         <label className="form-label block text-sm font-medium text-green-700">{props.label}</label>
-        <div className="form-control">
+        <div className="relative form-control">
             <input
                 placeholder="••••••••••"
                 type={showPassword ? 'text' : 'password'}
@@ -27,7 +27,7 @@ function PasswordInput (props:InputPasswordProps) {
                 value={props.value}
                 onChange={props.onChange}
             />
-            <button type="button" className="btn btn-ghost px-1.5" onClick={togglePasswordVisibility}>
+            <button type="button" className="absolute inset-y-0 right-0 px-3 flex items-center btn btn-ghost" onClick={togglePasswordVisibility}>
                 {showPassword ? <EyeSlashIcon /> : <EyeIcon />}
             </button>
         </div>

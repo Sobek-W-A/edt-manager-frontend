@@ -17,14 +17,14 @@ interface AddRoleCardProps {
 function AddRoleCard({ user, rolesList, openRoleMenu, setOpenRoleMenu, addRoleToUser, removeRoleFromUser }: AddRoleCardProps) {
   const [, setRoles] = useState<string[]>([]);
   const [userRoles, setUserRoles] = useState<{ id: number, roles: string[] }[]>([]);
-  const [, setNotification] = useState<{ message: string; color: string } | null>(null);
+  const [, setNotification] = useState<{ message: string; type: string } | null>(null);
   const [, setShowNotification] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchData = async () => {
       const userRolesResponse = await RoleAPI.getUserRoles(user.id);
       if (userRolesResponse.isError()) {
-        setNotification({ message: `Une erreur est survenue : ${userRolesResponse.errorMessage()}.`, color: 'red' });
+        setNotification({ message: `Une erreur est survenue : ${userRolesResponse.errorMessage()}.`, type: 'alert-error' });
         setShowNotification(true);
         setUserRoles([{ id: user.id, roles: [] }]);
       } else {
@@ -33,7 +33,7 @@ function AddRoleCard({ user, rolesList, openRoleMenu, setOpenRoleMenu, addRoleTo
 
       const roleResponse = await RoleAPI.getRoles();
       if (roleResponse.isError()) {
-          setNotification({ message: `Une erreur est survenue : ${roleResponse.errorMessage()}.`, color: 'red' });
+          setNotification({ message: `Une erreur est survenue : ${roleResponse.errorMessage()}.`, type: 'alert-error' });
           setShowNotification(true);
       } else {
           const uniqueRoles = Array.from(new Set(roleResponse.responseObject()));

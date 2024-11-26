@@ -12,7 +12,7 @@ function AddRole() {
     const [users, setUsers] = useState<UserType[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [openRoleMenu, setOpenRoleMenu] = useState<string | null>(null);
-    const [notification, setNotification] = useState({ message: '', color: '' });
+    const [notification, setNotification] = useState({ message: '', type: '' });
     const [showNotification, setShowNotification] = useState(false);
 
     const [rolesList, setRolesList] = useState<string[]>([]);
@@ -23,7 +23,7 @@ function AddRole() {
         const fetchData = async () => {
             const userResponse = await UserApi.getAllUsers();
             if (userResponse.isError()) {
-                setNotification({ message: `Une erreur est survenue : ${userResponse.errorMessage()}.`, color: 'red' });
+                setNotification({ message: `Une erreur est survenue : ${userResponse.errorMessage()}.`, type: 'alert-error' });
                 setShowNotification(true);
             } else {
                 setUsers(userResponse.responseObject());
@@ -31,7 +31,7 @@ function AddRole() {
 
             const roleResponse = await RoleAPI.getRoles();
             if (roleResponse.isError()) {
-                setNotification({ message: `Une erreur est survenue : ${roleResponse.errorMessage()}.`, color: 'red' });
+                setNotification({ message: `Une erreur est survenue : ${roleResponse.errorMessage()}.`, type: 'alert-error' });
                 setShowNotification(true);
             } else {
                 const uniqueRoles = Array.from(new Set(roleResponse.responseObject()));
@@ -65,10 +65,10 @@ function AddRole() {
                         ...userTmp,
                         roles : (RoleAPI.addRoleToUser(user.id, selectedRole).then((response: APIResponse<{ roles: string[], message: ConfirmationMessage }>) => {
                             if (response.isError()) {
-                                setNotification({ message: `Une erreur est survenue : ${response.errorMessage()}.`, color: 'red' });
+                                setNotification({ message: `Une erreur est survenue : ${response.errorMessage()}.`, type: 'alert-error' });
                                 setShowNotification(true);
                             } else {
-                                setNotification({ message: `Rôle "${selectedRole}" ajouté à ${user.firstname} ${user.lastname}.`, color: 'green' });
+                                setNotification({ message: `Rôle "${selectedRole}" ajouté à ${user.firstname} ${user.lastname}.`, type: 'alert-success' });
                                 setShowNotification(true);
                                 return response.responseObject().roles;
                             }
@@ -80,7 +80,7 @@ function AddRole() {
         setOpenRoleMenu(null);
 
         // Afficher la notification d'ajout de rôle
-        setNotification({ message: `Rôle "${selectedRole}" ajouté à ${user.firstname} ${user.lastname}.`, color: 'green' });
+        setNotification({ message: `Rôle "${selectedRole}" ajouté à ${user.firstname} ${user.lastname}.`, type: 'alert-success' });
         setShowNotification(true); // Affiche la notification
     };
 
@@ -92,10 +92,10 @@ function AddRole() {
                         ...userTmp,
                         roles : (RoleAPI.removeRoleFromUser(user.id, roleToRemove).then((response: APIResponse<{ roles: string[], message: ConfirmationMessage }>) => {
                             if (response.isError()) {
-                                setNotification({ message: `Une erreur est survenue : ${response.errorMessage()}.`, color: 'red' });
+                                setNotification({ message: `Une erreur est survenue : ${response.errorMessage()}.`, type: 'alert-error' });
                                 setShowNotification(true);
                             } else {
-                                setNotification({ message: `Rôle "${roleToRemove}" retiré à ${user.firstname} ${user.lastname}.`, color: 'green' });
+                                setNotification({ message: `Rôle "${roleToRemove}" retiré à ${user.firstname} ${user.lastname}.`, type: 'alert-succes' });
                                 setShowNotification(true);
                                 return response.responseObject().roles;
                             }
@@ -106,7 +106,7 @@ function AddRole() {
         );
 
         // Affiche la notification de rôle retiré
-        setNotification({ message: `Rôle "${roleToRemove}" retiré à ${user.firstname} ${user.lastname}.`, color: 'red' });
+        setNotification({ message: `Rôle "${roleToRemove}" retiré à ${user.firstname} ${user.lastname}.`, type: 'alert-success' });
         setShowNotification(true);
     };
 
@@ -148,9 +148,16 @@ function AddRole() {
                 ))}
             </div>
 
+            {/* Aucun utilisateur */}
+            {filteredUsers.length === 0 && (
+                <div className="text-center text-gray-500">
+                    Aucun utilisateur trouvé.
+                </div>
+            )}
+
             {/* Notification */}
             {showNotification && (
-                <Notification message={notification.message} color={notification.color} />
+                <Notification message={notification.message} type={notification.type} />
             )}
 
         </div>
