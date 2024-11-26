@@ -245,7 +245,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                             />
                         ) : (
                             <span
-                                className="text-lg font-semibold"
+                                className="text-lg font-semibold whitespace-nowrap"
                                 onDoubleClick={() => handleDoubleClick(node.id, node.name)}
                             >
                                 {node.name}
@@ -263,7 +263,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
     };
 
     return (
-        <div className="relative p-4" onClick={closeContextMenu} style={{ maxHeight: '85vh', overflowY: 'auto' }}>
+        <div className="relative p-4" onClick={closeContextMenu} style={{ maxHeight: '85vh', overflowY: 'auto', overflowX: 'auto' }}>
             <div className="flex-grow">{dataState.children.map((child) => renderFolder(child))}</div>
             {contextMenu.visible && (
                 <div
