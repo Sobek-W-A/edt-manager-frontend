@@ -263,7 +263,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
     };
 
     return (
-        <div className="relative p-4" onClick={closeContextMenu}>
+        <div className="relative p-4" onClick={closeContextMenu} style={{ maxHeight: '85vh', overflowY: 'auto' }}>
             <div className="flex-grow">{dataState.children.map((child) => renderFolder(child))}</div>
             {contextMenu.visible && (
                 <div
