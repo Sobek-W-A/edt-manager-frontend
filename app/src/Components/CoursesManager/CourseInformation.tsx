@@ -8,17 +8,35 @@ const UEExemple = {
     durationTotale: 6,
     courses: [
         {CourseId : 1, type: "CM Bases", duration: 6},
-        {CourseId : 2, type: "TP Bases", duration: 10,
-            affectations :
-                [{ teacher : {profileId : 4 ,
-                    firstname : "Jean",
-                    lastname : "Lieber"},
-                    hours : 6},
-                { teacher : {profileId : 5 ,
-                        firstname : "Phuc",
-                        lastname : "Ngo"},
-                    hours : 4}
-                ]
+        {CourseId : 2, type: "TP Bases", duration: 10, group_count : 1, groups : [{
+                numeroGroupe: 1,
+
+
+                //on l'aura en get après
+
+
+
+                affectations:
+                    [
+                        {
+                        teacher: {
+                            profileId: 4,
+                            firstname: "Jean",
+                            lastname: "Lieber"
+                        },
+                        hours: 6
+                        },
+                        {
+                            teacher: {
+                                profileId: 5,
+                                firstname: "Phuc",
+                                lastname: "Ngo"
+                            },
+                            hours: 4
+                        }
+                    ]
+            }]
+
         }
 ]
 }
