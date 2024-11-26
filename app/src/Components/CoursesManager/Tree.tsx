@@ -213,7 +213,9 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         } else {
             const isOpen = openFolders.has(node.id);
             return (
-                <div key={node.id} className="ml-4">
+                <div key={node.id} className="ml-4 relative">
+                    {isOpen && <div className="absolute left-[-5px] top-3 h-full w-[1px] bg-blue-300"></div>}
+
                     <div className="flex items-center gap-2 cursor-pointer hover:text-gray-700" onContextMenu={(e) => handleContextMenu(e, node.id)}>
                         <button className="text-lg font-bold" onClick={() => toggleFolder(node.id)}>
                             {isOpen ? "∨" : ">"}
@@ -237,7 +239,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                         )}
                     </div>
                     {isOpen && (
-                        <div className="mt-2">
+                        <div className="mt-2 ml-2">
                             {node.children.map((child) => renderFolder(child))}
                         </div>
                     )}
@@ -274,6 +276,11 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                     </button>
                 </div>
             )}
+            <div className="flex justify-center mt-4">
+                <button className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                    Valider
+                </button>
+            </div>
         </div>
     );
 };
