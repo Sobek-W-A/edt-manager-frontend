@@ -218,7 +218,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
             return (
                 <div
                     key={node.id}
-                    className="ml-8 mt-2 p-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-md cursor-pointer"
+                    className="ml-8 mt-2 p-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-md cursor-pointer min-h-[50px] min-w-[300px]"
                     onClick={() => onSelectCourse(node)}
                 >
                     {node.title}
@@ -263,8 +263,8 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
     };
 
     return (
-        <div className="relative p-4" onClick={closeContextMenu} style={{ maxHeight: '85vh', overflowY: 'auto', overflowX: 'auto' }}>
-            <div className="flex-grow">{dataState.children.map((child) => renderFolder(child))}</div>
+        <div className="relative p-4 h-full" onClick={closeContextMenu}>
+            <div className="flex-grow h-full">{dataState.children.map((child) => renderFolder(child))}</div>
             {contextMenu.visible && (
                 <div
                     className="absolute bg-white border border-gray-300 rounded shadow-md"
