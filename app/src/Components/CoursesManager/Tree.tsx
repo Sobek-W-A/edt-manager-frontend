@@ -207,7 +207,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
     const handleFolderNameSubmit = (id: string) => {
         const folder = findFolder(dataState, id);
         if (folder) {
-            folder.name = newFolderName;
+            folder.name = newFolderName.trim() === "" ? "default" : newFolderName;
             setDataState({ ...dataState });
         }
         setEditingFolderId(null);
