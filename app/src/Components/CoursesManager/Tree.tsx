@@ -160,9 +160,12 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                 };
                 folder.children.push(newCourse);
             } else if (action === "Supprimer") {
-                const index = folder.children.findIndex(child => child.id === contextMenu.folderId);
-                if (index > -1) {
-                    folder.children.splice(index, 1);
+                const parentFolder = findParentFolder(dataState, contextMenu.folderId);
+                if (parentFolder) {
+                    const index = parentFolder.children.findIndex(child => child.id === contextMenu.folderId);
+                    if (index > -1) {
+                        parentFolder.children.splice(index, 1);
+                    }
                 }
             }
             setDataState({ ...dataState });
@@ -179,6 +182,17 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
             }
         }
         return null!;
+    };
+
+    const findParentFolder = (node: Folder, id: string): Folder | null => {
+        for (const child of node.children) {
+            if (child.id === id) return node;
+            if (child.type === "folder") {
+                const found = findParentFolder(child, id);
+                if (found) return found;
+            }
+        }
+        return null;
     };
 
     const handleDoubleClick = (id: string, name: string) => {
