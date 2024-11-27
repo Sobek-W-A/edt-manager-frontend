@@ -14,7 +14,7 @@ export default class AccountAPI {
     /**
      * This method builds and sends the request to get all the accounts.
      */
-    static get_all_accounts(): Promise<APIResponse<Account[]>> {
+    static getAllAccounts(): Promise<APIResponse<Account[]>> {
         return api.requestLogged<Account[]>(
             HTTPMethod.GET,
             `${AccountAPI.ACCOUNTS_PATH}/`,
@@ -27,7 +27,7 @@ export default class AccountAPI {
      * This method returns the account specified by the id provided.
      * @param account_id The id of the account to be returned.
      */
-    static get_account_by_id(account_id: number): Promise<APIResponse<Account>> {
+    static getAccountById(account_id: number): Promise<APIResponse<Account>> {
             return api.requestLogged<Account>(
             HTTPMethod.GET,
             `${AccountAPI.ACCOUNTS_PATH}/${account_id}`,
@@ -40,7 +40,7 @@ export default class AccountAPI {
      * This method builds and sends the request to create an account.
      * @param account The account to be created.
      */
-    static create_account(account: AccountInCreate): Promise<APIResponse<undefined>> {
+    static createAccount(account: AccountInCreate): Promise<APIResponse<undefined>> {
         return api.requestLogged<undefined>(
             HTTPMethod.POST,
             `${AccountAPI.ACCOUNTS_PATH}/`,
@@ -54,9 +54,9 @@ export default class AccountAPI {
      * @param account_id The id of the account to be updated.
      * @param account The account to be updated.
      */
-    static update_account(account_id: number, account: AccountInUpdate): Promise<APIResponse<undefined>> {
+    static updateAccount(account_id: number, account: AccountInUpdate): Promise<APIResponse<undefined>> {
         return api.requestLogged<undefined>(
-            HTTPMethod.PUT,
+            HTTPMethod.PATCH,
             `${AccountAPI.ACCOUNTS_PATH}/${account_id}`,
             JSON.stringify(account),
             undefined
@@ -67,7 +67,7 @@ export default class AccountAPI {
      * This method builds and sends the request to delete an account.
      * @param account_id The id of the account to be deleted.
      */
-    static delete_account(account_id: number): Promise<APIResponse<undefined>> {
+    static deleteAccount(account_id: number): Promise<APIResponse<undefined>> {
         return api.requestLogged<undefined>(
             HTTPMethod.DELETE,
             `${AccountAPI.ACCOUNTS_PATH}/${account_id}`,
