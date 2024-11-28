@@ -98,6 +98,7 @@ export default class AccountModel {
         return response.isError() ? response as ErrorResponse<undefined> : undefined;
     }
 
+
     get password_confirm(): string | undefined {
         return this._password_confirm;
     }

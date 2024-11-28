@@ -1,4 +1,4 @@
-import {Profile, ProfileInCreate} from "../API/APITypes/Profiles.ts";
+import {Profile, ProfileInCreate, ProfileInUpdate} from "../API/APITypes/Profiles.ts";
 import ProfileAPI from "../API/ModelAPIs/ProfileAPI.ts";
 import ErrorResponse from "../API/Responses/ErrorResponse.ts";
 
@@ -59,6 +59,31 @@ export default class ProfileModel {
             status_id: this._status_id
         }
         const response = await ProfileAPI.createProfile(body);
+        if (response.isError()) return response as ErrorResponse<undefined>;
+    }
+
+    /**
+     * This method updates the current profile with the information stored in the instance.
+     * @returns A promise that resolves into undefined or an ErrorResponse.
+     */
+    async updateProfile(): Promise<undefined | ErrorResponse<undefined>> {
+        const body: ProfileInUpdate = {
+            firstname: this._firstname,
+            lastname: this._lastname,
+            mail: this._mail,
+            account_id: this._account_id,
+            status_id: this._status_id
+        }
+        const response = await ProfileAPI.updateProfile(this._id, body);
+        if (response.isError()) return response as ErrorResponse<undefined>;
+    }
+
+    /**
+     * This method deletes the current profile from the API.
+     * @returns A promise that resolves into undefined or an ErrorResponse.
+     */
+    async deleteProfile(): Promise<undefined | ErrorResponse<undefined>> {
+        const response = await ProfileAPI.deleteProfile(this._id);
         if (response.isError()) return response as ErrorResponse<undefined>;
     }
 
