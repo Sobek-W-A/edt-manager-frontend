@@ -6,15 +6,17 @@ import LoginVue from "./Vues/LoginVue.tsx";
 import AddRole from "./Vues/AddRole.tsx";
 import Layout from "./Components/Utils/Layout.tsx";
 import './index.css';
-import Register from "./Vues/Register.tsx";
+import AddAccount from "./Vues/AddAccount.tsx";
 import ModifyUser from "./Vues/ModifyUser.tsx";
 import ManageHumanResources from "./Vues/ManageHumanResources.tsx";
+import AddProfile from "./Vues/AddProfile.tsx";
 
 // Configuration des routes
 const routes = createRoutesFromElements(
     <Route path="/" element={<Layout />}>
         <Route path="add-role" element={<AddRole />} />
-        <Route path="accountcreation" element={<Register />} />
+        <Route path="accountcreation" element={<AddAccount />} />
+        <Route path="profileCreation" element={<AddProfile/>} />
         <Route path="modify/:id" element={<ModifyUser />} />
         <Route path="management" element={<ManageHumanResources/>}/>
         <Route path="login" element={<LoginVue />} />
