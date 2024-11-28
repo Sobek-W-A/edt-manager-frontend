@@ -1,8 +1,9 @@
 import {useState} from "react";
-import UserModel from "../scripts/Models/UserModel.ts";
 import ErrorResponse from "../scripts/API/Responses/ErrorResponse.ts";
 import {AlertError, AlertSuccess} from "../Components/Utils/Alert.tsx";
 import ProfileForm from "../Components/Profile/ProfileForm.tsx";
+import ProfileModel from "../scripts/Models/ProfileModel.ts";
+import {Profile} from "../scripts/API/APITypes/Profiles.ts";
 
 
 function AddProfile() {
@@ -38,22 +39,21 @@ function AddProfile() {
 
 
     const handleSignUp = async () => {
-        const userData = {
+        const userData: Profile = {
             id: 0,
-            login: login,
             firstname: prenom,
             lastname: nom,
             mail: email,
-            statut : statut,
-            quota : quota
+            status_id : statut,
+            account_id: 0,          // TODO
+            quota :  parseInt(quota)
         };
 
         setSuccess(true);
 
         try {
-            const userModel: UserModel = new UserModel(userData);
-
-            const response = await userModel.createUser();
+            const model = new ProfileModel(userData);
+            const response = await model.createProfile();
 
             if (response instanceof ErrorResponse) {
                 setSuccess(false);
@@ -61,9 +61,7 @@ function AddProfile() {
                     ? "Identifiants incorrects"
                     : `Une erreur est survenue: ${response.errorMessage()}`
                 );
-
             }
-
         } catch (err) {
             setSuccess(false);
             setGeneralError(`Une erreur est survenue: ${err instanceof Error ? err.message : "Erreur inconnue"}`);

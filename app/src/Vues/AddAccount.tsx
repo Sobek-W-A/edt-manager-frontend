@@ -1,8 +1,9 @@
 import { useState } from "react";
 import UserForm from "../Components/Account/UserForm.tsx";
 import { AlertError, AlertSuccess } from "../Components/Utils/Alert.tsx";
-import UserModel from "../scripts/Models/UserModel.ts";
 import ErrorResponse from "../scripts/API/Responses/ErrorResponse.ts";
+import AccountModel from "../scripts/Models/AccountModel.ts";
+import {Account} from "../scripts/API/APITypes/Accounts.ts";
 
 function AddAccount() {
     const [password, setPassword] = useState('');
@@ -25,7 +26,7 @@ function AddAccount() {
     const setLoginError = (error: string) => setErrors(prev => ({ ...prev, loginError: error }));
 
     const handleSignUp = async () => {
-        const userData = {
+        const userData: Account = {
             id: 0,
             login: login,
         };
@@ -33,13 +34,12 @@ function AddAccount() {
         setSuccess(true);
 
         try {
-            const userModel: UserModel = new UserModel(userData); //User Model à changer
-            userModel.setPasswords(password, confirmPassword)
-
-            const response = await userModel.createUser();
+            const model = new AccountModel(userData);
+            model.setPasswords(password, confirmPassword);
+            const response = await model.createAccount();
 
             if (response instanceof ErrorResponse) {
-                setSuccess(false);
+                setSuccess(false); // TODO: handle properly the errors
                 setGeneralError(response.errorCode() === 401
                     ? "Identifiants incorrects"
                     : `Une erreur est survenue: ${response.errorMessage()}`
