@@ -41,12 +41,13 @@ function AddProfile() {
     const handleSignUp = async () => {
         const userData: Profile = {
             id: 0,
+            academic_year: [2024, 2025],
             firstname: prenom,
             lastname: nom,
-            mail: email,
-            status_id : statut,
-            account_id: 0,          // TODO
-            quota :  parseInt(quota)
+            mail: email
+            //status_id : statut,
+            //account_id: 0,          // TODO
+
         };
 
         setSuccess(true);

@@ -5,6 +5,7 @@ import ErrorResponse from "../API/Responses/ErrorResponse.ts";
 export default class ProfileModel {
 
     private _id        : number;
+    private _academic_year : number[];
     private _firstname : string;
     private _lastname  : string;
     private _mail      : string;
@@ -12,11 +13,12 @@ export default class ProfileModel {
     private _status_id : string | undefined;
 
     constructor(profile: Profile) {
-        this._id         = profile.id;
-        this._firstname  = profile.firstname;
-        this._lastname   = profile.lastname;
-        this._mail       = profile.mail;
-        this._status_id  = profile.status_id;
+        this._id = profile.id;
+        this._academic_year = profile.academic_year;
+        this._firstname = profile.firstname;
+        this._lastname = profile.lastname;
+        this._mail = profile.mail;
+        this._status_id = profile.status_id;
         this._account_id = profile.account_id;
     }
 
@@ -54,6 +56,7 @@ export default class ProfileModel {
         const body: ProfileInCreate = {
             firstname: this._firstname,
             lastname: this._lastname,
+            academic_year: this._academic_year,
             mail: this._mail,
             account_id: this._account_id,
             status_id: this._status_id
@@ -72,7 +75,8 @@ export default class ProfileModel {
             lastname: this._lastname,
             mail: this._mail,
             account_id: this._account_id,
-            status_id: this._status_id
+            status_id: this._status_id,
+            quota : 0
         }
         const response = await ProfileAPI.updateProfile(this._id, body);
         if (response.isError()) return response as ErrorResponse<undefined>;

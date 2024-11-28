@@ -14,6 +14,8 @@ interface UserFormProps {
     errors: {
         loginError: string;
         setLoginError: (value: string) => void;
+        emailError: string;
+        setEmailError: (value: string) => void;
         passwordError: string;
         setPasswordError: (value: string) => void;
         confirmPasswordError: string;

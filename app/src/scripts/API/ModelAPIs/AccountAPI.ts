@@ -9,7 +9,7 @@ import APIResponse from "../Responses/APIResponse.ts";
 export default class AccountAPI {
 
     // The path to the Account endpoints.
-    static ACCOUNTS_PATH = "/accounts";
+    static ACCOUNTS_PATH = "/account";
 
     /**
      * This method builds and sends the request to get all the accounts.
