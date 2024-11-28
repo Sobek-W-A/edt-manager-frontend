@@ -4,13 +4,13 @@ export type Account = {
 }
 
 export type AccountInCreate = {
-    login                : string;
-    password             : string;
-    password_confirmation: string;
+    login            : string;
+    password         : string;
+    password_confirm : string;
 }
 
 export type AccountInUpdate = {
-    login                : string | undefined;
-    password             : string | undefined;
-    password_confirmation: string | undefined;
+    login            : string | undefined;
+    password         : string | undefined;
+    password_confirm : string | undefined;
 }
