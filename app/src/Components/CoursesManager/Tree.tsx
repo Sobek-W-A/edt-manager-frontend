@@ -26,38 +26,11 @@ type TreeProps = {
     data: Folder;
     onSelectCourse: (course: Course) => void;
 };
-
 const data: Folder = {
     type: "folder",
     id: "root",
     name: "root",
     children: [
-        {
-            type: "folder",
-            id: "2023",
-            name: "2023",
-            children: [
-                {
-                    type: "folder",
-                    id: "2023-l3-info",
-                    name: "L3-Informatique",
-                    children: [
-                        {
-                            type: "course",
-                            id: "ue501",
-                            title: "UE 501 LOGIQUE",
-                            department: "Informatique",
-                            responsible: "Jean Lieber",
-                            hoursUnassigned: 5,
-                            sessions: [
-                                { type: "CM Logique", hours: 5, assigned: false },
-                                { type: "TP Logique", hours: 10, teacher: "Jean Lieber", assigned: true }
-                            ]
-                        }
-                    ]
-                }
-            ]
-        },
         {
             type: "folder",
             id: "2024",
@@ -100,6 +73,7 @@ const data: Folder = {
     ]
 };
 
+
 const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
     const [openFolders, setOpenFolders] = useState<Set<string>>(new Set());
     const [contextMenu, setContextMenu] = useState<{
@@ -108,10 +82,22 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         y: number;
         folderId: string | null;
     }>({ visible: false, x: 0, y: 0, folderId: null });
+
     const [dataState, setDataState] = useState<Folder>(data);
     const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
     const [newFolderName, setNewFolderName] = useState<string>("");
 
+    // Fonction pour charger les données depuis le backend
+    const chargementDonneeBackend = () => {
+        // TODO: Implémenter la logique pour charger les données depuis le backend dans data
+    };
+
+    // Appel de la fonction lors du chargement du composant
+    React.useEffect(() => {
+        chargementDonneeBackend();
+    }, []);
+
+    // Fonction pour basculer l'état d'ouverture d'un dossier
     const toggleFolder = (id: string) => {
         setOpenFolders((prev) => {
             const newSet = new Set(prev);
@@ -124,6 +110,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         });
     };
 
+    // Fonction pour gérer le menu contextuel
     const handleContextMenu = (e: React.MouseEvent, folderId: string) => {
         e.preventDefault();
         const menuWidth = 200;
@@ -133,10 +120,12 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         setContextMenu({ visible: true, x: x, y: y, folderId });
     };
 
+    // Fonction pour fermer le menu contextuel
     const closeContextMenu = () => {
         setContextMenu({ visible: false, x: 0, y: 0, folderId: null });
     };
 
+    // Fonction pour gérer les actions du menu contextuel
     const handleAction = (action: string) => {
         if (contextMenu.folderId) {
             const folder = findFolder(dataState, contextMenu.folderId);
@@ -173,6 +162,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         closeContextMenu();
     };
 
+    // Fonction pour trouver un dossier par son ID
     const findFolder = (node: Folder, id: string): Folder => {
         if (node.id === id) return node;
         for (const child of node.children) {
@@ -184,6 +174,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         return null!;
     };
 
+    // Fonction pour trouver le dossier parent d'un dossier donné
     const findParentFolder = (node: Folder, id: string): Folder | null => {
         for (const child of node.children) {
             if (child.id === id) return node;
@@ -195,15 +186,18 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         return null;
     };
 
+    // Fonction pour gérer le double clic sur un dossier
     const handleDoubleClick = (id: string, name: string) => {
         setEditingFolderId(id);
         setNewFolderName(name);
     };
 
+    // Fonction pour gérer le changement de nom d'un dossier
     const handleFolderNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setNewFolderName(e.target.value);
     };
 
+    // Fonction pour soumettre le changement de nom d'un dossier
     const handleFolderNameSubmit = (id: string) => {
         const folder = findFolder(dataState, id);
         if (folder) {
@@ -213,6 +207,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         setEditingFolderId(null);
     };
 
+    // Fonction pour rendre un dossier ou un cours
     const renderFolder = (node: Folder | Course) => {
         if (node.type === "course") {
             return (
@@ -262,6 +257,12 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         }
     };
 
+    // Fonction pour valider les actions
+    const handleValidate = () => {
+        // TODO
+        console.log("APPEL AU BACKEND");
+    };
+
     return (
         <div className="relative p-4 h-full" onClick={closeContextMenu}>
             <div className="flex-grow h-full">{dataState.children.map((child) => renderFolder(child))}</div>
@@ -291,7 +292,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                 </div>
             )}
             <div className="flex justify-center mt-4">
-                <button className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                <button className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" onClick={handleValidate}>
                     Valider
                 </button>
             </div>

@@ -15,7 +15,7 @@ class ManageHumanResources extends Component {
                     pane1Style={{ display: 'flex', flexDirection: 'column', overflow: 'auto', height: '100%', borderRight: 'none' }}
                     pane2Style={{ display: 'flex', flexDirection: 'column', overflow: 'auto', height: '100%', borderLeft: 'none' }}
                     resizerStyle={{ cursor: 'col-resize', background: '#ccc', width: '5px' }}
-                    style={{ height: '88.5%' }}
+                    style={{ height: 'auto',position: 'relative' }}
                 >
                     <div>
                         <Tree />

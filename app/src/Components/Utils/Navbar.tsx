@@ -3,7 +3,7 @@ import '../../index.css';
 
 function Navbar() {
     return (
-        <div className="w-full bg-green-700 border-b-2 border-t-2 p-2 pb-3 text-xl font-bold text-white grid grid-cols-5">
+        <div className="w-full bg-green-700 border-b-2 border-t-2 p-2 pb-3 text-xl font-bold text-white grid grid-cols-5 h-[7%]">
             <div className="col-start-1 col-span-1 flex items-center">
                 <Link to="/">
                     <span className="ml-2">SOBEK W.A.</span>
