@@ -20,8 +20,8 @@ class ManageHumanResources extends Component {
                     <div>
                         <Tree />
                     </div>
-                    <div>
-                        <CourseInformation />
+                    <div className="col-start-4 col-span-7">
+                        <CourseInformation/>
                     </div>
                 </SplitPane>
             </div>
