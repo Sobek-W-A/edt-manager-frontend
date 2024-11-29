@@ -10,6 +10,8 @@ import AddAccount from "./Vues/AddAccount.tsx";
 import ModifyUser from "./Vues/ModifyUser.tsx";
 import ManageHumanResources from "./Vues/ManageHumanResources.tsx";
 import AddProfile from "./Vues/AddProfile.tsx";
+import AssignedCoursesPage from './Vues/AssignedCoursesPage.tsx';
+
 
 // Configuration des routes
 const routes = createRoutesFromElements(
@@ -18,9 +20,9 @@ const routes = createRoutesFromElements(
         <Route path="accountcreation" element={<AddAccount />} />
         <Route path="profileCreation" element={<AddProfile/>} />
         <Route path="modify/:id" element={<ModifyUser />} />
-        <Route path="management" element={<ManageHumanResources/>}/>
+        <Route path="management" element={<ManageHumanResources />} />
         <Route path="login" element={<LoginVue />} />
-        <Route path="professor" element={<ProfessorVue />} />
+        <Route path="assigned-courses" element={<AssignedCoursesPage />} /> {/* Nouvelle route */}
     </Route>
 );
 
