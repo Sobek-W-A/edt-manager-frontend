@@ -18,27 +18,32 @@ function Navbar() {
                     <span className="ml-2">SOBEK W.A.</span>
                 </Link>
             </div>
-            {isLoggedIn && (
-                <>
+
                 {/* Add Role Links - regroupés et centrés avec un petit espace */}
                 <div className="col-start-2 col-span-3 flex justify-center items-center space-x-6">
-                    <div className="flex justify-center items-center">
-                        <Link to="/accountcreation" className="text-sm hover:text-green-300 transition duration-200">
-                            Creer un utilisateur
-                        </Link>
-                    </div>
-                    <div className="flex justify-center items-center">
-                        <Link to="/add-role" className="text-sm hover:text-green-300 transition duration-200">
-                            Liste d'utilisateurs
-                        </Link>
-                    </div>
-                    <div className="flex justify-center items-center">
-                        <Link to="/management" className="text-sm hover:text-green-300 transition duration-200">
-                            Gestion des cours
-                        </Link>
-                    </div>
+                    {!isLoggedIn && (
+                        <>
+                        <div className="flex justify-center items-center">
+                            <Link to="/accountcreation" className="text-sm hover:text-green-300 transition duration-200">
+                                Creer un utilisateur
+                            </Link>
+                        </div>
+                    </>)}
+
+                    {isLoggedIn && (
+                        <>
+                        <div className="flex justify-center items-center">
+                            <Link to="/add-role" className="text-sm hover:text-green-300 transition duration-200">
+                                Liste d'utilisateurs
+                            </Link>
+                        </div>
+                        <div className="flex justify-center items-center">
+                            <Link to="/management" className="text-sm hover:text-green-300 transition duration-200">
+                                Gestion des cours
+                            </Link>
+                        </div>
+                    </>)}
                 </div>
-            </>)}
 
             {!isLoggedIn && (
                 <>
@@ -50,6 +55,8 @@ function Navbar() {
                 </div>
             </>)}
 
+            {isLoggedIn && (
+                <>
                     {/* Add Role Link */}
                     <div className="col-start-6 col-span-1 flex justify-end items-center">
                         <Link to="/profileCreation" className="text-sm hover:text-green-300 transition duration-200">
@@ -70,7 +77,7 @@ function Navbar() {
                             Se déconnecter
                         </button>
                     </div>
-            )}
+                </>)}
         </div>
     );
 }
