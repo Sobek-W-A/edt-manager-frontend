@@ -1,5 +1,6 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import Input from "../Utils/Input.tsx";
+import StatusAPI from "../../scripts/API/ModelAPIs/StatusAPI.ts";
 
 interface UserFormProps {
     email: string;
@@ -14,6 +15,8 @@ interface UserFormProps {
     setStatut: (value: string) => void;
     quota: string;
     setQuota: (value: string) => void;
+
+
     handleSubmit: () => void;
     errors: {
         emailError: string;
@@ -48,6 +51,9 @@ const UserForm: React.FC<UserFormProps> = ({
                                                errors
                                            }) => {
 
+
+    const [status,] = useState([])
+
     // Handlers de validation internes avec types
     const handleMailType = (e: React.ChangeEvent<HTMLInputElement>) => {
         const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -70,9 +76,10 @@ const UserForm: React.FC<UserFormProps> = ({
         errors.setLoginError(e.target.value.length >= 2 ? "" : "Veuillez entrer un login valide, d'au moins 2 caractères.");
     };
 
-    const handleStatut = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleStatut = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setStatut(e.target.value);
-        errors.setStatutError(e.target.value.length >= 2 ? "" : "Veuillez choisir un statut.");
+        //TODO à modifier pour quand on aura le JSON de status qui aura le quota
+        setQuota(status.find(e.target.value).quota)
     };
 
     const handleQuota = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,7 +88,10 @@ const UserForm: React.FC<UserFormProps> = ({
     };
 
     useEffect(() => {
-        //get les status
+        //TODO
+        const statusDispo = StatusAPI.getAllStatus()
+        statusDispo.then(statut => console.log(statut))
+
     })
 
     return (
@@ -122,19 +132,23 @@ const UserForm: React.FC<UserFormProps> = ({
                 onChange={handleLogin}
             />
 
-            <Input
-                label="Statut"
-                type="text"
-                placeholder="Statut"
-                error={errors.statutError}
-                value={statut}
-                onChange={handleStatut}
-            />
+            <div>
+                <label htmlFor="selectInput" className="form-label block text-sm font-medium text-green-700">Status</label>
+                <select id="selectInput" value={statut} onChange={handleStatut}>
+                    <option value="" disabled></option>
+                    {status.map((option, index) => (
+                        <option key={index} value={option}>
+                            {option}
+                        </option>
+                    )) }
+                </select>
+                <p> {statut} </p>
+            </div>
 
             <Input
                 label="Quota"
                 type="text"
-                placeholder="Quota"
+                placeholder="quota"
                 error={errors.quotaError}
                 value={quota}
                 onChange={handleQuota}

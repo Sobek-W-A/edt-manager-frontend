@@ -30,6 +30,8 @@ function AddProfile() {
     const [generalError, setGeneralError] = useState("");
     const [success, setSuccess] = useState(false);
 
+
+
     const setEmailError = (error: string) => setErrors(prev => ({ ...prev, emailError: error }));
     const setPrenomError = (error: string) => setErrors(prev => ({ ...prev, prenomError: error }));
     const setNomError = (error: string) => setErrors(prev => ({ ...prev, nomError: error }));
@@ -38,15 +40,19 @@ function AddProfile() {
     const setQuotaError = (error: string) => setErrors(prev => ({ ...prev, nomError: error }));
 
 
+
     const handleSignUp = async () => {
         const userData: Profile = {
             id: 0,
             academic_year: [2024, 2025],
             firstname: prenom,
             lastname: nom,
-            mail: email
+            mail: email,
+            //statut : statut, //TODO  quand on aura le statut
+            //quota : quota //TODO quand on aura la quota
             //status_id : statut,
-            //account_id: 0,          // TODO
+            //account_id: 0,          // TODO MAIS POUR PLUS TARD
+
 
         };
 
@@ -82,6 +88,7 @@ function AddProfile() {
 
                 <ProfileForm
                     email={email} setEmail={setEmail}
+                    //status={status} setStatus={setStatus}
                     prenom={prenom} setPrenom={setPrenom}
                     nom={nom} setNom={setNom}
                     login={login} setLogin={setLogin}
