@@ -3,28 +3,19 @@ import Input from "../Utils/Input.tsx";
 import PasswordInput from "./PasswordInput.tsx";
 
 interface UserFormProps {
-    email: string;
-    setEmail: (value: string) => void;
-    prenom: string;
-    setPrenom: (value: string) => void;
-    nom: string;
-    setNom: (value: string) => void;
     login: string;
     setLogin: (value: string) => void;
+
     password: string;
     setPassword: (value: string) => void;
     confirmPassword: string;
     setConfirmPassword: (value: string) => void;
     handleSubmit: () => void;
     errors: {
-        emailError: string;
-        setEmailError: (value: string) => void;
-        prenomError: string;
-        setPrenomError: (value: string) => void;
-        nomError: string;
-        setNomError: (value: string) => void;
         loginError: string;
         setLoginError: (value: string) => void;
+        emailError: string;
+        setEmailError: (value: string) => void;
         passwordError: string;
         setPasswordError: (value: string) => void;
         confirmPasswordError: string;
@@ -33,14 +24,8 @@ interface UserFormProps {
 }
 
 const UserForm: React.FC<UserFormProps> = ({
-                                               email,
-                                               setEmail,
-                                               prenom,
-                                               setPrenom,
-                                               nom,
-                                               setNom,
-                                               login,
-                                               setLogin,
+                                                login,
+                                                setLogin,
                                                password,
                                                setPassword,
                                                confirmPassword,
@@ -49,22 +34,7 @@ const UserForm: React.FC<UserFormProps> = ({
                                                errors
                                            }) => {
 
-    // Handlers de validation internes avec types
-    const handleMailType = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-        setEmail(e.target.value);
-        errors.setEmailError(re.test(e.target.value) ? "" : "Veuillez entrer une adresse email valide.");
-    };
 
-    const handlePrenom = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setPrenom(e.target.value);
-        errors.setPrenomError(e.target.value.length >= 2 ? "" : "Veuillez entrer un prénom valide, d'au moins 2 caractères.");
-    };
-
-    const handleNom = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setNom(e.target.value);
-        errors.setNomError(e.target.value.length >= 2 ? "" : "Veuillez entrer un nom valide, d'au moins 2 caractères.");
-    };
 
     const handleLogin = (e: React.ChangeEvent<HTMLInputElement>) => {
         setLogin(e.target.value);
@@ -85,32 +55,6 @@ const UserForm: React.FC<UserFormProps> = ({
 
     return (
         <div className="form-group">
-            <Input
-                label="Adresse email"
-                type="email"
-                placeholder="mail@exemple.fr"
-                error={errors.emailError}
-                value={email}
-                onChange={handleMailType}
-            />
-
-            <Input
-                label="Prénom"
-                type="text"
-                placeholder="Prénom"
-                error={errors.prenomError}
-                value={prenom}
-                onChange={handlePrenom}
-            />
-
-            <Input
-                label="Nom"
-                type="text"
-                placeholder="Nom"
-                error={errors.nomError}
-                value={nom}
-                onChange={handleNom}
-            />
 
             <Input
                 label="Login"
