@@ -1,5 +1,5 @@
 import { useState } from "react";
-import UserForm from "../Components/Account/UserForm.tsx";
+import AccountForm from "../Components/Account/AccountForm.tsx";
 import { AlertError, AlertSuccess } from "../Components/Utils/Alert.tsx";
 import ErrorResponse from "../scripts/API/Responses/ErrorResponse.ts";
 import AccountModel from "../scripts/Models/AccountModel.ts";
@@ -64,7 +64,7 @@ function AddAccount() {
             {generalError && <AlertError title="Oups ! Une erreur est survenue." details={generalError} />}
             {success && <AlertSuccess title="Succès !" details="L'inscription a été réalisée avec succès !" />}
 
-            <UserForm
+            <AccountForm
                 login={login} setLogin={setLogin}
                 password={password} setPassword={setPassword}
                 confirmPassword={confirmPassword} setConfirmPassword={setConfirmPassword}

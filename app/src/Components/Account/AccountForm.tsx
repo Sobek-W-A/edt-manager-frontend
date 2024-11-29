@@ -23,7 +23,7 @@ interface UserFormProps {
     };
 }
 
-const UserForm: React.FC<UserFormProps> = ({
+const AccountForm: React.FC<UserFormProps> = ({
                                                 login,
                                                 setLogin,
                                                password,
@@ -92,4 +92,4 @@ const UserForm: React.FC<UserFormProps> = ({
     );
 }
 
-export default UserForm;
+export default AccountForm;
