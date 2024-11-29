@@ -10,13 +10,6 @@ type ProfileType = {
     lastname: string
 }
 
-const profiles: ProfileType[] = [
-    {firstname: "Julian", lastname: "Provillard"},
-    {firstname: "firstname1", lastname: "lastname1"},
-    {firstname: "Horatiu", lastname: "CIRSTEA"},
-    {firstname: "Guillaume", lastname: "HOMBERG"},
-    {firstname: "Sébastien", lastname: "DUVAL"},];
-
 function SearchAndChose() {
     const [searchInput, setSearchInput] = useState<string>("");
     const [searchResult, setSearchResult] = useState<ProfileType[] | null>();
@@ -33,15 +26,15 @@ function SearchAndChose() {
     const handleChangeSearchInput = (e: ChangeEvent<HTMLInputElement>) => {
         setSearchInput(e.target.value);
         setLoading(true);
-        // TODO : GET Professeurs
+
         if(searchInput.length > 1) {
-            setSearchResult(profiles.filter(
-                (profile) => profile.lastname.toLowerCase().includes(searchInput.toLowerCase()) ||
-                    profile.firstname.toLowerCase().includes(searchInput.toLowerCase())));
+            // TODO : Search professor
+            setSearchResult([]);
+            setLoading(false)
         } else {
-            setSearchResult(null)
+            setSearchResult(null);
+            setLoading(false);
         }
-        setLoading(false);
     }
 
     const handleChangeNbrHourToAffect = (e: ChangeEvent<HTMLInputElement>) => {
@@ -57,14 +50,8 @@ function SearchAndChose() {
         setSelectedProfessor(professor);
     }
 
-    const searchProfessor = () => {
-        console.log(searchInput);
-        // TODO: envoyer la requête avec searchInput
-
-    }
-
-    const affectProfessor = () => {
-        console.log(dataToAssignProfessor.nbrHourToAssign);
+    const assignProfessor = () => {
+        console.log("Assign professor");
     }
 
     return (
@@ -130,7 +117,7 @@ function SearchAndChose() {
                             onChange={(e) => handleChangeNbrHourToAffect(e)}
                         />
                         <button
-                            onClick={affectProfessor}
+                            onClick={assignProfessor}
                             className="ml-3 px-4 py-2 text-white rounded hover:border-green-300 bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500">
                             Affecter
                         </button>
