@@ -1,3 +1,4 @@
+
 import React, {useState, useEffect, useImperativeHandle, forwardRef} from 'react';
 import CollapsibleButton from './CollapsibleButton';
 import SearchAndChose from "./SearchAndChose";
@@ -68,6 +69,13 @@ const CourseInformation = forwardRef ( (props, ref) => {
         setIsEditing(false);
         //TODO update de l'ue, pour le moment que le nom
     };
+
+    // Utilisez selectedCourseId pour afficher les informations de l'UE
+    React.useEffect(() => {
+        if (props.selectedCourseId) {
+            ref.current.displayUE_By_ID(props.selectedCourseId); // Appel de la fonction avec l'ID sélectionné
+        }
+    }, [props.selectedCourseId]);
 
     return (
         <div className="p-5">
