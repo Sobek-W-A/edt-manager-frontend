@@ -14,7 +14,7 @@ export type ProfileInCreate = {
     lastname:   string;
     mail:       string;
     quota:      number;
-    academic_year : string
+    academic_year : number[]
     account_id: number | undefined;
     status_id:  string | undefined;
 }
