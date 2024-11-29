@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect, useImperativeHandle, forwardRef} from 'react';
 import CollapsibleButton from './CollapsibleButton';
 import SearchAndChose from "./SearchAndChose";
 
@@ -27,10 +27,17 @@ interface UEData {
     courses: Course[];
 }
 
-const CourseInformation: React.FC<CourseInformationProps> = ({ id }) => {
+const CourseInformation = forwardRef ( (props, ref) => {
     const [ueName, setUeName] = useState<string>('');
     const [courses, setCourses] = useState<Course[]>([]);
     const [isEditing, setIsEditing] = useState<boolean>(false);
+
+    // Exposez la méthode displayUE_By_ID via la référence
+    useImperativeHandle(ref, () => ({
+        displayUE_By_ID(id: string) {
+            console.log(id + " TODO");
+        }
+    }));
 
     useEffect(() => {
         const fetchUEData = async () => {
@@ -44,7 +51,7 @@ const CourseInformation: React.FC<CourseInformationProps> = ({ id }) => {
         };
 
         fetchUEData();
-    }, [id]);
+    });
 
     const handleDoubleClick = () => {
         setIsEditing(true);
@@ -80,6 +87,7 @@ const CourseInformation: React.FC<CourseInformationProps> = ({ id }) => {
 
             <div>
                 {courses.map((course, index) => (
+
                     <div key={index} className="form-field pt-5">
                         <div><p>{course.type}</p></div>
                         {course.affectations.map((affectation, indexBis) => (
@@ -97,6 +105,6 @@ const CourseInformation: React.FC<CourseInformationProps> = ({ id }) => {
             </div>
         </div>
     );
-};
+});
 
 export default CourseInformation;
