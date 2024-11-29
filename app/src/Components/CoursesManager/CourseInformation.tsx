@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, forwardRef, useImperativeHandle } from 'react';
 import CollapsibleButton from './CollapsibleButton';
 import SearchAndChose from "./SearchAndChose.tsx";
 
@@ -34,10 +34,16 @@ const UEExemple = {
     ]
 };
 
-const CourseInformation: React.FC = () => {
-    // Créer un état pour gérer le nom modifiable
+const CourseInformation = forwardRef((props, ref) => {
     const [ueName, setUeName] = useState<string>(UEExemple.name);
     const [isEditing, setIsEditing] = useState<boolean>(false);
+
+    // Exposez la méthode displayUE_By_ID via la référence
+    useImperativeHandle(ref, () => ({
+        displayUE_By_ID(id: string) {
+            console.log(id + " TODO");
+        }
+    }));
 
     // Fonction pour activer l'édition sur double-clic
     const handleDoubleClick = () => {
@@ -54,6 +60,13 @@ const CourseInformation: React.FC = () => {
         setIsEditing(false);
         // Vous pouvez ajouter ici une logique pour enregistrer les changements si nécessaire (ex: API call)
     };
+
+    // Utilisez selectedCourseId pour afficher les informations de l'UE
+    React.useEffect(() => {
+        if (props.selectedCourseId) {
+            ref.current.displayUE_By_ID(props.selectedCourseId); // Appel de la fonction avec l'ID sélectionné
+        }
+    }, [props.selectedCourseId]);
 
     return (
         <div className="p-5">
@@ -90,6 +103,6 @@ const CourseInformation: React.FC = () => {
             </div>
         </div>
     );
-};
+});
 
 export default CourseInformation;
