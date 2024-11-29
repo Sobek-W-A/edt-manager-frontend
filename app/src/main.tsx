@@ -20,7 +20,7 @@ const routes = createRoutesFromElements(
         <Route path="profileCreation" element={<AddProfile/>} />
         <Route path="management" element={<ManageHumanResources />} />
         <Route path="login" element={<LoginVue />} />
-        <Route path="assigned-courses" element={<AssignedCoursesPage />} /> {/* Nouvelle route */}
+        <Route path="assigned-courses" element={<AssignedCoursesPage />} />
     </Route>
 );
 
