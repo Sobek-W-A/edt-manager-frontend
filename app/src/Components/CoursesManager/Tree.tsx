@@ -4,15 +4,6 @@ type Course = {
     type: "course";
     id: string;
     title: string;
-    department: string;
-    responsible: string;
-    hoursUnassigned: number;
-    sessions: {
-        type: string;
-        hours: number;
-        assigned: boolean;
-        teacher?: string;
-    }[];
 };
 
 type Folder = {
@@ -45,26 +36,11 @@ const data: Folder = {
                             type: "course",
                             id: "ue502",
                             title: "UE 502 ALGORITHMIQUE-CONCEPTION PROGRAMMATION OBJET AVANCÉE",
-                            department: "Informatique",
-                            responsible: "Horatiu",
-                            hoursUnassigned: 12,
-                            sessions: [
-                                { type: "CM Logique", hours: 12, assigned: false },
-                                { type: "TP1 Logique", hours: 10, teacher: "Jean Lieber", assigned: true },
-                                { type: "TP2 Logique", hours: 10, teacher: "Didier Galmiche", assigned: true }
-                            ]
                         },
                         {
                             type: "course",
                             id: "ue503",
                             title: "UE 503 BASES DE DONNÉES",
-                            department: "Informatique",
-                            responsible: "Horatiu",
-                            hoursUnassigned: 6,
-                            sessions: [
-                                { type: "CM Bases", hours: 6, assigned: false },
-                                { type: "TP Bases", hours: 10, teacher: "Jean Lieber", assigned: true }
-                            ]
                         }
                     ]
                 }
@@ -142,10 +118,6 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                     type: "course",
                     id: `course-${Date.now()}`,
                     title: "Nouvelle UE",
-                    department: "Informatique",
-                    responsible: "Professeur Inconnu",
-                    hoursUnassigned: 0,
-                    sessions: [],
                 };
                 folder.children.push(newCourse);
             } else if (action === "Supprimer") {
