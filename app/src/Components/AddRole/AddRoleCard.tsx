@@ -1,17 +1,18 @@
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {faEnvelope, faPlus,faTimes} from "@fortawesome/free-solid-svg-icons";
 import {useEffect, useState} from "react";
-import {UserType} from "../../scripts/API/APITypes/Users";
 import RoleAPI from "../../scripts/API/ModelAPIs/RoleAPI";
+import Account from "../../scripts/API/APITypes/Accounts";
+import Profile from "../../scripts/API/APITypes/Profiles";
 import {Link} from "react-router-dom";
 
 interface AddRoleCardProps {
-  user: UserType;
+  user: Account & Profile;
   rolesList: string[];
   openRoleMenu: string | null;
   setOpenRoleMenu: (id: string | null) => void;
-  addRoleToUser: (user: UserType, role: string) => void;
-  removeRoleFromUser: (user: UserType, role: string) => void;
+  addRoleToUser: (user: Account & Profile, role: string) => void;
+  removeRoleFromUser: (user: Account & Profile, role: string) => void;
 }
 
 function AddRoleCard({ user, rolesList, openRoleMenu, setOpenRoleMenu, addRoleToUser, removeRoleFromUser }: AddRoleCardProps) {

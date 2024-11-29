@@ -1,11 +1,16 @@
 import { ConfirmationMessage } from "../APITypes/CommonTypes";
 import APIResponse from "../Responses/APIResponse.ts";
+import {HTTPMethod} from "../Enums/HTTPMethod.ts";
+import {api} from "../API.ts";
+import {Profile, ProfileInCreate, ProfileInUpdate} from "../APITypes/Profiles.ts";
 
 /**
  * API methods for user endpoints.
  */
 export default class RoleAPI {
     static usersRoles: { id: number, roles: string[] }[] = [];
+
+    static ROLE_URL: string = '/role';
 
     static rolesList: string[] = [
         "Responsable de département",
@@ -24,6 +29,15 @@ export default class RoleAPI {
             errorMessage: () => "",
             responseObject: () => this.rolesList
         });
+    }
+
+    static getAllRoles(): Promise<APIResponse<string[]>> {
+        return api.requestLogged<string[]>(
+            HTTPMethod.GET,
+            `${RoleAPI.ROLE_URL}/`,
+            undefined,
+            undefined
+        );
     }
 
     /**
