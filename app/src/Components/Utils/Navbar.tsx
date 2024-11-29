@@ -1,5 +1,7 @@
-import { Link } from "react-router-dom";
-import '../../index.css';
+import { Link } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
+import AuthModel from '../../scripts/Models/AuthModel';
 
 function Navbar() {
     return (
@@ -9,6 +11,7 @@ function Navbar() {
                     <span className="ml-2">SOBEK W.A.</span>
                 </Link>
             </div>
+
             {/* Login Link */}
             <div className="col-start-2 col-span-1 flex justify-end items-center">
                 <Link to="/login" className="text-sm hover:text-green-300 transition duration-200">
@@ -42,6 +45,19 @@ function Navbar() {
                 <Link to="/profileCreation" className="text-sm hover:text-green-300 transition duration-200">
                     Créer un profile
                 </Link>
+            </div>
+
+            {/* Logout Button */}
+            <div className="col-start-10 col-span-1 flex justify-end items-center ml-auto">
+                <button
+                    onClick={() => {
+                        AuthModel.logout();
+                    }}
+                    className="text-sm hover:text-green-300 transition duration-200 flex items-center"
+                >
+                    <FontAwesomeIcon icon={faSignOutAlt} className="mr-2" />
+                    Se déconnecter
+                </button>
             </div>
         </div>
     );
