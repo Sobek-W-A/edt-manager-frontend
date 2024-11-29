@@ -73,8 +73,8 @@ function AddProfile() {
         <div className="flex flex-col items-center justify-center pt-12 pb-12">
             <div className="w-full max-w-md p-8 space-y-6 rounded-lg shadow-md">
                 <div className="flex flex-col items-center">
-                    <h1 className="text-4xl font-semibold">Création de compte</h1>
-                    <p className="text-sm">Créez un nouvel utilisateur</p>
+                    <h1 className="text-4xl font-semibold">Création de profile</h1>
+                    <p className="text-sm">Créez un nouveau profile</p>
                 </div>
 
                 {generalError && <AlertError title="Oups ! Une erreur est survenue." details={generalError} />}
