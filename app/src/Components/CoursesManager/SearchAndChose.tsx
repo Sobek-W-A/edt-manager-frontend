@@ -10,19 +10,18 @@ type ProfileType = {
     lastname: string
 }
 
+const profiles: ProfileType[] = [
+    {firstname: "Julian", lastname: "Provillard"},
+    {firstname: "firstname1", lastname: "lastname1"},
+    {firstname: "Horatiu", lastname: "CIRSTEA"},
+    {firstname: "Guillaume", lastname: "HOMBERG"},
+    {firstname: "Sébastien", lastname: "DUVAL"},];
+
 function SearchAndChose() {
-    const profiles: ProfileType[] = [
-        {
-            firstname: "Julian",
-            lastname: "Provillard"
-        },
-        {
-            firstname: "firstname1",
-            lastname: "lastname1"
-        }];
     const [searchInput, setSearchInput] = useState<string>("");
     const [searchResult, setSearchResult] = useState<ProfileType[] | null>();
     const [loading, setLoading] = useState<boolean>();
+    const [selectedProfessor, setSelectedProfessor] = useState<ProfileType>();
 
     const [error, setError] = useState("");
 
@@ -35,13 +34,37 @@ function SearchAndChose() {
         setSearchInput(e.target.value);
         setLoading(true);
         // TODO : GET Professeurs
-        if(searchInput.length > 2) {
+        if(searchInput.length > 1) {
             setSearchResult(profiles.filter(
-                (profile) => profile.lastname.toLowerCase().includes(searchInput.toLowerCase())));
+                (profile) => profile.lastname.toLowerCase().includes(searchInput.toLowerCase()) ||
+                    profile.firstname.toLowerCase().includes(searchInput.toLowerCase())));
         } else {
             setSearchResult(null)
         }
         setLoading(false);
+    }
+
+    const handleChangeNbrHourToAffect = (e: ChangeEvent<HTMLInputElement>) => {
+        setDataToAssignProfessor({...dataToAssignProfessor, nbrHourToAssign: Number(e.target.value)});
+    }
+
+    const handleChangeGroupe = (e: ChangeEvent<HTMLSelectElement>) => {
+        setDataToAssignProfessor({...dataToAssignProfessor, group: e.target.value});
+    }
+
+    const selectProfessor = (professor: ProfileType) => {
+        setSearchResult(null)
+        setSelectedProfessor(professor);
+    }
+
+    const searchProfessor = () => {
+        console.log(searchInput);
+        // TODO: envoyer la requête avec searchInput
+
+    }
+
+    const affectProfessor = () => {
+        console.log(dataToAssignProfessor.nbrHourToAssign);
     }
 
     return (
@@ -69,7 +92,7 @@ function SearchAndChose() {
                         <div
                             key={professor.firstname}
                             className="px-3 py-2 hover:bg-green-100 cursor-pointer"
-
+                            onClick={() => selectProfessor(professor)}
                         >
                             {professor.lastname} {professor.firstname}
                         </div>
@@ -78,6 +101,42 @@ function SearchAndChose() {
                         <div className="text-center">Aucun résultat trouvé</div>}
                 </div>
             </div>
+            {selectedProfessor &&
+                <div className="w-full flex flex-col justify-between items-center">
+                    <div className="w-full flex justify-between items-center">
+                        <h1 className="px-3 py-2 mt-1">{selectedProfessor?.firstname} {selectedProfessor?.lastname}</h1>
+                        <div>
+                            <select
+                                id="group"
+                                name="group"
+                            required
+                            className="mr-2 px-3 py-2 mt-1 text-green-900 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+                            value={dataToAssignProfessor.group}
+                            onChange={(e) => handleChangeGroupe(e)}>
+                            <option>Veuillez choisir le groupe</option>
+                            <option>TP</option>
+                            <option>CM</option>
+                            <option>TD</option>
+                        </select>
+                        <input
+                            id="nbrHour"
+                            name="nbrHourToAffect"
+                            type="number"
+                            min={0}
+                            required
+                            className="w-20 px-3 py-2 mt-1 text-green-900 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+                            placeholder="Nombre d'heure à affecter"
+                            value={dataToAssignProfessor.nbrHourToAssign}
+                            onChange={(e) => handleChangeNbrHourToAffect(e)}
+                        />
+                        <button
+                            onClick={affectProfessor}
+                            className="ml-3 px-4 py-2 text-white rounded hover:border-green-300 bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500">
+                            Affecter
+                        </button>
+                    </div>
+                </div>
+            </div>}
         </div>
     );
 }
