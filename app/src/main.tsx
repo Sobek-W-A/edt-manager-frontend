@@ -9,6 +9,7 @@ import './index.css';
 import Register from "./Vues/Register.tsx";
 import ModifyUser from "./Vues/ModifyUser.tsx";
 import ManageHumanResources from "./Vues/ManageHumanResources.tsx";
+import AssignedCoursesPage from './Vues/AssignedCoursesPage.tsx';
 
 // Configuration des routes
 const routes = createRoutesFromElements(
@@ -16,8 +17,9 @@ const routes = createRoutesFromElements(
         <Route path="add-role" element={<AddRole />} />
         <Route path="accountcreation" element={<Register />} />
         <Route path="modify/:id" element={<ModifyUser />} />
-        <Route path="management" element={<ManageHumanResources/>}/>
+        <Route path="management" element={<ManageHumanResources />} />
         <Route path="login" element={<LoginVue />} />
+        <Route path="assigned-courses" element={<AssignedCoursesPage />} /> {/* Nouvelle route */}
     </Route>
 );
 
