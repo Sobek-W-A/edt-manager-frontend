@@ -1,21 +1,29 @@
 import {Component} from 'react';
+import SplitPane from 'react-split-pane';
 import Tree from "../Components/CoursesManager/Tree.tsx";
 import CourseInformation from "../Components/CoursesManager/CourseInformation.tsx";
 
 class ManageHumanResources extends Component {
+    
     render() {
         return (
-            <div className="w-full h-full">
-                <div className="grid grid-cols-10">
-                    <div className="col-start-1 col-span-3 border-r-4">
-                        <Tree/>
-                    </div>
+            <div className="flex-grow flex flex-col" style={{ height: '100%', overflow: 'hidden' }}>
+                <SplitPane
+                    split="vertical"
+                    minSize={200}
+                    defaultSize={500}
+                    pane1Style={{ display: 'flex', flexDirection: 'column', overflow: 'auto', height: '100%', borderRight: 'none' }}
+                    pane2Style={{ display: 'flex', flexDirection: 'column', overflow: 'auto', height: '100%', borderLeft: 'none' }}
+                    resizerStyle={{ cursor: 'col-resize', background: '#ccc', width: '5px' }}
+                    style={{ height: 'auto',position: 'relative' }}
+                >
                     <div>
+                        <Tree />
+                    </div>
+                    <div className="col-start-4 col-span-7">
                         <CourseInformation/>
                     </div>
-
-                </div>
-
+                </SplitPane>
             </div>
         );
     }
