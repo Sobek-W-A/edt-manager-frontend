@@ -26,6 +26,16 @@ function Navbar() {
                         Gestion des cours
                     </Link>
                 </div>
+                <div className="col-start-6 col-span-1 flex justify-end items-center">
+                    <Link to="/profileCreation" className="text-sm hover:text-green-300 transition duration-200">
+                        Créer un profile
+                    </Link>
+                </div>
+                <div className="col-start-6 col-span-1 flex justify-end items-center">
+                    <Link to="/assigned-courses" className="text-sm hover:text-green-300 transition duration-200">
+                        Verifier collègues
+                    </Link>
+                </div>
             </div>
 
             {/* Login Link - déplacé à droite */}
@@ -35,12 +45,7 @@ function Navbar() {
                 </Link>
             </div>
 
-            {/* Add Role Link */}
-            <div className="col-start-6 col-span-1 flex justify-end items-center">
-                <Link to="/profileCreation" className="text-sm hover:text-green-300 transition duration-200">
-                    Créer un profile
-                </Link>
-            </div>
+
         </div>
     );
 }
