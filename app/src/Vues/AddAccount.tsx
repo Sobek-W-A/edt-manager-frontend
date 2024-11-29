@@ -1,13 +1,11 @@
 import { useState } from "react";
-import UserForm from "../Components/Account/UserForm.tsx";
+import AccountForm from "../Components/Account/AccountForm.tsx";
 import { AlertError, AlertSuccess } from "../Components/Utils/Alert.tsx";
-import UserModel from "../scripts/Models/UserModel.ts";
 import ErrorResponse from "../scripts/API/Responses/ErrorResponse.ts";
+import AccountModel from "../scripts/Models/AccountModel.ts";
+import {Account} from "../scripts/API/APITypes/Accounts.ts";
 
-function Register() {
-    const [email, setEmail] = useState('');
-    const [prenom, setPrenom] = useState('');
-    const [nom, setNom] = useState('');
+function AddAccount() {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [login, setLogin] = useState('');
@@ -17,41 +15,31 @@ function Register() {
 
     // Gestion des erreurs dans un objet pour les transmettre au formulaire
     const [errors, setErrors] = useState({
-        emailError: '',
-        prenomError: '',
-        nomError: '',
         passwordError: '',
         confirmPasswordError: '',
         loginError: ''
     });
 
     // Mises à jour simplifiées pour chaque message d'erreur
-    const setEmailError = (error: string) => setErrors(prev => ({ ...prev, emailError: error }));
-    const setPrenomError = (error: string) => setErrors(prev => ({ ...prev, prenomError: error }));
-    const setNomError = (error: string) => setErrors(prev => ({ ...prev, nomError: error }));
     const setPasswordError = (error: string) => setErrors(prev => ({ ...prev, passwordError: error }));
     const setConfirmPasswordError = (error: string) => setErrors(prev => ({ ...prev, confirmPasswordError: error }));
     const setLoginError = (error: string) => setErrors(prev => ({ ...prev, loginError: error }));
 
     const handleSignUp = async () => {
-        const userData = {
+        const userData: Account = {
             id: 0,
             login: login,
-            firstname: prenom,
-            lastname: nom,
-            mail: email,
         };
 
         setSuccess(true);
 
         try {
-            const userModel: UserModel = new UserModel(userData);
-            userModel.setPasswords(password, confirmPassword)
-
-            const response = await userModel.createUser();
+            const model = new AccountModel(userData);
+            model.setPasswords(password, confirmPassword);
+            const response = await model.createAccount();
 
             if (response instanceof ErrorResponse) {
-                setSuccess(false);
+                setSuccess(false); // TODO: handle properly the errors
                 setGeneralError(response.errorCode() === 401
                     ? "Identifiants incorrects"
                     : `Une erreur est survenue: ${response.errorMessage()}`
@@ -76,19 +64,13 @@ function Register() {
             {generalError && <AlertError title="Oups ! Une erreur est survenue." details={generalError} />}
             {success && <AlertSuccess title="Succès !" details="L'inscription a été réalisée avec succès !" />}
 
-            <UserForm
-                email={email} setEmail={setEmail}
-                prenom={prenom} setPrenom={setPrenom}
-                nom={nom} setNom={setNom}
+            <AccountForm
                 login={login} setLogin={setLogin}
                 password={password} setPassword={setPassword}
                 confirmPassword={confirmPassword} setConfirmPassword={setConfirmPassword}
                 handleSubmit={handleSignUp}
                 errors={{
                     ...errors,
-                    setEmailError,
-                    setPrenomError,
-                    setNomError,
                     setPasswordError,
                     setConfirmPasswordError,
                     setLoginError
@@ -99,4 +81,4 @@ function Register() {
     );
 }
 
-export default Register;
+export default AddAccount;

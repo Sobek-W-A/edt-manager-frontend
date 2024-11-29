@@ -1,6 +1,6 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import Input from "../Utils/Input.tsx";
-import PasswordInput from "./PasswordInput.tsx";
+import StatusAPI from "../../scripts/API/ModelAPIs/StatusAPI.ts";
 
 interface UserFormProps {
     email: string;
@@ -11,10 +11,12 @@ interface UserFormProps {
     setNom: (value: string) => void;
     login: string;
     setLogin: (value: string) => void;
-    password: string;
-    setPassword: (value: string) => void;
-    confirmPassword: string;
-    setConfirmPassword: (value: string) => void;
+    statut: string;
+    setStatut: (value: string) => void;
+    quota: string;
+    setQuota: (value: string) => void;
+
+
     handleSubmit: () => void;
     errors: {
         emailError: string;
@@ -25,10 +27,10 @@ interface UserFormProps {
         setNomError: (value: string) => void;
         loginError: string;
         setLoginError: (value: string) => void;
-        passwordError: string;
-        setPasswordError: (value: string) => void;
-        confirmPasswordError: string;
-        setConfirmPasswordError: (value: string) => void;
+        statutError: string;
+        setStatutError: (value: string) => void;
+        quotaError: string;
+        setQuotaError: (value: string) => void;
     };
 }
 
@@ -41,13 +43,16 @@ const UserForm: React.FC<UserFormProps> = ({
                                                setNom,
                                                login,
                                                setLogin,
-                                               password,
-                                               setPassword,
-                                               confirmPassword,
-                                               setConfirmPassword,
+                                                statut,
+                                                setStatut,
+                                                quota,
+                                                setQuota,
                                                handleSubmit,
                                                errors
                                            }) => {
+
+
+    const [status,] = useState([])
 
     // Handlers de validation internes avec types
     const handleMailType = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -71,17 +76,23 @@ const UserForm: React.FC<UserFormProps> = ({
         errors.setLoginError(e.target.value.length >= 2 ? "" : "Veuillez entrer un login valide, d'au moins 2 caractères.");
     };
 
-    const handleMotDePasse = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const re = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+{}:;<>,.?~[\]\-\\/])[a-zA-Z0-9!@#$%^&*()_+{}:;<>,.?~[\]\-\\/]{8,}$/;
-        setPassword(e.target.value);
-        errors.setPasswordError(re.test(e.target.value) ? "" : "Veuillez entrer un mot de passe conforme.");
-        errors.setConfirmPasswordError(e.target.value !== confirmPassword ? "Les mots de passe doivent être identiques." : "");
+    const handleStatut = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setStatut(e.target.value);
+        //TODO à modifier pour quand on aura le JSON de status qui aura le quota
+        setQuota(status.find(e.target.value).quota)
     };
 
-    const handleMdpConfirmation = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setConfirmPassword(e.target.value);
-        errors.setConfirmPasswordError(e.target.value !== password ? "Les mots de passe doivent être identiques." : "");
+    const handleQuota = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setQuota(e.target.value);
+        errors.setStatutError(e.target.value.length >= 2 ? "" : "Veuillez choisir quota valide.");
     };
+
+    useEffect(() => {
+        //TODO
+        const statusDispo = StatusAPI.getAllStatus()
+        statusDispo.then(statut => console.log(statut))
+
+    })
 
     return (
         <div className="form-group">
@@ -121,18 +132,26 @@ const UserForm: React.FC<UserFormProps> = ({
                 onChange={handleLogin}
             />
 
-            <PasswordInput
-                label="Mot de passe"
-                error={errors.passwordError}
-                value={password}
-                onChange={handleMotDePasse}
-            />
+            <div>
+                <label htmlFor="selectInput" className="form-label block text-sm font-medium text-green-700">Status</label>
+                <select id="selectInput" value={statut} onChange={handleStatut}>
+                    <option value="" disabled></option>
+                    {status.map((option, index) => (
+                        <option key={index} value={option}>
+                            {option}
+                        </option>
+                    )) }
+                </select>
+                <p> {statut} </p>
+            </div>
 
-            <PasswordInput
-                label="Confirmer le mot de passe"
-                error={errors.confirmPasswordError}
-                value={confirmPassword}
-                onChange={handleMdpConfirmation}
+            <Input
+                label="Quota"
+                type="text"
+                placeholder="quota"
+                error={errors.quotaError}
+                value={quota}
+                onChange={handleQuota}
             />
 
             <div className="form-field pt-5">
