@@ -19,6 +19,14 @@ export default class AuthModel {
     }
 
     /**
+     * This method checks if the user is logged in.
+     * @returns A boolean that is true if the user is logged in, false otherwise.
+     */
+    static isLoggedIn(): boolean {
+        return Storage.isAccessTokenStored();
+    }
+
+    /**
      * This method authenticates the user to the API.
      * Requires login and password to be set.
      * @returns A promise that resolves into a pair of tokens, or an error.
