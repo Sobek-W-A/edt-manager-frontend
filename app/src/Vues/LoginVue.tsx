@@ -26,6 +26,7 @@ function Login() {
             }
             
             navigate('/');
+            window.location.reload();
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : "Une erreur est survenue";
             setError(`Une erreur est survenue: ${errorMessage}`);

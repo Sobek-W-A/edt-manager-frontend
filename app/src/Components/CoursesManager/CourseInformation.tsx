@@ -1,64 +1,73 @@
-import React, { useState, forwardRef, useImperativeHandle } from 'react';
+
+import React, {useState, useEffect, useImperativeHandle, forwardRef} from 'react';
 import CollapsibleButton from './CollapsibleButton';
-import SearchAndChose from "./SearchAndChose.tsx";
+import SearchAndChose from "./SearchAndChose";
 
-// Exemple d'UE (comme dans votre code initial)
-const UEExemple = {
-    id: "ue503",
-    name: "UE 503 BASES DE DONNÉES",
-    durationTotale: 6,
-    courses: [
-        { CourseId: 1, type: "CM Bases", duration: 6 },
-        { CourseId: 2, type: "TP Bases", duration: 10, group_count: 1, groups: [{
-                numeroGroupe: 1,
-                affectations: [
-                    {
-                        teacher: {
-                            profileId: 4,
-                            firstname: "Jean",
-                            lastname: "Lieber"
-                        },
-                        hours: 6
-                    },
-                    {
-                        teacher: {
-                            profileId: 5,
-                            firstname: "Phuc",
-                            lastname: "Ngo"
-                        },
-                        hours: 4
-                    }
-                ]
-            }]
-        }
-    ]
-};
+interface CourseInformationProps {
+    id: string; // ID passée en props
+}
 
-const CourseInformation = forwardRef((props, ref) => {
-    const [ueName, setUeName] = useState<string>(UEExemple.name);
+interface Teacher {
+    name: string;
+    lastname: string;
+}
+
+interface Affectation {
+    teacher: Teacher;
+    idgroupe: string;
+    hours: number;
+}
+
+interface Course {
+    type: string;
+    affectations: Affectation[]; // Nouveau champ
+}
+
+interface UEData {
+    name: string;
+    courses: Course[];
+}
+
+const CourseInformation = forwardRef ( (props, ref) => {
+    const [ueName, setUeName] = useState<string>('');
+    const [courses, setCourses] = useState<Course[]>([]);
     const [isEditing, setIsEditing] = useState<boolean>(false);
+    const [idUE, setIDUE] = useState<string>('');
 
     // Exposez la méthode displayUE_By_ID via la référence
     useImperativeHandle(ref, () => ({
         displayUE_By_ID(id: string) {
-            console.log(id + " TODO");
+            console.log(id + " ON UTILISE CETTE ID");
+            setIDUE(id)
+            const fetchUEData = async () => {
+                try {
+                    const response = null //TODO appel de l'API pour tout ce qu'il faut
+                    //setUeName(response.data.name);
+                    //setCourses(response.data.courses);
+                } catch (error) {
+                    console.error('Erreur lors de la récupération des données de l\'UE:', error);
+                }
+            };
+
+            fetchUEData();
         }
     }));
 
-    // Fonction pour activer l'édition sur double-clic
+    useEffect(() => {
+
+    });
+
     const handleDoubleClick = () => {
         setIsEditing(true);
     };
 
-    // Fonction pour gérer le changement de texte
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setUeName(e.target.value);
     };
 
-    // Fonction pour arrêter l'édition (par exemple, en appuyant sur Entrée ou en quittant le champ d'entrée)
-    const handleBlur = () => {
+    const handleBlur = async () => {
         setIsEditing(false);
-        // Vous pouvez ajouter ici une logique pour enregistrer les changements si nécessaire (ex: API call)
+        //TODO update de l'ue, pour le moment que le nom
     };
 
     // Utilisez selectedCourseId pour afficher les informations de l'UE
@@ -71,18 +80,17 @@ const CourseInformation = forwardRef((props, ref) => {
     return (
         <div className="p-5">
             <div className="w-full text-center">
-                {/* Afficher l'input si on est en mode édition */}
+
                 {isEditing ? (
                     <input
                         type="text"
                         value={ueName}
                         onChange={handleChange}
-                        onBlur={handleBlur} // Sortie du mode édition
-                        autoFocus // Met le focus directement dans l'input
+                        onBlur={handleBlur} // Sauvegarde la modification
+                        autoFocus
                         className="text-center border-b-2 border-blue-500"
                     />
                 ) : (
-                    // Afficher le nom comme texte, avec un gestionnaire de double-clic
                     <h1 onDoubleClick={handleDoubleClick} className="cursor-pointer">
                         {ueName}
                     </h1>
@@ -90,11 +98,17 @@ const CourseInformation = forwardRef((props, ref) => {
             </div>
 
             <div>
-                {UEExemple.courses.map((element, index) => (
-                    <div key={index} className="form-field pt-5">
-                        <div><p>{element.type}</p></div>
-                        <div><p>Durée totale : {element.duration}</p></div>
+                {courses.map((course, index) => (
 
+                    <div key={index} className="form-field pt-5">
+                        <div><p>{course.type}</p></div>
+                        {course.affectations.map((affectation, indexBis) => (
+                            <div key={indexBis}>
+                                <p>
+                                    {affectation.teacher.name} {affectation.teacher.lastname} est affecté au groupe {affectation.idgroupe} pour une durée de {affectation.hours} heures
+                                </p>
+                            </div>
+                        ))}
                         <CollapsibleButton>
                             <SearchAndChose />
                         </CollapsibleButton>
