@@ -14,7 +14,7 @@ export default class StatusAPI {
     static getAllStatus(): Promise<APIResponse<StatusType[]>> {
         return api.requestLogged<StatusType[]>(
             HTTPMethod.GET,
-            StatusAPI.BASE_STATUS_URL + "/",
+            StatusAPI.BASE_STATUS_URL + "/2024",
             undefined
         );
     }
