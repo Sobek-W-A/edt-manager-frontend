@@ -8,6 +8,7 @@ import { Account } from "../scripts/API/APITypes/Accounts.ts";
 import { Profile } from "../scripts/API/APITypes/Profiles.ts";
 import { ConfirmationMessage } from "../scripts/API/APITypes/CommonTypes";
 import ProfileAPI from "../scripts/API/ModelAPIs/ProfileAPI.ts";
+import { RoleType } from "../scripts/API/APITypes/Role.ts";
 
 
 function AddRole() {
@@ -16,9 +17,9 @@ function AddRole() {
     const [openRoleMenu, setOpenRoleMenu] = useState<string | null>(null);
     const [notification, setNotification] = useState({ message: '', type: '' });
     const [showNotification, setShowNotification] = useState(false);
-    const [selectedTags, setSelectedTags] = useState<string[]>([]);
+    const [selectedTags, setSelectedTags] = useState<RoleType[]>([]);
 
-    const [rolesList, setRolesList] = useState<string[]>([]);
+    const [rolesList, setRolesList] = useState<RoleType[]>([]);
 
 
     // Utilisation de useEffect pour récupérer les comptes, les profils et les rôles
@@ -29,18 +30,16 @@ function AddRole() {
                 setNotification({ message: `Une erreur est survenue : ${accountResponse.errorMessage()}.`, type: 'alert-error' });
                 setShowNotification(true);
             } else {
-                console.log("Comptes : ", accountResponse.responseObject());
                 const profileResponse = await ProfileAPI.getAllProfiles();
                 if (profileResponse.isError()) {
                     setNotification({ message: `Une erreur est survenue : ${accountResponse.errorMessage()}.`, type: 'alert-error' });
                     setShowNotification(true);
                 } else {
-                    console.log("Profils : ", profileResponse.responseObject());
-                    /*const combinedUsers = accountResponse.responseObject().map((account, index) => ({
+                    const combinedUsers = accountResponse.responseObject().map((account, index) => ({
                         ...account,
                         ...profileResponse.responseObject()[index]
                     }));
-                    setUsers(combinedUsers);*/
+                    setUsers(combinedUsers);
                 }
             }
 
@@ -49,19 +48,8 @@ function AddRole() {
                 setNotification({ message: `Une erreur est survenue : ${rolesResponse.errorMessage()}.`, type: 'alert-error' });
                 setShowNotification(true);
             } else {
-                const roleNames = rolesResponse.responseObject().map((role: { name: string }) => role.name);
-                setRolesList(roleNames);
-                console.log("Rôles : ", roleNames);
+                setRolesList(rolesResponse.responseObject());
             }
-
-            /*const roleResponse = await RoleAPI.getRoles();
-            if (roleResponse.isError()) {
-                setNotification({ message: `Une erreur est survenue : ${roleResponse.errorMessage()}.`, type: 'alert-error' });
-                setShowNotification(true);
-            } else {
-                const uniqueRoles = Array.from(new Set(roleResponse.responseObject()));
-                setRolesList(uniqueRoles);
-            }*/
         };
 
         fetchData().then();
@@ -82,30 +70,30 @@ function AddRole() {
         setSearchTerm(e.target.value.toLowerCase());
     };
 
-    const handleTagClick = (tag: string) => {
+    const handleTagClick = (tag: RoleType) => {
         setSelectedTags(prevTags =>
             prevTags.includes(tag) ? prevTags.filter(t => t !== tag) : [...prevTags, tag]
         );
     };
 
-    const addRoleToUser = (user: UserType, selectedRole: string) => {
-        setUsers(prevUsers =>
-            prevUsers.map(userTmp =>
-                userTmp.id === user.id
-                    ? {
-                        ...userTmp,
-                        roles : (RoleAPI.addRoleToUser(user.id, selectedRole).then((response: APIResponse<{ roles: string[], message: ConfirmationMessage }>) => {
-                            if (response.isError()) {
-                                setNotification({ message: `Une erreur est survenue : ${response.errorMessage()}.`, type: 'alert-error' });
-                                setShowNotification(true);
-                            } else {
-                                setNotification({ message: `Rôle "${selectedRole}" ajouté à ${user.firstname} ${user.lastname}.`, type: 'alert-success' });
-                                setShowNotification(true);
-                                return response.responseObject().roles;
-                            }
-                        }))
-                    }
-                    : userTmp
+    const addRoleToUser = (user: Account & Profile, selectedRole: RoleType) => {
+        setUsers((prevUsers: (Account & Profile)[]) =>
+            prevUsers.map((userTmp: Account & Profile) =>
+            userTmp.id === user.id
+                ? {
+                    ...userTmp,
+                    role: (RoleAPI.modifyUserRole(user.id, selectedRole, user.academic_year.toString()).then((response: APIResponse<RoleType>) => {
+                        if (response.isError()) {
+                            setNotification({ message: `Une erreur est survenue : ${response.errorMessage()}.`, type: 'alert-error' });
+                            setShowNotification(true);
+                        } else {
+                            setNotification({ message: `Rôle "${selectedRole}" ajouté à ${user.firstname} ${user.lastname}.`, type: 'alert-success' });
+                            setShowNotification(true);
+                            return selectedRole;
+                        }
+                    }))
+                }
+                : userTmp
             )
         );
         setOpenRoleMenu(null);
@@ -115,20 +103,20 @@ function AddRole() {
         setShowNotification(true); // Affiche la notification
     };
 
-    const removeRoleFromUser = (user: UserType, roleToRemove: string) => {
+    const removeRoleFromUser = (user: Account & Profile, roleToRemove: RoleType) => {
         setUsers(prevUsers =>
             prevUsers.map(userTmp =>
                 userTmp.id === user.id
                     ? {
                         ...userTmp,
-                        roles : (RoleAPI.removeRoleFromUser(user.id, roleToRemove).then((response: APIResponse<{ roles: string[], message: ConfirmationMessage }>) => {
+                        roles : (RoleAPI.modifyUserRole(user.id, "", user.academic_year.toString()).then((response: APIResponse<RoleType>) => {
                             if (response.isError()) {
                                 setNotification({ message: `Une erreur est survenue : ${response.errorMessage()}.`, type: 'alert-error' });
                                 setShowNotification(true);
                             } else {
-                                setNotification({ message: `Rôle "${roleToRemove}" retiré à ${user.firstname} ${user.lastname}.`, type: 'alert-succes' });
+                                setNotification({ message: `Rôle "${roleToRemove}" retiré à ${user.firstname} ${user.lastname}.`, type: 'alert-success' });
                                 setShowNotification(true);
-                                return response.responseObject().roles;
+                                return response.responseObject();
                             }
                         }))
                     }
@@ -173,11 +161,11 @@ function AddRole() {
                             <span className="text-gray-500">Tags :</span>
                             {rolesList.map(role => (
                                 <span
-                                    key={role}
+                                    key={role.name}
                                     onClick={() => handleTagClick(role)}
                                     className={`cursor-pointer px-2 py-1 rounded ${selectedTags.includes(role) ? 'bg-green-700 hover:bg-green-800 text-white' : 'bg-gray-400 hover:bg-gray-500 text-white'}`}
                                 >
-                                    {role}
+                                    {role.name}
                                 </span>
                             ))}
                         </div>
@@ -185,7 +173,7 @@ function AddRole() {
         
                     {/* Grille des utilisateurs */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {filteredUsersByTags.map((user) => (
+                        {filteredUsersByTags.map((user: Account & Profile) => (
                             <AddRoleCard
                                 key={user.id}
                                 user={user}
@@ -202,6 +190,9 @@ function AddRole() {
                     {filteredUsersByTags.length === 0 && (
                         <div className="text-center text-gray-500 mt-6">Aucun utilisateur trouvé.</div>
                     )}        
+
+                    {/* Notification */}
+                    {showNotification && <Notification message={notification.message} type={notification.type} />}
                 </div>
             </div>
         );
