@@ -2,6 +2,7 @@
   "devDependencies": {
     "@eslint/js": "^9.14.0",
     "@types/node": "^22.7.7",
+    "daisyui": "^4.12.14",
     "eslint": "^9.14.0",
     "eslint-plugin-react": "^7.37.2",
     "globals": "^15.12.0",

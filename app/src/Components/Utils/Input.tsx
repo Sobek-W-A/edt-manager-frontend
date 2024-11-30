@@ -5,7 +5,8 @@ interface InputProps {
     placeholder: string;
     type: string;
     error: string;
-    value: string;
+    value: string | number;
+    name?: string;
     onChange: ChangeEventHandler<HTMLInputElement>;
 }
 
@@ -19,6 +20,7 @@ function Input (props:InputProps) {
             type={props.type}
             className={"w-full px-3 py-2 mt-1 text-green-900 border rounded focus:outline-none focus:ring-2 focus:ring-green-500" + (props.error !== "" && " input-error")}
             value={props.value}
+            name={props.name}
             onChange={props.onChange}
         />
         <label className="form-label">
