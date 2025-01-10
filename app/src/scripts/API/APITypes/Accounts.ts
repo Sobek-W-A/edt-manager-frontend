@@ -1,6 +1,9 @@
+import { Profile } from './Profiles';
+
 export type Account = {
     id      : number;
     login   : string;
+    profile : Profile;
 }
 
 export type AccountInCreate = {
