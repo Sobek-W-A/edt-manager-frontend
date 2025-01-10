@@ -6,7 +6,6 @@ import RoleAPI from "../scripts/API/ModelAPIs/RoleAPI";
 import APIResponse from "../scripts/API/Responses/APIResponse.ts";
 import { Account } from "../scripts/API/APITypes/Accounts.ts";
 import { Profile } from "../scripts/API/APITypes/Profiles.ts";
-import { ConfirmationMessage } from "../scripts/API/APITypes/CommonTypes";
 import ProfileAPI from "../scripts/API/ModelAPIs/ProfileAPI.ts";
 import { RoleType } from "../scripts/API/APITypes/Role.ts";
 
@@ -17,14 +16,15 @@ function AddRole() {
     const [openRoleMenu, setOpenRoleMenu] = useState<string | null>(null);
     const [notification, setNotification] = useState({ message: '', type: '' });
     const [showNotification, setShowNotification] = useState(false);
-    const [selectedTags, setSelectedTags] = useState<RoleType[]>([]);
-
+    const [selectedTag, setSelectedTag] = useState<RoleType>({} as RoleType);
+    const [userRoles, setUserRoles] = useState<{ user: Profile & Account, role: RoleType }[]>([]);
     const [rolesList, setRolesList] = useState<RoleType[]>([]);
 
 
     // Utilisation de useEffect pour récupérer les comptes, les profils et les rôles
     useEffect(() => {
         const fetchData = async () => {
+            // Récupérer les comptes et les profils de chaque utilisateur
             const accountResponse = await AccountAPI.getAllAccounts();
             if (accountResponse.isError()) {
                 setNotification({ message: `Une erreur est survenue : ${accountResponse.errorMessage()}.`, type: 'alert-error' });
@@ -43,6 +43,7 @@ function AddRole() {
                 }
             }
 
+            // Récupérer la liste des rôles
             const rolesResponse = await RoleAPI.getAllRoles();
             if (rolesResponse.isError()) {
                 setNotification({ message: `Une erreur est survenue : ${rolesResponse.errorMessage()}.`, type: 'alert-error' });
@@ -55,6 +56,28 @@ function AddRole() {
         fetchData().then();
     }, []);
 
+    // Utilisation de useEffect pour récupérer les rôles de chaque utilisateur
+    useEffect(() => {
+        const fetchUserRoles = async () => {
+            const updatedUserRoles = [];
+            for (let i = 0; i < users.length; i++) {
+                const userRolesResponse = await RoleAPI.getUserRoles(users[i].id, users[i].academic_year.toString());
+                if (userRolesResponse.isError()) {
+                    setNotification({ message: `Une erreur est survenue : ${userRolesResponse.errorMessage()}.`, type: 'alert-error' });
+                    setShowNotification(true);
+                    updatedUserRoles.push({ user: users[i], role: {} as RoleType });
+                } else {
+                    updatedUserRoles.push({ user: users[i], role: userRolesResponse.responseObject() });
+                }
+            }
+            setUserRoles(updatedUserRoles);
+        };
+
+        if (users.length > 0) {
+            fetchUserRoles().then();
+        }
+    }, [users]);
+    
     // Utilisation de useEffect pour fermer la notification après 3 secondes
     useEffect(() => {
         if (showNotification) {
@@ -71,9 +94,11 @@ function AddRole() {
     };
 
     const handleTagClick = (tag: RoleType) => {
-        setSelectedTags(prevTags =>
-            prevTags.includes(tag) ? prevTags.filter(t => t !== tag) : [...prevTags, tag]
-        );
+        if (selectedTag === tag) {
+            setSelectedTag({} as RoleType);
+            return;
+        }
+        setSelectedTag(tag);
     };
 
     const addRoleToUser = (user: Account & Profile, selectedRole: RoleType) => {
@@ -137,8 +162,8 @@ function AddRole() {
         );
     });
 
-    const filteredUsersByTags = selectedTags.length > 0
-        ? filteredUsers.filter(user => selectedTags.every(tag => user.roles.includes(tag)))
+    const filteredUsersByTags = selectedTag.name !== undefined
+        ? filteredUsers.filter(user => userRoles.some(u => u.user.id === user.id && u.role.name === selectedTag.name))
         : filteredUsers;
 
         return (
@@ -163,7 +188,7 @@ function AddRole() {
                                 <span
                                     key={role.name}
                                     onClick={() => handleTagClick(role)}
-                                    className={`cursor-pointer px-2 py-1 rounded ${selectedTags.includes(role) ? 'bg-green-700 hover:bg-green-800 text-white' : 'bg-gray-400 hover:bg-gray-500 text-white'}`}
+                                    className={`cursor-pointer px-2 py-1 rounded ${selectedTag === role ? 'bg-green-700 hover:bg-green-800 text-white' : 'bg-gray-400 hover:bg-gray-500 text-white'}`}
                                 >
                                     {role.name}
                                 </span>
@@ -172,7 +197,7 @@ function AddRole() {
                     </div>
         
                     {/* Grille des utilisateurs */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-3 gap-6">
                         {filteredUsersByTags.map((user: Account & Profile) => (
                             <AddRoleCard
                                 key={user.id}
