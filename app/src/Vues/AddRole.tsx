@@ -5,11 +5,15 @@ import AccountAPI from "../scripts/API/ModelAPIs/AccountAPI";
 import RoleAPI from "../scripts/API/ModelAPIs/RoleAPI";
 import APIResponse from "../scripts/API/Responses/APIResponse.ts";
 import { Account } from "../scripts/API/APITypes/Accounts.ts";
+import { Profile } from "../scripts/API/APITypes/Profiles.ts";
 import { RoleType } from "../scripts/API/APITypes/Role.ts";
+import ProfileAPI from "../scripts/API/ModelAPIs/ProfileAPI.ts";
 
 
 function AddRole() {
-    const [users, setUsers] = useState<(Account)[]>([]);
+    const [accountsAndProfils, setAccountsAndProfils] = useState<(Account)[]>([]);
+    const [accounts, setAccounts] = useState<(Account)[]>([]);
+    const [profiles, setProfiles] = useState<(Profile)[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [openRoleMenu, setOpenRoleMenu] = useState<string | null>(null);
     const [notification, setNotification] = useState({ message: '', type: '' });
@@ -24,14 +28,27 @@ function AddRole() {
     // Utilisation de useEffect pour récupérer les comptes, les profils et les rôles
     useEffect(() => {
         const fetchData = async () => {
-            // Récupérer les comptes et les profils de chaque utilisateur
+            // Récupérer les comptes liés à des profils
             const accountResponse = await AccountAPI.getAllAccounts();
             if (accountResponse.isError()) {
                 setNotification({ message: `Une erreur est survenue : ${accountResponse.errorMessage()}.`, type: 'alert-error' });
                 setShowNotification(true);
             } else {
-                setUsers(accountResponse.responseObject());
+                setAccountsAndProfils(accountResponse.responseObject().filter((account: Account) => account.profile !== null));
+                setAccounts(accountResponse.responseObject().filter((account: Account) => account.profile === null));
                 console.table(accountResponse.responseObject());
+                console.table(accountResponse.responseObject().filter((account: Account) => account.profile === null));
+            }
+
+            // Récupérer les profils seuls
+            const profilesResponse = await ProfileAPI.getAllProfiles();
+            if (profilesResponse.isError()) {
+                setNotification({ message: `Une erreur est survenue : ${profilesResponse.errorMessage()}.`, type: 'alert-error' });
+                setShowNotification(true);
+            } else {
+                const filteredProfiles = profilesResponse.responseObject().filter((profile: Profile) => profile.account_id === null);
+                setProfiles(filteredProfiles);
+                console.table(filteredProfiles);
             }
 
             // Récupérer la liste des rôles
@@ -51,23 +68,23 @@ function AddRole() {
     useEffect(() => {
         const fetchUserRoles = async () => {
             const updatedUserRoles = [];
-            for (let i = 0; i < users.length; i++) {
-                const userRolesResponse = await RoleAPI.getUserRoles(users[i].id, ACADEMIC_YEAR);
+            for (let i = 0; i < accountsAndProfils.length; i++) {
+                const userRolesResponse = await RoleAPI.getUserRoles(accountsAndProfils[i].id, ACADEMIC_YEAR);
                 if (userRolesResponse.isError()) {
                     setNotification({ message: `Une erreur est survenue : ${userRolesResponse.errorMessage()}.`, type: 'alert-error' });
                     setShowNotification(true);
-                    updatedUserRoles.push({ user: users[i], role: {} as RoleType });
+                    updatedUserRoles.push({ user: accountsAndProfils[i], role: {} as RoleType });
                 } else {
-                    updatedUserRoles.push({ user: users[i], role: userRolesResponse.responseObject() });
+                    updatedUserRoles.push({ user: accountsAndProfils[i], role: userRolesResponse.responseObject() });
                 }
             }
             setUserRoles(updatedUserRoles);
         };
 
-        if (users.length > 0) {
+        if (accountsAndProfils.length > 0) {
             fetchUserRoles().then();
         }
-    }, [users]);
+    }, [accountsAndProfils]);
     
     // Utilisation de useEffect pour fermer la notification après 3 secondes
     useEffect(() => {
@@ -95,7 +112,7 @@ function AddRole() {
 
     // Gestion de l'ajout d'un rôle à un utilisateur
     const addRoleToUser = (user: Account, selectedRole: RoleType) => {
-        setUsers((prevUsers: (Account)[]) =>
+        setAccountsAndProfils((prevUsers: (Account)[]) =>
             prevUsers.map((userTmp: Account) =>
             userTmp.id === user.id
                 ? {
@@ -123,7 +140,7 @@ function AddRole() {
 
     // Gestion de la suppression d'un rôle à un utilisateur
     const removeRoleFromUser = (user: Account, roleToRemove: RoleType) => {
-        setUsers(prevUsers =>
+        setAccountsAndProfils(prevUsers =>
             prevUsers.map(userTmp =>
                 userTmp.id === user.id
                     ? {
@@ -148,11 +165,26 @@ function AddRole() {
         setShowNotification(true);
     };
 
-    const filteredUsers = users.filter(user => {
+    const filteredUsers = accountsAndProfils.filter(user => {
         return (
-            user.profile && user.profile.lastname.toLowerCase().includes(searchTerm) ||
-            user.profile && user.profile.firstname.toLowerCase().includes(searchTerm) ||
-            user.profile && user.profile.mail.toLowerCase().includes(searchTerm)
+            (user.profile && user.login.toLowerCase().includes(searchTerm)) ||
+            (user.profile && user.profile.lastname.toLowerCase().includes(searchTerm)) ||
+            (user.profile && user.profile.firstname.toLowerCase().includes(searchTerm)) ||
+            (user.profile && user.profile.mail.toLowerCase().includes(searchTerm))
+        );
+    });
+
+    const filteredAccounts = accounts.filter(account => {
+        return (
+            account.login.toLowerCase().includes(searchTerm)
+        );
+    });
+
+    const filteredProfiles = profiles.filter(profile => {
+        return (
+            profile.lastname.toLowerCase().includes(searchTerm) ||
+            profile.firstname.toLowerCase().includes(searchTerm) ||
+            profile.mail.toLowerCase().includes(searchTerm)
         );
     });
 
@@ -190,20 +222,65 @@ function AddRole() {
                         </div>
                     </div>
         
-                    {/* Grille des utilisateurs */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-3 gap-6">
-                        {filteredUsersByTags.map((user: Account) => (
-                            <AddRoleCard
-                                key={user.id}
-                                user={user}
-                                rolesList={rolesList}
-                                openRoleMenu={openRoleMenu}
-                                setOpenRoleMenu={setOpenRoleMenu}
-                                addRoleToUser={addRoleToUser}
-                                removeRoleFromUser={removeRoleFromUser}
-                            />
-                        ))}
-                    </div>
+                    {/* Grille des comptes ayants des profils */}
+                    {filteredUsersByTags.length > 0 && (
+                        <>
+                            <h2 className="text-2xl font-bold text-green-800 mb-2">Comptes & Profils</h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-3 gap-6">
+                                {filteredUsersByTags.map((user: Account) => (
+                                    <AddRoleCard
+                                        key={user.id}
+                                        user={user}
+                                        rolesList={rolesList}
+                                        openRoleMenu={openRoleMenu}
+                                        setOpenRoleMenu={setOpenRoleMenu}
+                                        addRoleToUser={addRoleToUser}
+                                        removeRoleFromUser={removeRoleFromUser}
+                                    />
+                                ))}
+                            </div>
+                        </>
+                    )}
+
+                    {/* Grille des comptes seuls */}
+                    {filteredAccounts.length > 0 && !selectedTag.name && (
+                        <>
+                            <h2 className="text-2xl font-bold text-green-800 mt-4 mb-2">Comptes seuls</h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-3 gap-6">
+                                {filteredAccounts.map((account: Account) => (
+                                    <AddRoleCard
+                                        key={account.id}
+                                        user={account}
+                                        rolesList={rolesList}
+                                        openRoleMenu={openRoleMenu}
+                                        setOpenRoleMenu={setOpenRoleMenu}
+                                        addRoleToUser={addRoleToUser}
+                                        removeRoleFromUser={removeRoleFromUser}
+                                    />
+                                ))}
+                            </div>
+                        </>
+                    )}
+
+                    { /* Grille des profils seuls */ }
+                    {filteredProfiles.length > 0 && !selectedTag.name && (
+                        <>
+                            <h2 className="text-2xl font-bold text-green-800 mt-4 mb-2">Profils seuls</h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-3 gap-6">
+                                {filteredProfiles.map((profile: Profile) => (
+                                    <AddRoleCard
+                                        key={profile.id}
+                                        user={profile}
+                                        rolesList={rolesList}
+                                        openRoleMenu={openRoleMenu}
+                                        setOpenRoleMenu={setOpenRoleMenu}
+                                        addRoleToUser={addRoleToUser}
+                                        removeRoleFromUser={removeRoleFromUser}
+                                    />
+                                ))}
+                            </div>
+                        </>
+                    )}
 
                     {/* Aucun utilisateur */}
                     {filteredUsersByTags.length === 0 && (
