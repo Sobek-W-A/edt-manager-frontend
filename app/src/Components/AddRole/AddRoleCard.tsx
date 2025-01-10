@@ -2,18 +2,17 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEnvelope, faPlus, faTimes, faEdit } from "@fortawesome/free-solid-svg-icons";
 import { useEffect, useState } from "react";
 import RoleAPI from "../../scripts/API/ModelAPIs/RoleAPI";
-import Account from "../../scripts/API/APITypes/Accounts";
-import Profile from "../../scripts/API/APITypes/Profiles";
+import { Account } from "../../scripts/API/APITypes/Accounts";
 import { Link } from "react-router-dom";
 import { RoleType } from "../../scripts/API/APITypes/Role";
 
 interface AddRoleCardProps {
-  user: Account & Profile;
+  user: Account;
   rolesList: RoleType[];
   openRoleMenu: string | null;
   setOpenRoleMenu: (id: string | null) => void;
-  addRoleToUser: (user: Account & Profile, role: RoleType) => void;
-  removeRoleFromUser: (user: Account & Profile, role: RoleType) => void;
+  addRoleToUser: (user: Account, role: RoleType) => void;
+  removeRoleFromUser: (user: Account, role: RoleType) => void;
 }
 
 function AddRoleCard({ user, rolesList, openRoleMenu, setOpenRoleMenu, addRoleToUser, removeRoleFromUser }: AddRoleCardProps) {
@@ -22,9 +21,12 @@ function AddRoleCard({ user, rolesList, openRoleMenu, setOpenRoleMenu, addRoleTo
   const [, setNotification] = useState<{ message: string; type: string } | null>(null);
   const [, setShowNotification] = useState<boolean>(false);
 
+  const ROLE_DEFAULT = { name: "Non assigné", description: "Rôle par défaut." } as RoleType;
+  const ACADEMIC_YEAR = "2024"; // ATTENTION -> A MODIFIER
+
   useEffect(() => {
     const fetchData = async () => {
-      const userRolesResponse = await RoleAPI.getUserRoles(user.id, user.academic_year);
+      const userRolesResponse = await RoleAPI.getUserRoles(user.id, ACADEMIC_YEAR);
       if (userRolesResponse.isError()) {
         setNotification({ message: `Une erreur est survenue : ${userRolesResponse.errorMessage()}.`, type: 'alert-error' });
         setShowNotification(true);
@@ -43,10 +45,9 @@ function AddRoleCard({ user, rolesList, openRoleMenu, setOpenRoleMenu, addRoleTo
     };
 
     fetchData().then();
-  }, [user.id, user.academic_year, rolesList]);
+  }, [user.id, rolesList]);
 
-  const handleAddRole = (user: Account & Profile, role: RoleType) => {
-    //console.log("Adding role", role, "to user", user);
+  const handleAddRole = (user: Account, role: RoleType) => {
     addRoleToUser(user, role);
     setUserRoles(
       userRoles.map((userRole) => {
@@ -59,12 +60,12 @@ function AddRoleCard({ user, rolesList, openRoleMenu, setOpenRoleMenu, addRoleTo
     ));
   };
 
-  const handleRemoveRole = (user: Account & Profile, role: RoleType) => {
+  const handleRemoveRole = (user: Account, role: RoleType) => {
     removeRoleFromUser(user, role);
     setUserRoles(
       userRoles.map((userRole) => {
         if (userRole.id === user.id) {
-          return { id: user.id, role: role };
+          return { id: user.id, role: ROLE_DEFAULT };
         } else {
           return userRole;
         }
@@ -82,9 +83,9 @@ function AddRoleCard({ user, rolesList, openRoleMenu, setOpenRoleMenu, addRoleTo
       </div>
       <div>
         <h3 className="text-xl font-semibold">
-          {user.firstname} {user.lastname}
+          {user.profile.firstname} {user.profile.lastname}
         </h3>
-        <p className="text-gray-500"><FontAwesomeIcon icon={faEnvelope} /> {user.mail}</p>
+        <p className="text-gray-500"><FontAwesomeIcon icon={faEnvelope} /> {user.profile.mail}</p>
 
         {/* Rôle */}
         <ul className="w-fit">

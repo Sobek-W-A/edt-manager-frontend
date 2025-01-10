@@ -5,19 +5,17 @@ import AccountAPI from "../scripts/API/ModelAPIs/AccountAPI";
 import RoleAPI from "../scripts/API/ModelAPIs/RoleAPI";
 import APIResponse from "../scripts/API/Responses/APIResponse.ts";
 import { Account } from "../scripts/API/APITypes/Accounts.ts";
-import { Profile } from "../scripts/API/APITypes/Profiles.ts";
-import ProfileAPI from "../scripts/API/ModelAPIs/ProfileAPI.ts";
 import { RoleType } from "../scripts/API/APITypes/Role.ts";
 
 
 function AddRole() {
-    const [users, setUsers] = useState<(Account & Profile)[]>([]);
+    const [users, setUsers] = useState<(Account)[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [openRoleMenu, setOpenRoleMenu] = useState<string | null>(null);
     const [notification, setNotification] = useState({ message: '', type: '' });
     const [showNotification, setShowNotification] = useState(false);
     const [selectedTag, setSelectedTag] = useState<RoleType>({} as RoleType);
-    const [userRoles, setUserRoles] = useState<{ user: Profile & Account, role: RoleType }[]>([]);
+    const [userRoles, setUserRoles] = useState<{ user: Account, role: RoleType }[]>([]);
     const [rolesList, setRolesList] = useState<RoleType[]>([]);
 
     const ACADEMIC_YEAR = "2024"; // ATTENTION -> A MODIFIER
@@ -28,22 +26,12 @@ function AddRole() {
         const fetchData = async () => {
             // Récupérer les comptes et les profils de chaque utilisateur
             const accountResponse = await AccountAPI.getAllAccounts();
-            console.table(accountResponse.responseObject());
             if (accountResponse.isError()) {
                 setNotification({ message: `Une erreur est survenue : ${accountResponse.errorMessage()}.`, type: 'alert-error' });
                 setShowNotification(true);
             } else {
-                const profileResponse = await ProfileAPI.getAllProfiles();
-                if (profileResponse.isError()) {
-                    setNotification({ message: `Une erreur est survenue : ${accountResponse.errorMessage()}.`, type: 'alert-error' });
-                    setShowNotification(true);
-                } else {
-                    const combinedUsers = accountResponse.responseObject().map((account, index) => ({
-                        ...account,
-                        ...profileResponse.responseObject()[index]
-                    }));
-                    setUsers(combinedUsers);
-                }
+                setUsers(accountResponse.responseObject());
+                console.table(accountResponse.responseObject());
             }
 
             // Récupérer la liste des rôles
@@ -64,7 +52,7 @@ function AddRole() {
         const fetchUserRoles = async () => {
             const updatedUserRoles = [];
             for (let i = 0; i < users.length; i++) {
-                const userRolesResponse = await RoleAPI.getUserRoles(users[i].id, users[i].academic_year.toString());
+                const userRolesResponse = await RoleAPI.getUserRoles(users[i].id, ACADEMIC_YEAR);
                 if (userRolesResponse.isError()) {
                     setNotification({ message: `Une erreur est survenue : ${userRolesResponse.errorMessage()}.`, type: 'alert-error' });
                     setShowNotification(true);
@@ -106,9 +94,9 @@ function AddRole() {
     };
 
     // Gestion de l'ajout d'un rôle à un utilisateur
-    const addRoleToUser = (user: Account & Profile, selectedRole: RoleType) => {
-        setUsers((prevUsers: (Account & Profile)[]) =>
-            prevUsers.map((userTmp: Account & Profile) =>
+    const addRoleToUser = (user: Account, selectedRole: RoleType) => {
+        setUsers((prevUsers: (Account)[]) =>
+            prevUsers.map((userTmp: Account) =>
             userTmp.id === user.id
                 ? {
                     ...userTmp,
@@ -117,7 +105,7 @@ function AddRole() {
                             setNotification({ message: `Une erreur est survenue : ${response.errorMessage()}.`, type: 'alert-error' });
                             setShowNotification(true);
                         } else {
-                            setNotification({ message: `Rôle "${selectedRole}" ajouté à ${user.firstname} ${user.lastname}.`, type: 'alert-success' });
+                            setNotification({ message: `Rôle "${selectedRole.name}" ajouté à ${user.profile.firstname} ${user.profile.lastname}.`, type: 'alert-success' });
                             setShowNotification(true);
                             return selectedRole;
                         }
@@ -129,23 +117,23 @@ function AddRole() {
         setOpenRoleMenu(null);
 
         // Afficher la notification d'ajout de rôle
-        setNotification({ message: `Rôle "${selectedRole}" ajouté à ${user.firstname} ${user.lastname}.`, type: 'alert-success' });
+        setNotification({ message: `Rôle "${selectedRole.name}" ajouté à ${user.profile.firstname} ${user.profile.lastname}.`, type: 'alert-success' });
         setShowNotification(true); // Affiche la notification
     };
 
     // Gestion de la suppression d'un rôle à un utilisateur
-    const removeRoleFromUser = (user: Account & Profile, roleToRemove: RoleType) => {
+    const removeRoleFromUser = (user: Account, roleToRemove: RoleType) => {
         setUsers(prevUsers =>
             prevUsers.map(userTmp =>
                 userTmp.id === user.id
                     ? {
                         ...userTmp,
-                        roles : (RoleAPI.modifyUserRole(user.id, {name: "", description: ""}, ACADEMIC_YEAR).then((response: APIResponse<RoleType>) => {
+                        roles : (RoleAPI.removeUserRole(user.id, ACADEMIC_YEAR).then((response: APIResponse<undefined>) => {
                             if (response.isError()) {
                                 setNotification({ message: `Une erreur est survenue : ${response.errorMessage()}.`, type: 'alert-error' });
                                 setShowNotification(true);
                             } else {
-                                setNotification({ message: `Rôle "${roleToRemove}" retiré à ${user.firstname} ${user.lastname}.`, type: 'alert-success' });
+                                setNotification({ message: `Rôle "${roleToRemove.name}" retiré à ${user.profile.firstname} ${user.profile.lastname}.`, type: 'alert-success' });
                                 setShowNotification(true);
                                 return response.responseObject();
                             }
@@ -156,15 +144,15 @@ function AddRole() {
         );
 
         // Affiche la notification de rôle retiré
-        setNotification({ message: `Rôle "${roleToRemove}" retiré à ${user.firstname} ${user.lastname}.`, type: 'alert-success' });
+        setNotification({ message: `Rôle "${roleToRemove.name}" retiré à ${user.profile.firstname} ${user.profile.lastname}.`, type: 'alert-success' });
         setShowNotification(true);
     };
 
     const filteredUsers = users.filter(user => {
         return (
-            user.lastname.toLowerCase().includes(searchTerm) ||
-            user.firstname.toLowerCase().includes(searchTerm) ||
-            user.mail.toLowerCase().includes(searchTerm)
+            user.profile && user.profile.lastname.toLowerCase().includes(searchTerm) ||
+            user.profile && user.profile.firstname.toLowerCase().includes(searchTerm) ||
+            user.profile && user.profile.mail.toLowerCase().includes(searchTerm)
         );
     });
 
@@ -204,7 +192,7 @@ function AddRole() {
         
                     {/* Grille des utilisateurs */}
                     <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-3 gap-6">
-                        {filteredUsersByTags.map((user: Account & Profile) => (
+                        {filteredUsersByTags.map((user: Account) => (
                             <AddRoleCard
                                 key={user.id}
                                 user={user}

@@ -1,4 +1,3 @@
-import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { createRoutesFromElements, Route } from 'react-router-dom';
@@ -31,7 +30,5 @@ const router = createBrowserRouter(routes);
 // Point d'entrée de l'application React
 ReactDOM.createRoot(document.getElementById('root') ?? new HTMLElement())
     .render(
-    //<React.StrictMode>
         <RouterProvider router={router} />
-    //</React.StrictMode>
 );

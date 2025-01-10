@@ -1,7 +1,7 @@
 import APIResponse from "../Responses/APIResponse.ts";
 import {HTTPMethod} from "../Enums/HTTPMethod.ts";
 import {api} from "../API.ts";
-import { RoleType } from "../APITypes/Role.ts";
+import { RoleInPatchType, RoleType } from "../APITypes/Role.ts";
 
 /**
  * API methods for user endpoints.
@@ -9,6 +9,7 @@ import { RoleType } from "../APITypes/Role.ts";
 export default class RoleAPI {
     static ACCOUNTS_PATH = "/account";
     static ROLE_URL: string = '/role';
+    static ROLE_DEFAULT: RoleInPatchType = { name: "Non assigné"};
 
     static getAllRoles(): Promise<APIResponse<RoleType[]>> {
         return api.requestLogged<RoleType[]>(
@@ -44,7 +45,22 @@ export default class RoleAPI {
         return api.requestLogged<RoleType>(
             HTTPMethod.PATCH,
             `${RoleAPI.ACCOUNTS_PATH}/${account_id}${RoleAPI.ROLE_URL}/`,
-            JSON.stringify({ name: role ? role.name : "", academic_year }),
+            JSON.stringify({ name: role ? role.name : RoleAPI.ROLE_DEFAULT.name, academic_year }),
+            undefined
+        );
+    }
+
+    /**
+     * Function to remove a role to a user.
+     * 
+     * @param account_id The user id to modify.
+     * @returns A promise that resolves into a role or an error.
+     */
+    static removeUserRole(account_id: number, academic_year: string): Promise<APIResponse<undefined>> {
+        return api.requestLogged<undefined>(
+            HTTPMethod.PATCH,
+            `${RoleAPI.ACCOUNTS_PATH}/${account_id}${RoleAPI.ROLE_URL}/`,
+            JSON.stringify({ name: RoleAPI.ROLE_DEFAULT.name, academic_year }),
             undefined
         );
     }
