@@ -36,8 +36,6 @@ function AddRole() {
             } else {
                 setAccountsAndProfils(accountResponse.responseObject().filter((account: Account) => account.profile !== null));
                 setAccounts(accountResponse.responseObject().filter((account: Account) => account.profile === null));
-                console.table(accountResponse.responseObject());
-                console.table(accountResponse.responseObject().filter((account: Account) => account.profile === null));
             }
 
             // Récupérer les profils seuls
@@ -48,7 +46,6 @@ function AddRole() {
             } else {
                 const filteredProfiles = profilesResponse.responseObject().filter((profile: Profile) => profile.account_id === null);
                 setProfiles(filteredProfiles);
-                console.table(filteredProfiles);
             }
 
             // Récupérer la liste des rôles
@@ -97,6 +94,7 @@ function AddRole() {
         }
     }, [showNotification]);
 
+    // Gestion de la recherche
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(e.target.value.toLowerCase());
     };
