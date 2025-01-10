@@ -46,24 +46,30 @@ function AddRoleCard({ user, rolesList, openRoleMenu, setOpenRoleMenu, addRoleTo
   }, [user.id, user.academic_year, rolesList]);
 
   const handleAddRole = (user: Account & Profile, role: RoleType) => {
-    console.log("Adding role", role, "to user", user);
+    //console.log("Adding role", role, "to user", user);
     addRoleToUser(user, role);
-    /*setUserRoles(prevUserRoles => {
-        return prevUserRoles.map(userRole => {
-            if (userRole === user) {
-                if (!userRole.roles.includes(role)) {
-                    addRoleToUser(user, role);
-                    return {...userRole, roles: [...userRole.roles, role]};
-                }
-            }
-            return userRole;
-        });
-    });*/
+    setUserRoles(
+      userRoles.map((userRole) => {
+        if (userRole.id === user.id) {
+          return { id: user.id, role: role };
+        } else {
+          return userRole;
+        }
+      }
+    ));
   };
 
   const handleRemoveRole = (user: Account & Profile, role: RoleType) => {
     removeRoleFromUser(user, role);
-    setUserRoles([]);
+    setUserRoles(
+      userRoles.map((userRole) => {
+        if (userRole.id === user.id) {
+          return { id: user.id, role: role };
+        } else {
+          return userRole;
+        }
+      }
+    ));
   };
 
   return (
@@ -82,64 +88,63 @@ function AddRoleCard({ user, rolesList, openRoleMenu, setOpenRoleMenu, addRoleTo
 
         {/* Rôle */}
         <ul className="w-fit">
-          {
-            userRoles.map((userRole, index) => (
-              userRole.id !== undefined && userRole.id === user.id && userRole.role.name !== undefined ? (
-                <li key={index} className="flex justify-between items-center bg-gray-200 rounded">
-                  <span className="px-2 text-gray-700">
-                    {userRole.role.name}
-                  </span>
-                    <summary
-                      className="py-1 my-2 rounded flex items-center cursor-pointer relative"
-                      onClick={() => setOpenRoleMenu(user.id.toString() === openRoleMenu ? null : user.id.toString())}
-                    >
-                    <FontAwesomeIcon icon={faEdit} className="cursor-pointer text-green-500 hover:text-green-700 mx-2" title="Modifier le rôle" />
-                    {openRoleMenu === user.id.toString() && (
-                      <ul className="absolute top-full left-0 menu dropdown-content bg-base-100 rounded z-[1] w-52 p-2 shadow">
+          {userRoles.map((userRole, index) => (
+            //console.log("Test du role : ", userRole),
+            userRole.id !== undefined && userRole.id === user.id && userRole.role.name ? (
+              <li key={index} className="flex justify-between items-center bg-gray-200 rounded">
+                <span className="px-2 text-gray-700">
+                  {userRole.role.name}
+                </span>
+                <summary
+                  className="py-1 my-2 rounded flex items-center cursor-pointer relative"
+                  onClick={() => setOpenRoleMenu(user.id.toString() === openRoleMenu ? null : user.id.toString())}
+                >
+                  <FontAwesomeIcon icon={faEdit} className="cursor-pointer text-green-500 hover:text-green-700 mx-2" title="Modifier le rôle" />
+                  {openRoleMenu === user.id.toString() && (
+                    <ul className="absolute top-full left-0 menu dropdown-content bg-base-100 rounded z-[1] w-52 p-2 shadow">
                       {rolesList.map((role: RoleType, index: number) => (
                         <li key={role.name}>
-                        <a
-                          key={index}
-                          className="flex justify-between items-center bg-gray-200 px-3 py-1 rounded mb-2 hover:bg-gray-300 cursor-pointer"
-                          onClick={() => handleAddRole(user, role)}
-                        >
-                          <span>{role.name}</span>
-                        </a>
+                          <a
+                            key={index}
+                            className="flex justify-between items-center bg-gray-200 px-3 py-1 rounded mb-2 hover:bg-gray-300 cursor-pointer"
+                            onClick={() => handleAddRole(user, role)}
+                          >
+                            <span>{role.name}</span>
+                          </a>
                         </li>
                       ))}
-                      </ul>
-                    )}
-                    </summary>
-                  <FontAwesomeIcon icon={faTimes} className="cursor-pointer text-red-500 hover:text-red-700 me-2" title="Supprimer le rôle" onClick={() => { removeRoleFromUser(user, userRole.role); handleRemoveRole(user, userRole.role); }} />
-                </li>
-              ) : (
-                <li key={user.id} className="flex justify-between items-center text-gray-500">
-                  <span>aucun rôle</span>
-                  <summary
-                      className="py-1 my-2 rounded flex items-center cursor-pointer relative"
-                      onClick={() => setOpenRoleMenu(user.id.toString() === openRoleMenu ? null : user.id.toString())}
-                  >
+                    </ul>
+                  )}
+                </summary>
+                <FontAwesomeIcon icon={faTimes} className="cursor-pointer text-red-500 hover:text-red-700 me-2" title="Supprimer le rôle" onClick={() => { removeRoleFromUser(user, userRole.role); handleRemoveRole(user, userRole.role); }} />
+              </li>
+            ) : (
+              <li key={user.id} className="flex justify-between items-center text-gray-500">
+                <span>aucun rôle</span>
+                <summary
+                  className="py-1 my-2 rounded flex items-center cursor-pointer relative"
+                  onClick={() => setOpenRoleMenu(user.id.toString() === openRoleMenu ? null : user.id.toString())}
+                >
                   <FontAwesomeIcon icon={faPlus} className="cursor-pointer text-green-500 hover:text-green-700 ml-2" title="Ajouter un rôle" onClick={() => setOpenRoleMenu(user.id.toString() === openRoleMenu ? null : user.id.toString())} />
                   {openRoleMenu === user.id.toString() && (
-                      <ul className="absolute top-full left-0 menu dropdown-content bg-base-100 rounded z-[1] w-52 p-2 shadow">
+                    <ul className="absolute top-full left-0 menu dropdown-content bg-base-100 rounded z-[1] w-52 p-2 shadow">
                       {rolesList.map((role: RoleType, index: number) => (
                         <li key={role.name}>
-                        <a
-                          key={index}
-                          className="flex justify-between items-center bg-gray-200 px-3 py-1 rounded mb-2 hover:bg-gray-300 cursor-pointer"
-                          onClick={() => handleAddRole(user, role)}
-                        >
-                          <span>{role.name}</span>
-                        </a>
+                          <a
+                            key={index}
+                            className="flex justify-between items-center bg-gray-200 px-3 py-1 rounded mb-2 hover:bg-gray-300 cursor-pointer"
+                            onClick={() => handleAddRole(user, role)}
+                          >
+                            <span>{role.name}</span>
+                          </a>
                         </li>
                       ))}
-                      </ul>
-                    )}
-                    </summary> 
-                </li>
-              )
-            ))
-          }
+                    </ul>
+                  )}
+                </summary>
+              </li>
+            )
+          ))}
         </ul>
       </div>
     </div>

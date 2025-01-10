@@ -31,7 +31,7 @@ const router = createBrowserRouter(routes);
 // Point d'entrée de l'application React
 ReactDOM.createRoot(document.getElementById('root') ?? new HTMLElement())
     .render(
-    <React.StrictMode>
+    //<React.StrictMode>
         <RouterProvider router={router} />
-    </React.StrictMode>
+    //</React.StrictMode>
 );

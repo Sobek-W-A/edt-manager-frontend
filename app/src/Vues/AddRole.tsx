@@ -20,12 +20,15 @@ function AddRole() {
     const [userRoles, setUserRoles] = useState<{ user: Profile & Account, role: RoleType }[]>([]);
     const [rolesList, setRolesList] = useState<RoleType[]>([]);
 
+    const ACADEMIC_YEAR = "2024"; // ATTENTION -> A MODIFIER
+
 
     // Utilisation de useEffect pour récupérer les comptes, les profils et les rôles
     useEffect(() => {
         const fetchData = async () => {
             // Récupérer les comptes et les profils de chaque utilisateur
             const accountResponse = await AccountAPI.getAllAccounts();
+            console.table(accountResponse.responseObject());
             if (accountResponse.isError()) {
                 setNotification({ message: `Une erreur est survenue : ${accountResponse.errorMessage()}.`, type: 'alert-error' });
                 setShowNotification(true);
@@ -93,6 +96,7 @@ function AddRole() {
         setSearchTerm(e.target.value.toLowerCase());
     };
 
+    // Gestion du clic sur un tag
     const handleTagClick = (tag: RoleType) => {
         if (selectedTag === tag) {
             setSelectedTag({} as RoleType);
@@ -101,13 +105,14 @@ function AddRole() {
         setSelectedTag(tag);
     };
 
+    // Gestion de l'ajout d'un rôle à un utilisateur
     const addRoleToUser = (user: Account & Profile, selectedRole: RoleType) => {
         setUsers((prevUsers: (Account & Profile)[]) =>
             prevUsers.map((userTmp: Account & Profile) =>
             userTmp.id === user.id
                 ? {
                     ...userTmp,
-                    role: (RoleAPI.modifyUserRole(user.id, selectedRole, user.academic_year.toString()).then((response: APIResponse<RoleType>) => {
+                    role: (RoleAPI.modifyUserRole(user.id, selectedRole, ACADEMIC_YEAR).then((response: APIResponse<RoleType>) => {
                         if (response.isError()) {
                             setNotification({ message: `Une erreur est survenue : ${response.errorMessage()}.`, type: 'alert-error' });
                             setShowNotification(true);
@@ -128,13 +133,14 @@ function AddRole() {
         setShowNotification(true); // Affiche la notification
     };
 
+    // Gestion de la suppression d'un rôle à un utilisateur
     const removeRoleFromUser = (user: Account & Profile, roleToRemove: RoleType) => {
         setUsers(prevUsers =>
             prevUsers.map(userTmp =>
                 userTmp.id === user.id
                     ? {
                         ...userTmp,
-                        roles : (RoleAPI.modifyUserRole(user.id, "", user.academic_year.toString()).then((response: APIResponse<RoleType>) => {
+                        roles : (RoleAPI.modifyUserRole(user.id, {name: "", description: ""}, ACADEMIC_YEAR).then((response: APIResponse<RoleType>) => {
                             if (response.isError()) {
                                 setNotification({ message: `Une erreur est survenue : ${response.errorMessage()}.`, type: 'alert-error' });
                                 setShowNotification(true);

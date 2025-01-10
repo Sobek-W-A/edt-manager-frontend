@@ -40,7 +40,7 @@ export default class RoleAPI {
      * @param account_id The user id to modify.
      * @returns A promise that resolves into a role or an error.
      */
-    static modifyUserRole(account_id: number, role: RoleType | "", academic_year: string): Promise<APIResponse<RoleType>> {
+    static modifyUserRole(account_id: number, role: RoleType, academic_year: string): Promise<APIResponse<RoleType>> {
         return api.requestLogged<RoleType>(
             HTTPMethod.PATCH,
             `${RoleAPI.ACCOUNTS_PATH}/${account_id}${RoleAPI.ROLE_URL}/`,
