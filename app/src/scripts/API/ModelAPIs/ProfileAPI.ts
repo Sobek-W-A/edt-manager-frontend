@@ -81,4 +81,18 @@ export default class ProfileAPI {
             undefined
         );
     }
+
+    /**
+     * This method return all the profiles that have satisfied the search query.
+     * @param query The query to search for.
+     * @returns A promise that resolves to an array of profiles or an error.
+     */
+    static searchProfilesByKeywords(keywords: string): Promise<APIResponse<Profile[]>> {
+        return api.requestLogged<Profile[]>(
+            HTTPMethod.GET,
+            `${ProfileAPI.PROFILE_URL}/search/${keywords}`,
+            undefined,
+            undefined
+        );
+    }
 }

@@ -75,4 +75,18 @@ export default class AccountAPI {
             undefined
         );
     }
+
+    /**
+     * This method return all the accounts that have satisfied the search query.
+     * @param query The query to search for.
+     * @returns A promise that resolves to an array of accounts or an error.
+     */
+    static searchAccountsByKeywords(keywords: string): Promise<APIResponse<Account[]>> {
+        return api.requestLogged<Account[]>(
+            HTTPMethod.GET,
+            `${AccountAPI.ACCOUNTS_PATH}/search/${keywords}`,
+            undefined,
+            undefined
+        );
+    }
 }

@@ -43,6 +43,6 @@ export default class Storage {
      * @returns True if the token is stored, false otherwise.
      */
     static isAccessTokenStored(): boolean {
-        return window.sessionStorage.getItem("access_token") !== null;
+        return window.sessionStorage.getItem("access_token") !== null && window.sessionStorage.getItem("refresh_token") !== null;
     }
 }
