@@ -1,21 +1,20 @@
 import React, {ChangeEvent, useState} from 'react';
+import ProfileAPI from "../../scripts/API/ModelAPIs/ProfileAPI.ts";
+import {Profile} from "../../scripts/API/APITypes/Profiles.ts";
 
 interface AssignProfessorFormData {
     nbrHourToAssign: number,
     group: string
 }
 
-type ProfileType = {
-    firstname: string,
-    lastname: string
-}
-
 function SearchAndChose() {
     const [searchInput, setSearchInput] = useState<string>("");
-    const [searchResult, setSearchResult] = useState<ProfileType[] | null>();
+    const [searchResult, setSearchResult] = useState<Profile[] | null>();
     const [loading, setLoading] = useState<boolean>();
-    const [selectedProfessor, setSelectedProfessor] = useState<ProfileType>();
+    const [selectedProfessor, setSelectedProfessor] = useState<Profile>();
 
+    const [, setNotification] = useState<{ message: string; type: string } | null>(null);
+    const [, setShowNotification] = useState<boolean>(false);
     const [error, setError] = useState("");
 
     const [dataToAssignProfessor, setDataToAssignProfessor] = useState<AssignProfessorFormData>({
@@ -23,14 +22,20 @@ function SearchAndChose() {
         group: ""
     });
 
-    const handleChangeSearchInput = (e: ChangeEvent<HTMLInputElement>) => {
+    const handleChangeSearchInput = async (e: ChangeEvent<HTMLInputElement>) => {
         setSearchInput(e.target.value);
         setLoading(true);
 
         if(searchInput.length > 1) {
-            // TODO : Search professor
-            setSearchResult([]);
-            setLoading(false)
+            const profilesResponse = await ProfileAPI.searchProfilesByKeywords(searchInput);
+            console.log(profilesResponse);
+            if(profilesResponse.isError()) {
+                setNotification({ message: `Une erreur est survenue : ${profilesResponse.errorMessage()}.`, type: 'alert-error' });
+                setShowNotification(true);
+            } else {
+                setSearchResult(profilesResponse.responseObject());
+            }
+            setLoading(false);
         } else {
             setSearchResult(null);
             setLoading(false);
@@ -45,7 +50,7 @@ function SearchAndChose() {
         setDataToAssignProfessor({...dataToAssignProfessor, group: e.target.value});
     }
 
-    const selectProfessor = (professor: ProfileType) => {
+    const selectProfessor = (professor: Profile) => {
         setSearchResult(null)
         setSelectedProfessor(professor);
     }
