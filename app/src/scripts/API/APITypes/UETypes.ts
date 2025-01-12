@@ -1,5 +1,9 @@
+import {Course} from "./Course.ts";
+
 export type UE = {
-    id: number;
+    academic_year: number;
+    courses: Course[];
+    id: string;
     name: string;
 }
 
