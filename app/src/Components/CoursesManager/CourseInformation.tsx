@@ -5,38 +5,6 @@ import SearchAndChose from "./SearchAndChose";
 import UEModel from "../../scripts/Models/UEModel.ts";
 import {Course} from "../../scripts/API/APITypes/Course.ts";
 
-//TODO A ENLEVER
-const mockBody = {
-    success: true,
-    data: {
-        academic_year: 2024,
-        id: "idB503",
-        name: "BDD",
-        courses: [
-            {
-                academic_year: 2024,
-                duration: 90,
-                id: "td185",
-                courses_types: {
-                    name: "td",
-                    description: "td d'optimisation",
-                    academic_year: 2024,
-                },
-            },
-            {
-                academic_year: 2024,
-                duration: 75,
-                id: "tp303",
-                courses_types: {
-                    name: "tp",
-                    description: "tp de bdd",
-                    academic_year: 2024,
-                },
-            },
-        ],
-    },
-};
-
 const CourseInformation = forwardRef ( (props, ref) => {
     const [ueName, setUeName] = useState<string>('');
     const [academicYear, setacademicYear] = useState<number>(0);
@@ -52,20 +20,14 @@ const CourseInformation = forwardRef ( (props, ref) => {
             setIDUE(id)
             const fetchUEData = async () => {
                 try {
-                    const ue = mockBody.data
-
-                    /**const response = UEModel.getAccountById(idUE)
+                    const response = UEModel.getUEById(idUE)
                     response.then((ue) => {
                         if (ue instanceof UEModel) {
                             setUeName(ue.name);
                             setCourses(ue.courses)
+                            setacademicYear(ue.academic_year)
                         }
-                    })**/
-
-                    setUeName(ue.name);
-                    setCourses(ue.courses)
-                    setacademicYear(ue.academic_year)
-
+                    })
                 } catch (error) {
                     console.error('Erreur lors de la récupération des données de l\'UE:', error);
                 }

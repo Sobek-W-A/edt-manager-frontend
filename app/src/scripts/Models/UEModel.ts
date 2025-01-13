@@ -12,6 +12,7 @@ export default class UEModel {
     private _academic_year              : number;
 
     constructor(ue : UE) {
+        console.log("ici : " + JSON.stringify( ue))
         this._id = ue.id
         this._name = ue.name
         this._courses = ue.courses
@@ -23,9 +24,11 @@ export default class UEModel {
      * @returns A promise that resolves into an AccountModel or an ErrorResponse.
      * @param ue_id
      */
-    static async getAccountById(ue_id: string): Promise<UEModel | ErrorResponse<UE>> {
+    static async getUEById(ue_id: string): Promise<UEModel | ErrorResponse<UE>> {
         const response = await UEAPI.getUEById(ue_id);
+
         if (response.isError()) return response as ErrorResponse<UE>;
+        console.log(response.responseObject())
         return new UEModel(response.responseObject());
     }
 
