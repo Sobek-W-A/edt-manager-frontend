@@ -4,8 +4,12 @@ import CourseItem from './CourseItem';
 // TypeScript interface
 interface Course {
   id: number;
-  title: string;
-  colleagues: string[];
+  profile_id: number;
+  course_id: number;
+  hours: number;
+  notes: string;
+  date: string;
+  group: number;
 }
 
 interface CourseListProps {
