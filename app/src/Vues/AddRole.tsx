@@ -120,7 +120,7 @@ function AddRole() {
                             setNotification({ message: `Une erreur est survenue : ${response.errorMessage()}.`, type: 'alert-error' });
                             setShowNotification(true);
                         } else {
-                            setNotification({ message: `Rôle "${selectedRole.name}" ajouté à ${user.profile.firstname} ${user.profile.lastname}.`, type: 'alert-success' });
+                            setNotification({ message: `Rôle "${selectedRole.name}" ajouté à ${user.profile ? user.profile.firstname : ""} ${user.profile ? user.profile.lastname : user.login}.`, type: 'alert-success' });
                             setShowNotification(true);
                             return selectedRole;
                         }
@@ -132,7 +132,7 @@ function AddRole() {
         setOpenRoleMenu(null);
 
         // Afficher la notification d'ajout de rôle
-        setNotification({ message: `Rôle "${selectedRole.name}" ajouté à ${user.profile.firstname} ${user.profile.lastname}.`, type: 'alert-success' });
+        setNotification({ message: `Rôle "${selectedRole.name}" ajouté à ${user.profile ? user.profile.firstname : ""} ${user.profile ? user.profile.lastname : user.login}.`, type: 'alert-success' });
         setShowNotification(true); // Affiche la notification
     };
 
@@ -148,7 +148,7 @@ function AddRole() {
                                 setNotification({ message: `Une erreur est survenue : ${response.errorMessage()}.`, type: 'alert-error' });
                                 setShowNotification(true);
                             } else {
-                                setNotification({ message: `Rôle "${roleToRemove.name}" retiré à ${user.profile.firstname} ${user.profile.lastname}.`, type: 'alert-success' });
+                                setNotification({ message: `Rôle "${roleToRemove.name}" retiré à ${user.profile ? user.profile.firstname : ""} ${user.profile ? user.profile.lastname : user.login}.`, type: 'alert-success' });
                                 setShowNotification(true);
                                 return response.responseObject();
                             }
@@ -159,7 +159,7 @@ function AddRole() {
         );
 
         // Affiche la notification de rôle retiré
-        setNotification({ message: `Rôle "${roleToRemove.name}" retiré à ${user.profile.firstname} ${user.profile.lastname}.`, type: 'alert-success' });
+        setNotification({ message: `Rôle "${roleToRemove.name}" retiré à ${user.profile ? user.profile.firstname : ""} ${user.profile ? user.profile.lastname : user.login}.`, type: 'alert-success' });
         setShowNotification(true);
     };
 

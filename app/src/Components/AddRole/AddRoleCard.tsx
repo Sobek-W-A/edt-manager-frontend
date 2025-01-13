@@ -104,7 +104,7 @@ function AddRoleCard({ user, rolesList, openRoleMenu, setOpenRoleMenu, addRoleTo
         )}
 
         {/* Rôle */}
-        { 'profile' in user && user.profile ? (
+        { ('profile' in user && user.profile) || ('login' in user && user.login) ? (
           <ul className="w-fit">
             {userRoles.map((userRole, index) => (
               //console.log("Test du role : ", userRole),
