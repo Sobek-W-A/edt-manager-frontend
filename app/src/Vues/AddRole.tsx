@@ -12,8 +12,11 @@ import ProfileAPI from "../scripts/API/ModelAPIs/ProfileAPI.ts";
 
 function AddRole() {
     const [accountsAndProfils, setAccountsAndProfils] = useState<(Account)[]>([]);
+    const [filteredAccountsAndProfiles, setFilteredAccountsAndProfiles] = useState<(Account)[]>([]);
     const [accounts, setAccounts] = useState<(Account)[]>([]);
+    const [filteredAccounts, setFilteredAccounts] = useState<(Account)[]>([]);
     const [profiles, setProfiles] = useState<(Profile)[]>([]);
+    const [filteredProfiles, seFilteredProfiles] = useState<(Profile)[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [openRoleMenu, setOpenRoleMenu] = useState<string | null>(null);
     const [notification, setNotification] = useState({ message: '', type: '' });
@@ -35,7 +38,9 @@ function AddRole() {
                 setShowNotification(true);
             } else {
                 setAccountsAndProfils(accountResponse.responseObject().filter((account: Account) => account.profile !== null));
+                setFilteredAccountsAndProfiles(accountResponse.responseObject().filter((account: Account) => account.profile !== null));
                 setAccounts(accountResponse.responseObject().filter((account: Account) => account.profile === null));
+                setFilteredAccounts(accountResponse.responseObject().filter((account: Account) => account.profile === null));
             }
 
             // Récupérer les profils seuls
@@ -46,6 +51,7 @@ function AddRole() {
             } else {
                 const filteredProfiles = profilesResponse.responseObject().filter((profile: Profile) => profile.account_id === null);
                 setProfiles(filteredProfiles);
+                seFilteredProfiles(filteredProfiles);
             }
 
             // Récupérer la liste des rôles
@@ -97,6 +103,44 @@ function AddRole() {
     // Gestion de la recherche
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(e.target.value.toLowerCase());
+
+        // On récupère les mots-clés de la recherche
+        const keywords = e.target.value.toLowerCase();
+
+        // Recherche des comptes & profiles, et comptes seuls par mots-clés
+        if (keywords !== "") {
+            AccountAPI.searchAccountsByKeywords(keywords).then((accountsByKeywords) => {
+                if (accountsByKeywords.isError()) {
+                    setNotification({ message: `Une erreur est survenue : ${accountsByKeywords.errorMessage()}.`, type: 'alert-error' });
+                    setShowNotification(true);
+                } else {
+                    // On filtre les comptes ayant des profils et les comptes seuls
+                    const accountsWithProfiles = accountsByKeywords.responseObject().filter((account: Account) => account.profile !== null);
+                    const accountsWithoutProfiles = accountsByKeywords.responseObject().filter((account: Account) => account.profile === null && !accountsWithProfiles.some(acc => acc.id === account.id));
+                    setFilteredAccountsAndProfiles(accountsWithProfiles);
+                    setFilteredAccounts(accountsWithoutProfiles);
+                }
+            });
+        } else {
+            setFilteredAccountsAndProfiles(accountsAndProfils);
+            setFilteredAccounts(accounts.filter(account => !accountsAndProfils.some(acc => acc.id === account.id)));
+        }
+
+        // Recherche des profils seuls par mots-clés
+        if (keywords !== "") {
+            ProfileAPI.searchProfilesByKeywords(keywords).then((profilesByKeywords) => {
+                if (profilesByKeywords.isError()) {
+                    setNotification({ message: `Une erreur est survenue : ${profilesByKeywords.errorMessage()}.`, type: 'alert-error' });
+                    setShowNotification(true);
+                } else {
+                    const profilesWithoutAccounts = profilesByKeywords.responseObject().filter((profile: Profile) => !accountsAndProfils.some(acc => acc.profile?.id === profile.id));
+                    seFilteredProfiles(profilesWithoutAccounts);
+                }
+            });
+        } else {
+            const profilesWithoutAccounts = profiles.filter(profile => !accountsAndProfils.some(acc => acc.profile?.id === profile.id));
+            seFilteredProfiles(profilesWithoutAccounts);
+        }
     };
 
     // Gestion du clic sur un tag
@@ -120,7 +164,7 @@ function AddRole() {
                             setNotification({ message: `Une erreur est survenue : ${response.errorMessage()}.`, type: 'alert-error' });
                             setShowNotification(true);
                         } else {
-                            setNotification({ message: `Rôle "${selectedRole.name}" ajouté à ${user.profile.firstname} ${user.profile.lastname}.`, type: 'alert-success' });
+                            setNotification({ message: `Rôle "${selectedRole.name}" ajouté à ${user.profile ? user.profile.firstname : ""} ${user.profile ? user.profile.lastname : user.login}.`, type: 'alert-success' });
                             setShowNotification(true);
                             return selectedRole;
                         }
@@ -132,7 +176,7 @@ function AddRole() {
         setOpenRoleMenu(null);
 
         // Afficher la notification d'ajout de rôle
-        setNotification({ message: `Rôle "${selectedRole.name}" ajouté à ${user.profile.firstname} ${user.profile.lastname}.`, type: 'alert-success' });
+        setNotification({ message: `Rôle "${selectedRole.name}" ajouté à ${user.profile ? user.profile.firstname : ""} ${user.profile ? user.profile.lastname : user.login}.`, type: 'alert-success' });
         setShowNotification(true); // Affiche la notification
     };
 
@@ -148,7 +192,7 @@ function AddRole() {
                                 setNotification({ message: `Une erreur est survenue : ${response.errorMessage()}.`, type: 'alert-error' });
                                 setShowNotification(true);
                             } else {
-                                setNotification({ message: `Rôle "${roleToRemove.name}" retiré à ${user.profile.firstname} ${user.profile.lastname}.`, type: 'alert-success' });
+                                setNotification({ message: `Rôle "${roleToRemove.name}" retiré à ${user.profile ? user.profile.firstname : ""} ${user.profile ? user.profile.lastname : user.login}.`, type: 'alert-success' });
                                 setShowNotification(true);
                                 return response.responseObject();
                             }
@@ -159,36 +203,19 @@ function AddRole() {
         );
 
         // Affiche la notification de rôle retiré
-        setNotification({ message: `Rôle "${roleToRemove.name}" retiré à ${user.profile.firstname} ${user.profile.lastname}.`, type: 'alert-success' });
+        setNotification({ message: `Rôle "${roleToRemove.name}" retiré à ${user.profile ? user.profile.firstname : ""} ${user.profile ? user.profile.lastname : user.login}.`, type: 'alert-success' });
         setShowNotification(true);
     };
 
-    const filteredUsers = accountsAndProfils.filter(user => {
-        return (
-            (user.profile && user.login.toLowerCase().includes(searchTerm)) ||
-            (user.profile && user.profile.lastname.toLowerCase().includes(searchTerm)) ||
-            (user.profile && user.profile.firstname.toLowerCase().includes(searchTerm)) ||
-            (user.profile && user.profile.mail.toLowerCase().includes(searchTerm))
-        );
-    });
+    // Filtrer les comptes et profils par tags
+    const filteredAccountsAndProfilesByTags = selectedTag.name !== undefined
+        ? filteredAccountsAndProfiles.filter(user => userRoles.some(u => u.user.id === user.id && u.role.name === selectedTag.name))
+        : filteredAccountsAndProfiles;
 
-    const filteredAccounts = accounts.filter(account => {
-        return (
-            account.login.toLowerCase().includes(searchTerm)
-        );
-    });
-
-    const filteredProfiles = profiles.filter(profile => {
-        return (
-            profile.lastname.toLowerCase().includes(searchTerm) ||
-            profile.firstname.toLowerCase().includes(searchTerm) ||
-            profile.mail.toLowerCase().includes(searchTerm)
-        );
-    });
-
-    const filteredUsersByTags = selectedTag.name !== undefined
-        ? filteredUsers.filter(user => userRoles.some(u => u.user.id === user.id && u.role.name === selectedTag.name))
-        : filteredUsers;
+    // Filtrer les comptes par tags
+    const filteredAccountsByTags = selectedTag.name !== undefined
+        ? filteredAccounts.filter(user => userRoles.some(u => u.user.id === user.id && u.role.name === selectedTag.name))
+        : filteredAccounts;
 
         return (
             <div className="flex justify-center mt-6">
@@ -221,11 +248,11 @@ function AddRole() {
                     </div>
         
                     {/* Grille des comptes ayants des profils */}
-                    {filteredUsersByTags.length > 0 && (
+                    {filteredAccountsAndProfilesByTags.length > 0 && (
                         <>
                             <h2 className="text-2xl font-bold text-green-800 mb-2">Comptes & Profils</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-3 gap-6">
-                                {filteredUsersByTags.map((user: Account) => (
+                                {filteredAccountsAndProfilesByTags.map((user: Account) => (
                                     <AddRoleCard
                                         key={user.id}
                                         user={user}
@@ -241,11 +268,11 @@ function AddRole() {
                     )}
 
                     {/* Grille des comptes seuls */}
-                    {filteredAccounts.length > 0 && !selectedTag.name && (
+                    {filteredAccountsByTags.length > 0 && !selectedTag.name && (
                         <>
                             <h2 className="text-2xl font-bold text-green-800 mt-4 mb-2">Comptes seuls</h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-3 gap-6">
-                                {filteredAccounts.map((account: Account) => (
+                                {filteredAccountsByTags.map((account: Account) => (
                                     <AddRoleCard
                                         key={account.id}
                                         user={account}
@@ -281,7 +308,7 @@ function AddRole() {
                     )}
 
                     {/* Aucun utilisateur */}
-                    {filteredUsersByTags.length === 0 && (
+                    {filteredAccountsAndProfilesByTags.length === 0 && (
                         <div className="text-center text-gray-500 mt-6">Aucun utilisateur trouvé.</div>
                     )}        
 
