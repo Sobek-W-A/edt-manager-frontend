@@ -17,7 +17,6 @@ interface AddRoleCardProps {
 }
 
 function AddRoleCard({ user, rolesList, openRoleMenu, setOpenRoleMenu, addRoleToUser, removeRoleFromUser }: AddRoleCardProps) {
-  const [, setRoles] = useState<RoleType[]>([]);
   const [userRoles, setUserRoles] = useState<{ id: number, role: RoleType }[]>([]);
   const [, setNotification] = useState<{ message: string; type: string } | null>(null);
   const [, setShowNotification] = useState<boolean>(false);
@@ -27,26 +26,20 @@ function AddRoleCard({ user, rolesList, openRoleMenu, setOpenRoleMenu, addRoleTo
 
   useEffect(() => {
     const fetchData = async () => {
-      const userRolesResponse = await RoleAPI.getUserRoles(user.id, ACADEMIC_YEAR);
-      if (userRolesResponse.isError()) {
-        setNotification({ message: `Une erreur est survenue : ${userRolesResponse.errorMessage()}.`, type: 'alert-error' });
-        setShowNotification(true);
-        setUserRoles([{ id: user.id, role: {} as RoleType }]);
-      } else {
-        setUserRoles([{ id: user.id, role: userRolesResponse.responseObject() }]);
-      }
-
-      const roleResponse = await RoleAPI.getAllRoles();
-      if (roleResponse.isError()) {
-        setNotification({ message: `Une erreur est survenue : ${roleResponse.errorMessage()}.`, type: 'alert-error' });
-        setShowNotification(true);
-      } else {
-        setRoles(roleResponse.responseObject());
+      if ('profile' in user && user.profile) {
+        const userRolesResponse = await RoleAPI.getUserRoles(user.id, ACADEMIC_YEAR);
+        if (userRolesResponse.isError()) {
+          setNotification({ message: `Une erreur est survenue : ${userRolesResponse.errorMessage()}.`, type: 'alert-error' });
+          setShowNotification(true);
+          setUserRoles([{ id: user.id, role: {} as RoleType }]);
+        } else {
+          setUserRoles([{ id: user.id, role: userRolesResponse.responseObject() }]);
+        }
       }
     };
 
     fetchData().then();
-  }, [user.id, rolesList]);
+  }, [user, rolesList]);
 
   const handleAddRole = (user: Account, role: RoleType) => {
     addRoleToUser(user, role);
