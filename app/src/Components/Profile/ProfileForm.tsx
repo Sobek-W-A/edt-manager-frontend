@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import Input from "../Utils/Input.tsx";
 import StatusAPI from "../../scripts/API/ModelAPIs/StatusAPI.ts";
+import ErrorResponse from "../../scripts/API/Responses/ErrorResponse.ts";
 
 interface UserFormProps {
     email: string;
@@ -52,7 +53,7 @@ const UserForm: React.FC<UserFormProps> = ({
                                            }) => {
 
 
-    const [status,] = useState([])
+    const [availableStatus, setAvailableStatus] = useState([])
 
     // Handlers de validation internes avec types
     const handleMailType = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,7 +80,7 @@ const UserForm: React.FC<UserFormProps> = ({
     const handleStatut = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setStatut(e.target.value);
         //TODO à modifier pour quand on aura le JSON de status qui aura le quota
-        setQuota(status.find(e.target.value).quota)
+        setQuota(availableStatus.find(e.target.value).quota)
     };
 
     const handleQuota = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,11 +88,19 @@ const UserForm: React.FC<UserFormProps> = ({
         errors.setStatutError(e.target.value.length >= 2 ? "" : "Veuillez choisir quota valide.");
     };
 
-    useEffect(() => {
-        //TODO
+    React.useState(() => {
         const statusDispo = StatusAPI.getAllStatus()
-        statusDispo.then(statut => console.log(statut))
-
+        statusDispo.then(response => {
+            if (response instanceof ErrorResponse) {
+                console.error("Erreur lors de la récupération des status: " + response.errorMessage());
+            } else {
+                const got_statuses: string[] = []
+                response.responseObject().forEach((status) => {
+                    got_statuses.push(status.name)
+                });
+                setAvailableStatus(got_statuses)
+            }
+        })
     })
 
     return (
@@ -136,7 +145,7 @@ const UserForm: React.FC<UserFormProps> = ({
                 <label htmlFor="selectInput" className="form-label block text-sm font-medium text-green-700">Status</label>
                 <select id="selectInput" value={statut} onChange={handleStatut}>
                     <option value="" disabled></option>
-                    {status.map((option, index) => (
+                    {availableStatus.map((option, index) => (
                         <option key={index} value={option}>
                             {option}
                         </option>

@@ -1,6 +1,18 @@
 export type CourseType = {
-    name : string;
-    description : string;
-    academic_year : number;
+    academic_year: number[];
+    course_type_id:	number;	
+    name: string;
+    description: string;
 }
 
+export type CourseTypeInCreation = {
+    academic_year: number[];
+    name: string;
+    description: string;
+}
+
+export type CourseTypeInUpdate = {
+    academic_year: number[] | undefined;
+    name: string | undefined;
+    description: string | undefined;
+}

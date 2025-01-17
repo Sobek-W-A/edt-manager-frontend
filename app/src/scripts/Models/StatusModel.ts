@@ -1,4 +1,4 @@
-import {StatusType} from "../API/APITypes/Statuses.ts";
+import {StatusType} from "../API/APITypes/Status.ts";
 import APIResponse from "../API/Responses/APIResponse.ts";
 import StatusAPI from "../API/ModelAPIs/StatusAPI.ts";
 import ErrorResponse from "../API/Responses/ErrorResponse.ts";
