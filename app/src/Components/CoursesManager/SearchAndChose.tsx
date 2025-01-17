@@ -1,11 +1,9 @@
 import React, {ChangeEvent, useState} from 'react';
 import ProfileAPI from "../../scripts/API/ModelAPIs/ProfileAPI.ts";
 import {Profile} from "../../scripts/API/APITypes/Profiles.ts";
+import AffectationForm from "./AffectationForm.tsx";
 
-interface AssignProfessorFormData {
-    nbrHourToAssign: number,
-    group: string
-}
+
 
 interface SearchAndChoseProps {
     id_cours?: number
@@ -15,16 +13,10 @@ function SearchAndChose({id_cours}: SearchAndChoseProps) {
     const [searchInput, setSearchInput] = useState<string>("");
     const [searchResult, setSearchResult] = useState<Profile[] | null>();
     const [loading, setLoading] = useState<boolean>();
-    const [selectedProfessor, setSelectedProfessor] = useState<Profile>();
 
     const [, setNotification] = useState<{ message: string; type: string } | null>(null);
     const [, setShowNotification] = useState<boolean>(false);
     const [error, setError] = useState("");
-
-    const [dataToAssignProfessor, setDataToAssignProfessor] = useState<AssignProfessorFormData>({
-        nbrHourToAssign: 0,
-        group: ""
-    });
 
     const handleChangeSearchInput = async (e: ChangeEvent<HTMLInputElement>) => {
         setSearchInput(e.target.value);
@@ -50,23 +42,6 @@ function SearchAndChose({id_cours}: SearchAndChoseProps) {
             setSearchResult(null);
             setLoading(false);
         }
-    }
-
-    const handleChangeNbrHourToAffect = (e: ChangeEvent<HTMLInputElement>) => {
-        setDataToAssignProfessor({...dataToAssignProfessor, nbrHourToAssign: Number(e.target.value)});
-    }
-
-    const handleChangeGroupe = (e: ChangeEvent<HTMLSelectElement>) => {
-        setDataToAssignProfessor({...dataToAssignProfessor, group: e.target.value});
-    }
-
-    const selectProfessor = (professor: Profile) => {
-        setSearchResult(null)
-        setSelectedProfessor(professor);
-    }
-
-    const assignProfessor = () => {
-        console.log("Assign professor");
     }
 
     return (
@@ -96,42 +71,9 @@ function SearchAndChose({id_cours}: SearchAndChoseProps) {
             </div>
             {error && <div className="text-red-500">{error}</div>}
             {loading && <div className="text-center">Recherche ...</div>}
-            {!loading && searchResult?.length > 0 && searchResult?.map(professor => (
-                <div className="w-full flex flex-col justify-between items-center">
-                    <div className="w-full flex justify-between items-center">
-                        <h1 className="px-3 py-2 mt-1">{professor?.firstname} {professor?.lastname}</h1>
-                        <div>
-                            <select
-                                id="group"
-                                name="group"
-                                required
-                                className="mr-2 px-3 py-2 mt-1 text-green-900 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
-                                value={dataToAssignProfessor.group}
-                                onChange={(e) => handleChangeGroupe(e)}>
-                                <option>Veuillez choisir le groupe</option>
-                                <option>TP</option>
-                                <option>CM</option>
-                                <option>TD</option>
-                            </select>
-                            <input
-                                id="nbrHour"
-                                name="nbrHourToAffect"
-                                type="number"
-                                min={0}
-                                required
-                                className="w-20 px-3 py-2 mt-1 text-green-900 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
-                                placeholder="Nombre d'heure à affecter"
-                                value={dataToAssignProfessor.nbrHourToAssign}
-                                onChange={(e) => handleChangeNbrHourToAffect(e)}
-                            />
-                            <button
-                                onClick={assignProfessor}
-                                className="ml-3 px-4 py-2 text-white rounded hover:border-green-300 bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500">
-                                Affecter
-                            </button>
-                        </div>
-                    </div>
-                </div>))}
+            {!loading && searchResult?.length > 0 && searchResult?.map(profile => (
+                <AffectationForm profile={profile} />
+                ))}
             {!loading && searchResult?.length == 0 && <div className="text-center">Aucun résultat trouvé</div>}
         </div>
     );
