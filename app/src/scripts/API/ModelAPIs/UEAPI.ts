@@ -12,7 +12,7 @@ export default class UEAPI {
      * @param id The id of the UE to get.
      * @returns The response of the request.
      */
-    static async getUEById(id: number): Promise<APIResponse<UE>> {
+    static async getUEById(id: string): Promise<APIResponse<UE>> {
         return api.requestLogged<UE>(
             HTTPMethod.GET,
             `${UEAPI.UE_PATH}/${id}`,
