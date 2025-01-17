@@ -5,6 +5,7 @@ export type Course = {
     id:	number;
     duration: number;
     course_type: CourseType[];
+    group_count: number;
 }
 
 export type CourseInCreation = {

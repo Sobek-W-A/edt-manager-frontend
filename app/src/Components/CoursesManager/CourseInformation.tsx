@@ -84,7 +84,8 @@ const CourseInformation = forwardRef ( (_props, ref) => {
 
                         <CollapsibleButton>
                             <SearchAndChose
-                            id_cours={course.id}/>
+                            id_cours={course.id}
+                            groupCount={course.group_count}/>
                         </CollapsibleButton>
                     </div>
                 ))}
