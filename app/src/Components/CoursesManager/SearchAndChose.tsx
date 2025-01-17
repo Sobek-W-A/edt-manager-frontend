@@ -6,14 +6,15 @@ import AffectationForm from "./AffectationForm.tsx";
 
 
 interface SearchAndChoseProps {
-    id_cours?: number
+    id_cours?: number,
+    groupCount: number
 }
 
-function SearchAndChose({id_cours}: SearchAndChoseProps) {
+function SearchAndChose({id_cours, groupCount}: SearchAndChoseProps) {
     const [searchInput, setSearchInput] = useState<string>("");
     const [searchResult, setSearchResult] = useState<Profile[] | null>();
     const [loading, setLoading] = useState<boolean>();
-
+    console.log(groupCount)
     const [, setNotification] = useState<{ message: string; type: string } | null>(null);
     const [, setShowNotification] = useState<boolean>(false);
     const [error, setError] = useState("");
@@ -72,7 +73,10 @@ function SearchAndChose({id_cours}: SearchAndChoseProps) {
             {error && <div className="text-red-500">{error}</div>}
             {loading && <div className="text-center">Recherche ...</div>}
             {!loading && searchResult?.length > 0 && searchResult?.map(profile => (
-                <AffectationForm profile={profile} />
+                <AffectationForm
+                    profile={profile}
+                    idCours={id_cours}
+                    groupCount={groupCount}/>
                 ))}
             {!loading && searchResult?.length == 0 && <div className="text-center">Aucun résultat trouvé</div>}
         </div>
