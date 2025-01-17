@@ -1,4 +1,4 @@
-import {UE} from "../API/APITypes/UETypes.ts";
+import {UE} from "../API/APITypes/UE.ts";
 import ErrorResponse from "../API/Responses/ErrorResponse.ts";
 import UEAPI from "../API/ModelAPIs/UEAPI.ts";
 import {Course} from "../API/APITypes/Course.ts";
@@ -27,7 +27,6 @@ export default class UEModel {
 
         const response = await UEAPI.getUEById(ue_id);
         if (response.isError()) return response as ErrorResponse<UE>;
-
         return new UEModel(response.responseObject());
     }
 

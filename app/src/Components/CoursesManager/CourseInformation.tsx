@@ -20,7 +20,6 @@ const CourseInformation = forwardRef ( (_props, ref) => {
                 try {
                     const response = UEModel.getUEById(id);
                     response.then((ue) => {
-
                         if (ue instanceof UEModel) {
                             setUeName(ue.name);
                             setCourses(ue.courses)

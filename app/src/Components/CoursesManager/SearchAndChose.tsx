@@ -7,7 +7,11 @@ interface AssignProfessorFormData {
     group: string
 }
 
-function SearchAndChose() {
+interface SearchAndChoseProps {
+    id_cours?: number
+}
+
+function SearchAndChose({id_cours}: SearchAndChoseProps) {
     const [searchInput, setSearchInput] = useState<string>("");
     const [searchResult, setSearchResult] = useState<Profile[] | null>();
     const [loading, setLoading] = useState<boolean>();
@@ -29,10 +33,13 @@ function SearchAndChose() {
     const searchProfessors = async () => {
         setLoading(true);
         setError("");
-        if(searchInput.length > 1) {
+        if (searchInput.length > 1) {
             const profilesResponse = await ProfileAPI.searchProfilesByKeywords(searchInput);
-            if(profilesResponse.isError()) {
-                setNotification({ message: `Une erreur est survenue : ${profilesResponse.errorMessage()}.`, type: 'alert-error' });
+            if (profilesResponse.isError()) {
+                setNotification({
+                    message: `Une erreur est survenue : ${profilesResponse.errorMessage()}.`,
+                    type: 'alert-error'
+                });
                 setShowNotification(true);
             } else {
                 setSearchResult(profilesResponse.responseObject());
@@ -84,7 +91,8 @@ function SearchAndChose() {
                 <button
                     disabled={loading}
                     className="ml-3 px-4 py-2 text-white rounded hover:border-green-300 bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500"
-                    onClick={searchProfessors}>Recherche</button>
+                    onClick={searchProfessors}>Recherche
+                </button>
             </div>
             {error && <div className="text-red-500">{error}</div>}
             {loading && <div className="text-center">Recherche ...</div>}
@@ -96,34 +104,34 @@ function SearchAndChose() {
                             <select
                                 id="group"
                                 name="group"
-                            required
-                            className="mr-2 px-3 py-2 mt-1 text-green-900 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
-                            value={dataToAssignProfessor.group}
-                            onChange={(e) => handleChangeGroupe(e)}>
-                            <option>Veuillez choisir le groupe</option>
-                            <option>TP</option>
-                            <option>CM</option>
-                            <option>TD</option>
-                        </select>
-                        <input
-                            id="nbrHour"
-                            name="nbrHourToAffect"
-                            type="number"
-                            min={0}
-                            required
-                            className="w-20 px-3 py-2 mt-1 text-green-900 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
-                            placeholder="Nombre d'heure à affecter"
-                            value={dataToAssignProfessor.nbrHourToAssign}
-                            onChange={(e) => handleChangeNbrHourToAffect(e)}
-                        />
-                        <button
-                            onClick={assignProfessor}
-                            className="ml-3 px-4 py-2 text-white rounded hover:border-green-300 bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500">
-                            Affecter
-                        </button>
+                                required
+                                className="mr-2 px-3 py-2 mt-1 text-green-900 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+                                value={dataToAssignProfessor.group}
+                                onChange={(e) => handleChangeGroupe(e)}>
+                                <option>Veuillez choisir le groupe</option>
+                                <option>TP</option>
+                                <option>CM</option>
+                                <option>TD</option>
+                            </select>
+                            <input
+                                id="nbrHour"
+                                name="nbrHourToAffect"
+                                type="number"
+                                min={0}
+                                required
+                                className="w-20 px-3 py-2 mt-1 text-green-900 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+                                placeholder="Nombre d'heure à affecter"
+                                value={dataToAssignProfessor.nbrHourToAssign}
+                                onChange={(e) => handleChangeNbrHourToAffect(e)}
+                            />
+                            <button
+                                onClick={assignProfessor}
+                                className="ml-3 px-4 py-2 text-white rounded hover:border-green-300 bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                Affecter
+                            </button>
+                        </div>
                     </div>
-                </div>
-            </div>))}
+                </div>))}
             {!loading && searchResult?.length == 0 && <div className="text-center">Aucun résultat trouvé</div>}
         </div>
     );
