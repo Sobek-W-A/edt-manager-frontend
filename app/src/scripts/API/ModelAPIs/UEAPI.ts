@@ -29,31 +29,81 @@ export default class UEAPI {
     static async getUEById(id: string): Promise<APIResponse<UE>> {
 
         const mockBody = {
-                academic_year: 2024,
-                id: id,
-                name: "BDD",
-                courses: [
-                    {
-                        academic_year: 2024,
-                        duration: 90,
-                        id: "td185",
-                        courses_types: {
-                            name: "td",
-                            description: "td d'optimisation",
-                            academic_year: 2024,
-                        },
-                    },
-                    {
-                        academic_year: 2024,
-                        duration: 75,
-                        id: "tp303",
-                        courses_types: {
-                            name: "tp",
-                            description: "tp de bdd",
-                            academic_year: 2024,
-                        },
-                    },
-                ],
+            "academic_year": 2025,
+            "ue_id": 2,
+            "name": "UE 2",
+            "courses": [
+                {
+                    "academic_year": 2025,
+                    "id": 6,
+                    "duration": 28,
+                    "group_count": 1,
+                    "course_type": [
+                        {
+                            "academic_year": 2025,
+                            "course_type_id": 1,
+                            "name": "CM",
+                            "description": "Cours Magistral"
+                        }
+                    ]
+                },
+                {
+                    "academic_year": 2024,
+                    "id": 7,
+                    "duration": 60,
+                    "group_count": 1,
+                    "course_type": [
+                        {
+                            "academic_year": 2025,
+                            "course_type_id": 2,
+                            "name": "TD",
+                            "description": "Travaux Dirigés"
+                        }
+                    ]
+                },
+                {
+                    "academic_year": 2025,
+                    "id": 8,
+                    "duration": 30,
+                    "group_count": 1,
+                    "course_type": [
+                        {
+                            "academic_year": 2025,
+                            "course_type_id": 3,
+                            "name": "TP",
+                            "description": "Travaux Pratiques"
+                        }
+                    ]
+                },
+                {
+                    "academic_year": 2024,
+                    "id": 9,
+                    "duration": 52,
+                    "group_count": 1,
+                    "course_type": [
+                        {
+                            "academic_year": 2025,
+                            "course_type_id": 4,
+                            "name": "EI",
+                            "description": "Enseignement d'Intégration"
+                        }
+                    ]
+                },
+                {
+                    "academic_year": 2025,
+                    "id": 10,
+                    "duration": 20,
+                    "group_count": 1,
+                    "course_type": [
+                        {
+                            "academic_year": 2025,
+                            "course_type_id": 5,
+                            "name": "TPL",
+                            "description": "Travaux Pratiques Libres"
+                        }
+                    ]
+                }
+            ]
         };
 
         return new Promise((resolve) => {

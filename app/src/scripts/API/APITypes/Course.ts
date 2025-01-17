@@ -4,6 +4,6 @@ export type Course = {
     academic_year: number;
     id: number;
     duration : number;
-    courses_types: CourseType;
+    course_type: CourseType[];
 }
 

@@ -5,7 +5,7 @@ import SearchAndChose from "./SearchAndChose";
 import UEModel from "../../scripts/Models/UEModel.ts";
 import {Course} from "../../scripts/API/APITypes/Course.ts";
 
-const CourseInformation = forwardRef ( (props, ref) => {
+const CourseInformation = forwardRef ( (_props, ref) => {
     const [ueName, setUeName] = useState<string>('');
     const [academicYear, setacademicYear] = useState<number>(0);
     const [courses, setCourses] = useState<Course[]>([]);
@@ -22,7 +22,9 @@ const CourseInformation = forwardRef ( (props, ref) => {
                 try {
                     const response = UEModel.getUEById(idUE)
                     response.then((ue) => {
+
                         if (ue instanceof UEModel) {
+                            console.log(ue.courses)
                             setUeName(ue.name);
                             setCourses(ue.courses)
                             setacademicYear(ue.academic_year)
@@ -54,14 +56,6 @@ const CourseInformation = forwardRef ( (props, ref) => {
         //TODO update de l'ue, pour le moment que le nom
     };
 
-    // Utilisez selectedCourseId pour afficher les informations de l'UE
-    /**React.useEffect(() => {
-        if (props.selectedCourseId) {
-            ref.current.displayUE_By_ID(props.selectedCourseId); // Appel de la fonction avec l'ID sélectionné
-        }
-    }, [props.selectedCourseId]);
-    **/
-
     return (
         <div className="p-5">
             <span className="w-full text-center inline-block">
@@ -87,10 +81,9 @@ const CourseInformation = forwardRef ( (props, ref) => {
 
                     <div key={index} className="form-field pt-5">
                         <div>
-                            <b>{course.id}</b>
-                            <br></br>
-                            <b>{course.courses_types.name}</b>
-                            <p>description : {course.courses_types.description}</p>
+                            <p>ID cours : {course.id}</p>
+                            <b>{course.course_type[0].name}</b>
+                            <p>description : {course.course_type[0].description}</p>
                         </div>
 
                         <CollapsibleButton>
@@ -102,14 +95,5 @@ const CourseInformation = forwardRef ( (props, ref) => {
         </div>
     );
 });
-
-/**
- {course.affectations.map((affectation, indexBis) => (
- <div key={indexBis}>
- <p>
- {affectation.teacher.name} {affectation.teacher.lastname} est affecté au groupe {affectation.idgroupe} pour une durée de {affectation.hours} heures
- </p>
- </div>
- ))}**/
 
 export default CourseInformation;
