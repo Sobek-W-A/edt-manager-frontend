@@ -5,7 +5,7 @@ import ErrorResponse from "../API/Responses/ErrorResponse.ts";
 export default class ProfileModel {
 
     private _id        : number;
-    private _academic_year : number[];
+    private _academic_year : number;
     private _firstname : string;
     private _lastname  : string;
     private _mail      : string;
@@ -58,9 +58,10 @@ export default class ProfileModel {
             lastname: this._lastname,
             academic_year: this._academic_year,
             mail: this._mail,
-            account_id: this._account_id,
-            status_id: this._status_id
+            account_id: 0,
+            status_id: this.status_id
         }
+        console.log(body)
         const response = await ProfileAPI.createProfile(body);
         if (response.isError()) return response as ErrorResponse<undefined>;
     }

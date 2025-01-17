@@ -3,7 +3,7 @@ import ErrorResponse from "../scripts/API/Responses/ErrorResponse.ts";
 import {AlertError, AlertSuccess} from "../Components/Utils/Alert.tsx";
 import ProfileForm from "../Components/Profile/ProfileForm.tsx";
 import ProfileModel from "../scripts/Models/ProfileModel.ts";
-import {Profile} from "../scripts/API/APITypes/Profiles.ts";
+import {ProfileInCreate} from "../scripts/API/APITypes/Profiles.ts";
 
 
 function AddProfile() {
@@ -23,7 +23,7 @@ function AddProfile() {
 
     const [statut, setStatut] = useState('');
 
-    const [quota, setQuota] = useState(''); //éditable ou non
+    const [quota, setQuota] = useState(0); //éditable ou non
 
     const [login, setLogin] = useState('');
 
@@ -42,16 +42,15 @@ function AddProfile() {
 
 
     const handleSignUp = async () => {
-        const userData: Profile = {
-            id: 0,
-            academic_year: [2024, 2025],
+        const userData: ProfileInCreate = {
+
             firstname: prenom,
             lastname: nom,
             mail: email,
-            //statut : statut, //TODO  quand on aura le statut
-            //quota : quota //TODO quand on aura la quota
-            //status_id : statut,
-            //account_id: 0,          // TODO MAIS POUR PLUS TARD
+            quota : quota,
+            academic_year: 2025,
+            status_id : statut,
+            account_id: 0
         };
 
         setSuccess(true);
@@ -77,8 +76,8 @@ function AddProfile() {
         <div className="flex flex-col items-center justify-center pt-12 pb-12">
             <div className="w-full max-w-md p-8 space-y-6 rounded-lg shadow-md">
                 <div className="flex flex-col items-center">
-                    <h1 className="text-4xl font-semibold">Création de profile</h1>
-                    <p className="text-sm">Créez un nouveau profile</p>
+                    <h1 className="text-4xl font-semibold">Création de profil</h1>
+                    <p className="text-sm">Créez un nouveau profil</p>
                 </div>
 
                 {generalError && <AlertError title="Oups ! Une erreur est survenue." details={generalError} />}

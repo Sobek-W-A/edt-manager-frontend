@@ -1,7 +1,7 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import Input from "../Utils/Input.tsx";
-import StatusAPI from "../../scripts/API/ModelAPIs/StatusAPI.ts";
 import ErrorResponse from "../../scripts/API/Responses/ErrorResponse.ts";
+import StatusModel from "../../scripts/Models/StatusModel.ts";
 
 interface UserFormProps {
     email: string;
@@ -14,7 +14,7 @@ interface UserFormProps {
     setLogin: (value: string) => void;
     statut: string;
     setStatut: (value: string) => void;
-    quota: string;
+    quota: number;
     setQuota: (value: string) => void;
 
 
@@ -53,7 +53,7 @@ const UserForm: React.FC<UserFormProps> = ({
                                            }) => {
 
 
-    const [availableStatus, setAvailableStatus] = useState([])
+    const [availableStatus, setAvailableStatus] = useState<StatusModel[]>([])
 
     // Handlers de validation internes avec types
     const handleMailType = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,9 +78,12 @@ const UserForm: React.FC<UserFormProps> = ({
     };
 
     const handleStatut = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setStatut(e.target.value);
-        //TODO à modifier pour quand on aura le JSON de status qui aura le quota
-        setQuota(availableStatus.find(e.target.value).quota)
+        const listMatch = availableStatus.find(function (element) {
+            return element.name === e.target.value
+        } )
+        setStatut(listMatch?.name);
+        console.log(JSON.stringify(listMatch));
+        setQuota(listMatch?.quota)
     };
 
     const handleQuota = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -89,17 +92,14 @@ const UserForm: React.FC<UserFormProps> = ({
     };
 
     React.useState(() => {
-        const statusDispo = StatusAPI.getAllStatus()
+        const statusDispo = StatusModel.getAllStatusByYear(2025) //TODO ANNEE HARD CODEE jusqu'à l'implémentation de l'année globale
+
         statusDispo.then(response => {
             if (response instanceof ErrorResponse) {
                 console.error("Erreur lors de la récupération des status: " + response.errorMessage());
-            } else {
-                const got_statuses: string[] = []
-                response.responseObject().forEach((status) => {
-                    got_statuses.push(status.name)
-                });
-                setAvailableStatus(got_statuses)
-            }
+            } else
+                console.log(response)
+            setAvailableStatus(response)
         })
     })
 
@@ -146,12 +146,11 @@ const UserForm: React.FC<UserFormProps> = ({
                 <select id="selectInput" value={statut} onChange={handleStatut}>
                     <option value="" disabled></option>
                     {availableStatus.map((option, index) => (
-                        <option key={index} value={option}>
-                            {option}
+                        <option key={index} value={option.name}>
+                            {option.name}
                         </option>
                     )) }
                 </select>
-                <p> {statut} </p>
             </div>
 
             <Input
