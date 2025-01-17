@@ -10,7 +10,11 @@ type ProfileType = {
     lastname: string
 }
 
-function SearchAndChose() {
+interface SearchAndChoseProps {
+    id_cours?: number
+}
+
+function SearchAndChose({id_cours}: SearchAndChoseProps) {
     const [searchInput, setSearchInput] = useState<string>("");
     const [searchResult, setSearchResult] = useState<ProfileType[] | null>();
     const [loading, setLoading] = useState<boolean>();
@@ -27,7 +31,7 @@ function SearchAndChose() {
         setSearchInput(e.target.value);
         setLoading(true);
 
-        if(searchInput.length > 1) {
+        if (searchInput.length > 1) {
             // TODO : Search professor
             setSearchResult([]);
             setLoading(false)
@@ -96,34 +100,34 @@ function SearchAndChose() {
                             <select
                                 id="group"
                                 name="group"
-                            required
-                            className="mr-2 px-3 py-2 mt-1 text-green-900 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
-                            value={dataToAssignProfessor.group}
-                            onChange={(e) => handleChangeGroupe(e)}>
-                            <option>Veuillez choisir le groupe</option>
-                            <option>TP</option>
-                            <option>CM</option>
-                            <option>TD</option>
-                        </select>
-                        <input
-                            id="nbrHour"
-                            name="nbrHourToAffect"
-                            type="number"
-                            min={0}
-                            required
-                            className="w-20 px-3 py-2 mt-1 text-green-900 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
-                            placeholder="Nombre d'heure à affecter"
-                            value={dataToAssignProfessor.nbrHourToAssign}
-                            onChange={(e) => handleChangeNbrHourToAffect(e)}
-                        />
-                        <button
-                            onClick={assignProfessor}
-                            className="ml-3 px-4 py-2 text-white rounded hover:border-green-300 bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500">
-                            Affecter
-                        </button>
+                                required
+                                className="mr-2 px-3 py-2 mt-1 text-green-900 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+                                value={dataToAssignProfessor.group}
+                                onChange={(e) => handleChangeGroupe(e)}>
+                                <option>Veuillez choisir le groupe</option>
+                                <option>TP</option>
+                                <option>CM</option>
+                                <option>TD</option>
+                            </select>
+                            <input
+                                id="nbrHour"
+                                name="nbrHourToAffect"
+                                type="number"
+                                min={0}
+                                required
+                                className="w-20 px-3 py-2 mt-1 text-green-900 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+                                placeholder="Nombre d'heure à affecter"
+                                value={dataToAssignProfessor.nbrHourToAssign}
+                                onChange={(e) => handleChangeNbrHourToAffect(e)}
+                            />
+                            <button
+                                onClick={assignProfessor}
+                                className="ml-3 px-4 py-2 text-white rounded hover:border-green-300 bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                Affecter
+                            </button>
+                        </div>
                     </div>
-                </div>
-            </div>}
+                </div>}
         </div>
     );
 }

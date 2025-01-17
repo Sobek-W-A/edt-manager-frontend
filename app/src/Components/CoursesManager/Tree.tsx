@@ -34,12 +34,12 @@ const data: Folder = {
                     children: [
                         {
                             type: "course",
-                            id: "ue502",
+                            id: "5",
                             title: "UE 502 ALGORITHMIQUE-CONCEPTION PROGRAMMATION OBJET AVANCÉE",
                         },
                         {
                             type: "course",
-                            id: "ue503",
+                            id: "3",
                             title: "UE 503 BASES DE DONNÉES",
                         }
                     ]

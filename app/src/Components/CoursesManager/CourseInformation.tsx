@@ -11,23 +11,21 @@ const CourseInformation = forwardRef ( (_props, ref) => {
     const [courses, setCourses] = useState<Course[]>([]);
     const [isEditing, setIsEditing] = useState<boolean>(false);
     const [idUE, setIDUE] = useState<string>('');
+    const [idUELoad, setidUELoad] = useState<boolean>(false);
 
-
-    // Exposez la méthode displayUE_By_ID via la référence
     useImperativeHandle(ref, () => ({
         displayUE_By_ID(id: string) {
-            console.log(id + " ON UTILISE CETTE ID");
             setIDUE(id)
             const fetchUEData = async () => {
                 try {
-                    const response = UEModel.getUEById(idUE)
+                    const response = UEModel.getUEById(id);
                     response.then((ue) => {
 
                         if (ue instanceof UEModel) {
-                            console.log(ue.courses)
                             setUeName(ue.name);
                             setCourses(ue.courses)
                             setacademicYear(ue.academic_year)
+                            setidUELoad(true)
                         }
                     })
                 } catch (error) {
@@ -53,7 +51,6 @@ const CourseInformation = forwardRef ( (_props, ref) => {
 
     const handleBlur = async () => {
         setIsEditing(false);
-        //TODO update de l'ue, pour le moment que le nom
     };
 
     return (
@@ -71,7 +68,7 @@ const CourseInformation = forwardRef ( (_props, ref) => {
                     />
                 ) : (
                     <h1 onDoubleClick={handleDoubleClick} className="cursor-pointer">
-                        {ueName + " ( " + idUE + " : " + academicYear + " )"}
+                        {idUELoad ? (ueName + " ( " + idUE + " : " + academicYear + " )") : null}
                     </h1>
                 )}
             </span>
@@ -87,7 +84,8 @@ const CourseInformation = forwardRef ( (_props, ref) => {
                         </div>
 
                         <CollapsibleButton>
-                            <SearchAndChose />
+                            <SearchAndChose
+                            id_cours={course.id}/>
                         </CollapsibleButton>
                     </div>
                 ))}
