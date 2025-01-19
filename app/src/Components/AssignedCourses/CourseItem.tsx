@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import AffectationAPI from '/Users/mohamed_benhamou/Desktop/edt-manager-frontend/app/src/scripts/API/ModelAPIs/AffectationAPI.ts';
+import AffectationAPI from '../../scripts/API/ModelAPIs/AffectationAPI.ts';
 
 // TypeScript interfaces
 interface Course {

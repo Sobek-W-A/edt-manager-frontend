@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import CourseList from '../Components/AssignedCourses/CourseList.tsx';
-import AffectationAPI from '/Users/mohamed_benhamou/Desktop/edt-manager-frontend/app/src/scripts/API/ModelAPIs/AffectationAPI.ts';
+import AffectationAPI from '../scripts/API/ModelAPIs/AffectationAPI.ts';
 
 // TypeScript interfaces pour typer les données
 interface Course {
@@ -80,7 +80,7 @@ const AssignedCoursesPage: React.FC = () => {
 
   return (
     <div className="w-full bg-white rounded-2xl shadow-2xl border border-gray-200">
-      <h1 className="text-4xl font-extrabold text-center text-green-700 mb-8 pt-8">Vos cours attribués</h1>
+      <h1 className="text-4xl font-extrabold text-center text-green-700 mb-8 pt-8">Cours attribués</h1>
       {showNotification && (
         <div className={`notification ${notification.type}`}>
           {notification.message}
