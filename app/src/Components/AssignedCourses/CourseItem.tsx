@@ -26,9 +26,27 @@ const CourseItem: React.FC<CourseItemProps> = ({ course }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [notification, setNotification] = useState({ message: '', type: '' });
   const [showNotification, setShowNotification] = useState(false);
+  const [currentProfessor, setCurrentProfessor] = useState<{ firstname: string; lastname: string } | null>(null);
 
-  // Remove duplicate colleagues
-  const removeDuplicates = (colleagues: Colleague[]) => {
+  // Fetch the current professor's profile
+  useEffect(() => {
+    const fetchCurrentProfessor = async () => {
+      try {
+        const response = await AffectationAPI.getProfile();
+        if (!response.isError()) {
+          const profile = response.responseObject();
+          setCurrentProfessor({ firstname: profile.firstname, lastname: profile.lastname });
+        }
+      } catch (error) {
+        console.error('Error fetching current professor:', error);
+      }
+    };
+
+    fetchCurrentProfessor();
+  }, []);
+
+  // Remove duplicate colleagues and filter out the current professor
+  const filterColleagues = (colleagues: Colleague[]) => {
     const uniqueColleagues = new Map();
     colleagues.forEach((colleague) => {
       const fullName = `${colleague.firstname} ${colleague.lastname}`;
@@ -36,6 +54,13 @@ const CourseItem: React.FC<CourseItemProps> = ({ course }) => {
         uniqueColleagues.set(fullName, colleague);
       }
     });
+
+    // Filter out the current professor
+    if (currentProfessor) {
+      const professorFullName = `${currentProfessor.firstname} ${currentProfessor.lastname}`;
+      uniqueColleagues.delete(professorFullName);
+    }
+
     return Array.from(uniqueColleagues.values());
   };
 
@@ -48,7 +73,7 @@ const CourseItem: React.FC<CourseItemProps> = ({ course }) => {
           setShowNotification(true);
         } else {
           const fetchedColleagues = response.responseObject() || [];
-          setColleagues(removeDuplicates(fetchedColleagues));
+          setColleagues(filterColleagues(fetchedColleagues));
         }
       } catch {
         setNotification({ message: 'Erreur lors de la récupération des collègues.', type: 'alert-error' });
@@ -59,7 +84,7 @@ const CourseItem: React.FC<CourseItemProps> = ({ course }) => {
     };
 
     fetchColleagues();
-  }, [course.course_id]);
+  }, [course.course_id, currentProfessor]); // Re-fetch when course_id or currentProfessor changes
 
   useEffect(() => {
     if (showNotification) {
