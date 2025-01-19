@@ -19,15 +19,30 @@ export interface AffectationType {
  * API methods for affectation endpoints.
  */
 export default class AffectationAPI {
-  static PROFILE_PATH = "/affectation/profile";
+  static readonly PROFILE_PATH = "/affectation/profile";
+  static readonly COURSE_PATH = "/affectation/course";
+
+  /**
+   * Function to fetch the profile of the logged-in user.
+   *
+   * @returns A promise resolving to the user profile data or an error.
+   */
+  static getProfile(): Promise<APIResponse<{ id: number; firstname: string; lastname: string; mail: string }>> {
+    return api.requestLogged<{ id: number; firstname: string; lastname: string; mail: string }>(
+      HTTPMethod.GET,
+      `/profile/4`,
+      undefined, // Pas de corps de requête pour une méthode GET
+      undefined  // Pas de headers supplémentaires nécessaires ici
+    );
+  }
 
   /**
    * Function to fetch teacher affectations.
    *
-   * @param profile_id The profile ID of the teacher to fetch affectations for (default: 3).
+   * @param profile_id The profile ID of the teacher to fetch affectations for.
    * @returns A promise resolving to an array of AffectationType or an error.
    */
-  static getTeacherAffectations(profile_id: number = 3): Promise<APIResponse<AffectationType[]>> {
+  static getTeacherAffectations(profile_id: number): Promise<APIResponse<AffectationType[]>> {
     return api.requestLogged<AffectationType[]>(
       HTTPMethod.GET,
       `${AffectationAPI.PROFILE_PATH}/${profile_id}`,
@@ -37,15 +52,15 @@ export default class AffectationAPI {
   }
 
   /**
-   * Function to fetch a specific affectation by ID.
+   * Function to fetch colleagues assigned to a specific course.
    *
-   * @param affectation_id The ID of the affectation to fetch.
-   * @returns A promise resolving to an AffectationType or an error.
+   * @param course_id The ID of the course to fetch colleagues for.
+   * @returns A promise resolving to an array of objects with firstname and lastname.
    */
-  static getAffectationById(affectation_id: number): Promise<APIResponse<AffectationType>> {
-    return api.requestLogged<AffectationType>(
+  static getColleaguesByCourseId(course_id: number): Promise<APIResponse<{ firstname: string; lastname: string }[]>> {
+    return api.requestLogged<{ firstname: string; lastname: string }[]>(
       HTTPMethod.GET,
-      `/affectation/${affectation_id}`,
+      `${AffectationAPI.COURSE_PATH}/${course_id}`,
       undefined,
       undefined
     );
