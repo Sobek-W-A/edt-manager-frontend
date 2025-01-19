@@ -1,7 +1,8 @@
 import APIResponse from "../Responses/APIResponse.ts";
 import { HTTPMethod } from "../Enums/HTTPMethod.ts";
 import { api } from "../API.ts";
-import { AffectationInCreate } from "../APITypes/AffectationType.ts";
+import {AffectationInCreate} from "../APITypes/AffectationType.ts";
+
 
 /**
  * TypeScript interface pour typer une affectation.
@@ -22,8 +23,16 @@ export interface AffectationType {
 export default class AffectationAPI {
   static readonly PROFILE_PATH = "/affectation/profile";
   static readonly COURSE_PATH = "/affectation/course";
-  static readonly AFFECTATION_URL = "/affectation";
+  static AFFECTATION_URL = "/affectation";
 
+  static assignCourseToProfile(affectation: AffectationInCreate): Promise<APIResponse<undefined>> {
+    return api.requestLogged<undefined>(
+        HTTPMethod.POST,
+        `${AffectationAPI.AFFECTATION_URL}/assign`,
+        JSON.stringify(affectation),
+        undefined
+    )
+}
   /**
    * Function to fetch the profile of the logged-in user.
    *
@@ -32,9 +41,9 @@ export default class AffectationAPI {
   static getProfile(): Promise<APIResponse<{ id: number; firstname: string; lastname: string; mail: string }>> {
     return api.requestLogged<{ id: number; firstname: string; lastname: string; mail: string }>(
       HTTPMethod.GET,
-      `/profile/4`,
-      undefined,
-      undefined
+      `/profile/me`,
+      undefined, // Pas de corps de requête pour une méthode GET
+      undefined  // Pas de headers supplémentaires nécessaires ici
     );
   }
 
@@ -64,21 +73,6 @@ export default class AffectationAPI {
       HTTPMethod.GET,
       `${AffectationAPI.COURSE_PATH}/${course_id}`,
       undefined,
-      undefined
-    );
-  }
-
-  /**
-   * Function to assign a course to a profile.
-   *
-   * @param affectation The affectation data to assign.
-   * @returns A promise resolving to undefined or an error.
-   */
-  static assignCourseToProfile(affectation: AffectationInCreate): Promise<APIResponse<undefined>> {
-    return api.requestLogged<undefined>(
-      HTTPMethod.POST,
-      `${AffectationAPI.AFFECTATION_URL}/assign`,
-      JSON.stringify(affectation),
       undefined
     );
   }
