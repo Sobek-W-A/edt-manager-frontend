@@ -12,10 +12,10 @@ interface UserFormProps {
     setNom: (value: string) => void;
     login: string;
     setLogin: (value: string) => void;
-    statut: string;
-    setStatut: (value: string) => void;
+    statut: number;
+    setStatut: (value: number) => void;
     quota: number;
-    setQuota: (value: string) => void;
+    setQuota: (value: number | undefined) => void;
 
 
     handleSubmit: () => void;
@@ -81,7 +81,7 @@ const UserForm: React.FC<UserFormProps> = ({
         const listMatch = availableStatus.find(function (element) {
             return element.name === e.target.value
         } )
-        setStatut(listMatch?.name);
+        setStatut(listMatch?.id);
         console.log(JSON.stringify(listMatch));
         setQuota(listMatch?.quota)
     };

@@ -21,7 +21,7 @@ function AddProfile() {
     const [prenom, setPrenom] = useState('');
     const [email, setEmail] = useState(''); //email non obligatoire
 
-    const [statut, setStatut] = useState('');
+    const [statut, setStatut] = useState(0);
 
     const [quota, setQuota] = useState(0); //éditable ou non
 

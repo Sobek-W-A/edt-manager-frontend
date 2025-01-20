@@ -34,7 +34,7 @@ function Navbar() {
                         </div>
                         <div className="flex items-center">
                             <Link to="/profileCreation" className="text-sm hover:text-green-300 transition duration-200">
-                                Créer un profile
+                                Créer un profil
                             </Link>
                         </div>
                         <div className="flex items-center">
