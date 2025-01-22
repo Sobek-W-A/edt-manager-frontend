@@ -1,8 +1,7 @@
 import APIResponse from "../Responses/APIResponse.ts";
 import { HTTPMethod } from "../Enums/HTTPMethod.ts";
 import { api } from "../API.ts";
-import {AffectationInCreate} from "../APITypes/AffectationType.ts";
-
+import { AffectationInCreate } from "../APITypes/AffectationType.ts";
 
 /**
  * TypeScript interface pour typer une affectation.
@@ -25,33 +24,32 @@ export default class AffectationAPI {
   static readonly COURSE_PATH = "/affectation/course";
   static AFFECTATION_URL = "/affectation";
 
+  /**
+   * Assign a course to a profile.
+   */
   static assignCourseToProfile(affectation: AffectationInCreate): Promise<APIResponse<undefined>> {
     return api.requestLogged<undefined>(
-        HTTPMethod.POST,
-        `${AffectationAPI.AFFECTATION_URL}/assign`,
-        JSON.stringify(affectation),
-        undefined
-    )
-}
+      HTTPMethod.POST,
+      `${AffectationAPI.AFFECTATION_URL}/assign`,
+      JSON.stringify(affectation),
+      undefined
+    );
+  }
+
   /**
-   * Function to fetch the profile of the logged-in user.
-   *
-   * @returns A promise resolving to the user profile data or an error.
+   * Fetch the profile of the logged-in user.
    */
   static getProfile(): Promise<APIResponse<{ id: number; firstname: string; lastname: string; mail: string }>> {
     return api.requestLogged<{ id: number; firstname: string; lastname: string; mail: string }>(
       HTTPMethod.GET,
       `/profile/me`,
-      undefined, // Pas de corps de requête pour une méthode GET
-      undefined  // Pas de headers supplémentaires nécessaires ici
+      undefined,
+      undefined
     );
   }
 
   /**
-   * Function to fetch teacher affectations.
-   *
-   * @param profile_id The profile ID of the teacher to fetch affectations for.
-   * @returns A promise resolving to an array of AffectationType or an error.
+   * Fetch teacher affectations.
    */
   static getTeacherAffectations(profile_id: number): Promise<APIResponse<AffectationType[]>> {
     return api.requestLogged<AffectationType[]>(
@@ -63,15 +61,24 @@ export default class AffectationAPI {
   }
 
   /**
-   * Function to fetch colleagues assigned to a specific course.
-   *
-   * @param course_id The ID of the course to fetch colleagues for.
-   * @returns A promise resolving to an array of objects with firstname and lastname.
+   * Fetch colleagues assigned to a specific course.
    */
   static getColleaguesByCourseId(course_id: number): Promise<APIResponse<{ firstname: string; lastname: string }[]>> {
     return api.requestLogged<{ firstname: string; lastname: string }[]>(
       HTTPMethod.GET,
       `${AffectationAPI.COURSE_PATH}/${course_id}`,
+      undefined,
+      undefined
+    );
+  }
+
+  /**
+   * Fetch course details by course ID.
+   */
+  static getCourseById(course_id: number): Promise<APIResponse<{ course_type: { name: string } }>> {
+    return api.requestLogged<{ course_type: { name: string } }>(
+      HTTPMethod.GET,
+      `/course/${course_id}`,
       undefined,
       undefined
     );
