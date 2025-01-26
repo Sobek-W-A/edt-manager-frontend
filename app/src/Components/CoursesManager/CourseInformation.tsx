@@ -78,7 +78,7 @@ const CourseInformation = forwardRef ( (_props, ref) => {
                     <div key={index} className="form-field pt-5">
                         <div>
                             <p>ID cours : {course.id}</p>
-                            <b>{course.course_type.name}</b>
+                            <b>{course.course_type.name} </b>
                             <p>description : {course.course_type.description}</p>
                         </div>
 
