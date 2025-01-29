@@ -95,4 +95,17 @@ export default class ProfileAPI {
             undefined
         );
     }
+
+    /**
+     * This method returns the number of profiles in the database.
+     * @returns Promise<APIResponse<number>> A promise that resolves to the APIResponse containing the number of profiles.
+     */
+    static getProfileCount(): Promise<APIResponse<number>> {
+        return api.requestLogged<number>(
+            HTTPMethod.GET,
+            `${ProfileAPI.PROFILE_URL}/nb`,
+            undefined,
+            undefined
+        );
+    }
 }

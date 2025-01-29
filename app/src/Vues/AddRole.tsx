@@ -13,8 +13,6 @@ import ProfileAPI from "../scripts/API/ModelAPIs/ProfileAPI.ts";
 function AddRole() {
     const [accountsAndProfils, setAccountsAndProfils] = useState<(Account)[]>([]);
     const [filteredAccountsAndProfiles, setFilteredAccountsAndProfiles] = useState<(Account)[]>([]);
-    const [accounts, setAccounts] = useState<(Account)[]>([]);
-    const [filteredAccounts, setFilteredAccounts] = useState<(Account)[]>([]);
     const [profiles, setProfiles] = useState<(Profile)[]>([]);
     const [filteredProfiles, seFilteredProfiles] = useState<(Profile)[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
@@ -39,8 +37,6 @@ function AddRole() {
             } else {
                 setAccountsAndProfils(accountResponse.responseObject().filter((account: Account) => account.profile !== null));
                 setFilteredAccountsAndProfiles(accountResponse.responseObject().filter((account: Account) => account.profile !== null));
-                setAccounts(accountResponse.responseObject().filter((account: Account) => account.profile === null));
-                setFilteredAccounts(accountResponse.responseObject().filter((account: Account) => account.profile === null));
             }
 
             // Récupérer les profils seuls
@@ -116,14 +112,11 @@ function AddRole() {
                 } else {
                     // On filtre les comptes ayant des profils et les comptes seuls
                     const accountsWithProfiles = accountsByKeywords.responseObject().filter((account: Account) => account.profile !== null);
-                    const accountsWithoutProfiles = accountsByKeywords.responseObject().filter((account: Account) => account.profile === null && !accountsWithProfiles.some(acc => acc.id === account.id));
                     setFilteredAccountsAndProfiles(accountsWithProfiles);
-                    setFilteredAccounts(accountsWithoutProfiles);
                 }
             });
         } else {
             setFilteredAccountsAndProfiles(accountsAndProfils);
-            setFilteredAccounts(accounts.filter(account => !accountsAndProfils.some(acc => acc.id === account.id)));
         }
 
         // Recherche des profils seuls par mots-clés
@@ -212,11 +205,6 @@ function AddRole() {
         ? filteredAccountsAndProfiles.filter(user => userRoles.some(u => u.user.id === user.id && u.role.name === selectedTag.name))
         : filteredAccountsAndProfiles;
 
-    // Filtrer les comptes par tags
-    const filteredAccountsByTags = selectedTag.name !== undefined
-        ? filteredAccounts.filter(user => userRoles.some(u => u.user.id === user.id && u.role.name === selectedTag.name))
-        : filteredAccounts;
-
         return (
             <div className="flex justify-center mt-6">
                 <div className="w-fit p-6 rounded-lg shadow-md">
@@ -267,26 +255,6 @@ function AddRole() {
                         </>
                     )}
 
-                    {/* Grille des comptes seuls */}
-                    {filteredAccountsByTags.length > 0 && !selectedTag.name && (
-                        <>
-                            <h2 className="text-2xl font-bold text-green-800 mt-4 mb-2">Comptes seuls</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-3 gap-6">
-                                {filteredAccountsByTags.map((account: Account) => (
-                                    <AddRoleCard
-                                        key={account.id}
-                                        user={account}
-                                        rolesList={rolesList}
-                                        openRoleMenu={openRoleMenu}
-                                        setOpenRoleMenu={setOpenRoleMenu}
-                                        addRoleToUser={addRoleToUser}
-                                        removeRoleFromUser={removeRoleFromUser}
-                                    />
-                                ))}
-                            </div>
-                        </>
-                    )}
-
                     { /* Grille des profils seuls */ }
                     {filteredProfiles.length > 0 && !selectedTag.name && (
                         <>
@@ -308,7 +276,7 @@ function AddRole() {
                     )}
 
                     {/* Aucun utilisateur */}
-                    {((filteredAccountsAndProfilesByTags.length === 0 && filteredAccountsByTags.length === 0 && filteredProfiles.length === 0) || (filteredAccountsAndProfilesByTags.length === 0 && filteredAccountsByTags.length === 0 && selectedTag.name)) && (
+                    {((filteredAccountsAndProfilesByTags.length === 0 && filteredProfiles.length === 0) || (filteredAccountsAndProfilesByTags.length === 0 && selectedTag.name)) && (
                         <div className="text-center text-gray-500 mt-6">Aucun utilisateur trouvé.</div>
                     )}        
 
@@ -316,7 +284,7 @@ function AddRole() {
                     {showNotification && <Notification message={notification.message} type={notification.type} />}
 
                     {/* Pagination */}
-                    {((filteredAccountsAndProfilesByTags.length > 0) || ((filteredAccountsByTags.length > 0 || filteredProfiles.length > 0) && !selectedTag.name)) && (
+                    {((filteredAccountsAndProfilesByTags.length > 0) || ((filteredProfiles.length > 0) && !selectedTag.name)) && (
                         <div className="flex items-center justify-between bg-white px-4 py-3 sm:px-6">
                             <div className="flex flex-1 justify-between sm:hidden">
                                 <a href="#" className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Previous</a>

@@ -89,4 +89,17 @@ export default class AccountAPI {
             undefined
         );
     }
+
+    /**
+     * This method returns the number of accounts
+     * @returns A promise that resolves to the number of accounts or an error.
+     */
+    static getNumberOfAccounts(): Promise<APIResponse<number>> {
+        return api.requestLogged<number>(
+            HTTPMethod.GET,
+            `${AccountAPI.ACCOUNTS_PATH}/nb`,
+            undefined,
+            undefined
+        );
+    }
 }
