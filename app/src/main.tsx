@@ -10,17 +10,45 @@ import ManageHumanResources from "./Vues/ManageHumanResources.tsx";
 import AddProfile from "./Vues/AddProfile.tsx";
 import AssignedCoursesPage from './Vues/AssignedCoursesPage.tsx';
 import Guard from "./Components/Utils/Guard.tsx";
-
+import AdminGuard from "./Components/Utils/AdminGuard.tsx"; // Add this import
 
 // Configuration des routes
 const routes = createRoutesFromElements(
     <Route path="/" element={<Layout />}>
-        <Route path="add-role" element={<Guard><AddRole /></Guard>} />
-        <Route path="accountcreation" element={<Guard><AddAccount /></Guard>} />
-        <Route path="profileCreation" element={<Guard><AddProfile /></Guard>} />
-        <Route path="management" element={<Guard><ManageHumanResources /></Guard>} />
+        {/* Public route */}
         <Route path="login" element={<LoginVue />} />
-        <Route path="assigned-courses" element={<Guard><AssignedCoursesPage /></Guard>} />
+
+        {/* Admin-protected routes */}
+        <Route path="add-role" element={
+            <AdminGuard>
+                <AddRole />
+            </AdminGuard>
+        } />
+        
+        <Route path="accountcreation" element={
+            <AdminGuard>
+                <AddAccount />
+            </AdminGuard>
+        } />
+
+        <Route path="profileCreation" element={
+            <AdminGuard>
+                <AddProfile />
+            </AdminGuard>
+        } />
+
+        <Route path="management" element={
+            <AdminGuard>
+                <ManageHumanResources />
+            </AdminGuard>
+        } />
+
+        {/* Regular authenticated routes */}
+        <Route path="assigned-courses" element={
+            <Guard>
+                <AssignedCoursesPage />
+            </Guard>
+        } />
     </Route>
 );
 
