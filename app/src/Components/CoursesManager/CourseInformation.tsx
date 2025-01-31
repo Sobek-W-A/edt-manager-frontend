@@ -1,9 +1,9 @@
-
 import React, {useState, useEffect, useImperativeHandle, forwardRef} from 'react';
 import CollapsibleButton from './CollapsibleButton';
 import SearchAndChose from "./SearchAndChose";
 import UEModel from "../../scripts/Models/UEModel.ts";
 import {Course} from "../../scripts/API/APITypes/Course.ts";
+import AlreadyAffectedList from "./AlreadyAffectedList.tsx";
 
 const CourseInformation = forwardRef ( (_props, ref) => {
     const [ueName, setUeName] = useState<string>('');
@@ -21,6 +21,7 @@ const CourseInformation = forwardRef ( (_props, ref) => {
                     const response = UEModel.getUEById(id);
                     response.then((ue) => {
                         if (ue instanceof UEModel) {
+                            console.log(ue)
                             setUeName(ue.name);
                             setCourses(ue.courses)
                             setacademicYear(ue.academic_year)
@@ -52,10 +53,11 @@ const CourseInformation = forwardRef ( (_props, ref) => {
         setIsEditing(false);
     };
 
+    //TODO récupérer les heures déjà assignées et les mettre à la place du "x"
     return (
         <div className="p-5">
-            <span className="w-full text-center inline-block">
 
+            <span className="w-full text-center inline-block">
                 {isEditing ? (
                     <input
                         type="text"
@@ -75,18 +77,30 @@ const CourseInformation = forwardRef ( (_props, ref) => {
             <div>
                 {courses.map((course, index) => (
 
+                    <div key={index} className="form-field">
+                            <p>{course.course_type.name} : {course.duration} * {course.group_count}</p>
+                    </div>
+                ))}
+            </div>
+
+            <div>
+                {courses.map((course, index) => (
+
                     <div key={index} className="form-field pt-5">
                         <div>
                             <p>ID cours : {course.id}</p>
-                            <b>{course.course_type[0].name}</b>
-                            <p>description : {course.course_type[0].description}</p>
+                            <b>{course.course_type.name} </b>
+                            <p>description : {course.course_type.description}</p>
+                            <p>assignées/total : x/{course.duration}</p>
                         </div>
 
                         <CollapsibleButton>
                             <SearchAndChose
-                            id_cours={course.id}
-                            groupCount={course.group_count}/>
+                                id_cours={course.id}
+                                groupCount={course.group_count}/>
                         </CollapsibleButton>
+
+                        <AlreadyAffectedList course_id={course.id}></AlreadyAffectedList>
                     </div>
                 ))}
             </div>
