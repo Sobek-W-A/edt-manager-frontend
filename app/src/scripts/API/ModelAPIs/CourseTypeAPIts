@@ -1,0 +1,66 @@
+import {api} from "../API.ts";
+import {CourseType, CourseTypeInCreation, CourseTypeInUpdate} from "../APITypes/CourseType.ts";
+import {HTTPMethod} from "../Enums/HTTPMethod.ts";
+import APIResponse from "../Responses/APIResponse.ts";
+
+export default class CourseTypeAPI {
+
+    static COURSE_TYPE_PATH = "/course_type";
+
+    /**
+     * This method builds and sends the request to get a CourseType by its id.
+     * @param id The id of the CourseType to get.
+     * @returns The response of the request.
+     */
+    static async getCourseTypeById(id: number): Promise<APIResponse<CourseType>> {
+        return api.requestLogged<CourseType>(
+            HTTPMethod.GET,
+            `${CourseTypeAPI.COURSE_TYPE_PATH}/${id}`,
+            undefined,
+            undefined
+        );
+    }
+
+    /**
+     * This method is used to modify a CourseType.
+     * @param id The id of the CourseType to modify.
+     * @param course The new values of the CourseType.
+     * @returns The response of the request.
+     */
+    static async modifyCourseType(id: number, course: CourseTypeInUpdate): Promise<APIResponse<undefined>> {
+        return api.requestLogged<undefined>(
+            HTTPMethod.PATCH,
+            `${CourseTypeAPI.COURSE_TYPE_PATH}/${id}`,
+            JSON.stringify(course),
+            undefined
+        );
+    }
+
+    /**
+     * This method is used to delete a CourseType.
+     * @param id The id of the CourseType to delete.
+     * @returns The response of the request.
+     */
+    static async deleteCourseType(id: number): Promise<APIResponse<undefined>> {
+        return api.requestLogged<undefined>(
+            HTTPMethod.DELETE,
+            `${CourseTypeAPI.COURSE_TYPE_PATH}/${id}`,
+            undefined,
+            undefined
+        );
+    }
+
+    /**
+     * This method is used to create a new CourseType.
+     * @param course The new CourseType.
+     * @returns The response of the request.
+     */
+    static async createCourseType(course: CourseTypeInCreation): Promise<APIResponse<CourseType>> {
+        return api.requestLogged<CourseType>(
+            HTTPMethod.POST,
+            `${CourseTypeAPI.COURSE_TYPE_PATH}/`,
+            JSON.stringify(course),
+            undefined
+        );
+    }
+}

@@ -34,12 +34,12 @@ const data: Folder = {
                     children: [
                         {
                             type: "course",
-                            id: "ue502",
+                            id: "5",
                             title: "UE 502 ALGORITHMIQUE-CONCEPTION PROGRAMMATION OBJET AVANCÉE",
                         },
                         {
                             type: "course",
-                            id: "ue503",
+                            id: "2",
                             title: "UE 503 BASES DE DONNÉES",
                         }
                     ]
@@ -89,8 +89,6 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
     // Fonction pour gérer le menu contextuel
     const handleContextMenu = (e: React.MouseEvent, folderId: string) => {
         e.preventDefault();
-        const menuWidth = 200;
-        const menuHeight = 100;
         const x = e.clientX + 0;
         const y = e.clientY - 40;
         setContextMenu({ visible: true, x: x, y: y, folderId });
