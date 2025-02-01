@@ -10,7 +10,8 @@ export default class ProfileModel {
     private _lastname  : string;
     private _mail      : string;
     private _account_id: number | undefined;
-    private _status_id : string | undefined;
+    private _status_id : number | undefined;
+    private _quota: number;
 
     constructor(profile: Profile) {
         this._id = profile.id;
@@ -20,6 +21,7 @@ export default class ProfileModel {
         this._mail = profile.mail;
         this._status_id = profile.status_id;
         this._account_id = profile.account_id;
+        this._quota = profile.quota;
     }
 
     /**
@@ -58,8 +60,9 @@ export default class ProfileModel {
             lastname: this._lastname,
             academic_year: this._academic_year,
             mail: this._mail,
-            account_id: 0,
-            status_id: this.status_id
+            account_id: this._account_id,
+            status_id: this._status_id,
+            quota: this._quota
         }
         console.log(body)
         const response = await ProfileAPI.createProfile(body);

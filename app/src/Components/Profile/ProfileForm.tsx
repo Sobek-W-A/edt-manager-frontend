@@ -2,6 +2,10 @@ import React, {useState} from 'react';
 import Input from "../Utils/Input.tsx";
 import ErrorResponse from "../../scripts/API/Responses/ErrorResponse.ts";
 import StatusModel from "../../scripts/Models/StatusModel.ts";
+import AccountModel from "../../scripts/Models/AccountModel.ts";
+import {Account} from "../../scripts/API/APITypes/Accounts.ts";
+
+const global_academic_year = 2025;
 
 interface UserFormProps {
     email: string;
@@ -10,8 +14,8 @@ interface UserFormProps {
     setPrenom: (value: string) => void;
     nom: string;
     setNom: (value: string) => void;
-    login: string;
-    setLogin: (value: string) => void;
+    account: number;
+    setAccount: (value: number) => void;
     statut: number;
     setStatut: (value: number) => void;
     quota: number;
@@ -30,6 +34,8 @@ interface UserFormProps {
         setLoginError: (value: string) => void;
         statutError: string;
         setStatutError: (value: string) => void;
+        account: string;
+        setAccountError: (value: string) => void;
         quotaError: string;
         setQuotaError: (value: string) => void;
     };
@@ -42,8 +48,7 @@ const UserForm: React.FC<UserFormProps> = ({
                                                setPrenom,
                                                nom,
                                                setNom,
-                                               login,
-                                               setLogin,
+                                               setAccount,
                                                 statut,
                                                 setStatut,
                                                 quota,
@@ -54,6 +59,9 @@ const UserForm: React.FC<UserFormProps> = ({
 
 
     const [availableStatus, setAvailableStatus] = useState<StatusModel[]>([])
+    const [availableAccounts, setAvailableAccounts] = useState<Account[]>([])
+    const [filteredAccounts, setFilteredAccounts] = useState<Account[]>([]);
+    const [searchTerm, setSearchTerm] = useState("");
 
     // Handlers de validation internes avec types
     const handleMailType = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,36 +80,67 @@ const UserForm: React.FC<UserFormProps> = ({
         errors.setNomError(e.target.value.length >= 2 ? "" : "Veuillez entrer un nom valide, d'au moins 2 caractères.");
     };
 
-    const handleLogin = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setLogin(e.target.value);
+    /**const handleLogin = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setAccount(e.target.value);
         errors.setLoginError(e.target.value.length >= 2 ? "" : "Veuillez entrer un login valide, d'au moins 2 caractères.");
-    };
+    };**/
 
     const handleStatut = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        console.log(e.target.value)
         const listMatch = availableStatus.find(function (element) {
-            return element.name === e.target.value
+            return element.id === Number(e.target.value)
         } )
-        setStatut(listMatch?.id);
-        console.log(JSON.stringify(listMatch));
-        setQuota(listMatch?.quota)
+        setStatut(Number(listMatch?.id));
+        setQuota(listMatch?.quota);
+
     };
 
+    /**const handleLinkAccount = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const listMatch = availableAccounts.find(function (element) {
+            return element.login === e.target.value
+        } )
+        setAccount(listMatch?.id);
+        setLabelAccount(listMatch?.login)
+        console.log(account);
+    };**/
+
     const handleQuota = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setQuota(e.target.value);
+        setQuota(Number(e.target.value));
         errors.setStatutError(e.target.value.length >= 2 ? "" : "Veuillez choisir quota valide.");
     };
 
-    React.useState(() => {
-        const statusDispo = StatusModel.getAllStatusByYear(2025) //TODO ANNEE HARD CODEE jusqu'à l'implémentation de l'année globale
+    React.useEffect(() => {
+        StatusModel.getAllStatusByYear(global_academic_year).then(response => {
+            if (!(response instanceof ErrorResponse)) {
+                setAvailableStatus(response);
+            }
+        });
 
-        statusDispo.then(response => {
-            if (response instanceof ErrorResponse) {
-                console.error("Erreur lors de la récupération des status: " + response.errorMessage());
-            } else
-                console.log(response)
-            setAvailableStatus(response)
-        })
-    })
+        AccountModel.getAllAccountsNotLinkedToProfile(global_academic_year).then(response => {
+            if (!(response instanceof ErrorResponse)) {
+                setAvailableAccounts(response);
+            }
+        });
+    }, []);
+
+    React.useEffect(() => {
+        if (searchTerm) {
+            setFilteredAccounts(
+                availableAccounts.filter(account =>
+                    account.login.toLowerCase().includes(searchTerm.toLowerCase())
+                )
+            );
+        } else {
+            setFilteredAccounts([]);
+        }
+    }, [searchTerm, availableAccounts]);
+
+    const handleAccountSelection = (selectedAccount: Account) => {
+        setSearchTerm(selectedAccount.login);
+        console.log(selectedAccount.id)
+        setAccount(selectedAccount.id);
+        setFilteredAccounts([]);
+    };
 
     return (
         <div className="form-group">
@@ -132,24 +171,34 @@ const UserForm: React.FC<UserFormProps> = ({
                 onChange={handleNom}
             />
 
-            <Input
-                label="Login"
-                type="text"
-                placeholder="Login"
-                error={errors.loginError}
-                value={login}
-                onChange={handleLogin}
-            />
+            <div>
+                <label className="form-label block text-sm font-medium text-green-700">Lier un Compte</label>
+                <input
+                    className={"w-full px-3 py-2 mt-1 text-green-900 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"}
+                    type="text"
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    placeholder="Rechercher un compte..."
+                 />
+                {filteredAccounts.length > 0 && (
+                    <ul className="dropdown">
+                        {filteredAccounts.map((acc) => (
+                            <li key={acc.id} onClick={() => handleAccountSelection(acc)}
+                                className="cursor-pointer hover:bg-gray-200">
+                                {acc.login}
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </div>
 
             <div>
-                <label htmlFor="selectInput" className="form-label block text-sm font-medium text-green-700">Status</label>
-                <select id="selectInput" value={statut} onChange={handleStatut}>
+                <label className="form-label block text-sm font-medium text-green-700">Status</label>
+                <select value={statut} onChange={e => handleStatut(e)}>
                     <option value="" disabled></option>
-                    {availableStatus.map((option, index) => (
-                        <option key={index} value={option.name}>
-                            {option.name}
-                        </option>
-                    )) }
+                    {availableStatus.map(option => (
+                        <option key={option.id} value={option.id}>{option.name}</option>
+                    ))}
                 </select>
             </div>
 

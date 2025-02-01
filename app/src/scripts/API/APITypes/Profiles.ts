@@ -6,7 +6,7 @@ export type Profile = {
     mail:       string;
     quota:      number;
     account_id: number | undefined;
-    status_id:  string | undefined;
+    status_id:  number | undefined;
 }
 
 export type ProfileInCreate = {
@@ -16,7 +16,7 @@ export type ProfileInCreate = {
     quota:      number;
     academic_year : number
     account_id: number | undefined;
-    status_id:  string | undefined;
+    status_id:  number | undefined;
 }
 
 export type ProfileInUpdate = {

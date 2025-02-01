@@ -5,6 +5,7 @@ import ProfileForm from "../Components/Profile/ProfileForm.tsx";
 import ProfileModel from "../scripts/Models/ProfileModel.ts";
 import {ProfileInCreate} from "../scripts/API/APITypes/Profiles.ts";
 
+const global_academic_year = 2025;
 
 function AddProfile() {
 
@@ -14,6 +15,7 @@ function AddProfile() {
         nomError: '',
         loginError: '',
         statutError: '',
+        accountError: '',
         quotaError : ''
     });
     
@@ -25,7 +27,7 @@ function AddProfile() {
 
     const [quota, setQuota] = useState(0); //éditable ou non
 
-    const [login, setLogin] = useState('');
+    const [idAccount, setidAccount] = useState(0);
 
     const [generalError, setGeneralError] = useState("");
     const [success, setSuccess] = useState(false);
@@ -43,15 +45,16 @@ function AddProfile() {
 
     const handleSignUp = async () => {
         const userData: ProfileInCreate = {
-
+            academic_year: global_academic_year,
             firstname: prenom,
             lastname: nom,
             mail: email,
             quota : quota,
-            academic_year: 2025,
-            status_id : statut,
-            account_id: 0
+            account_id: idAccount,
+            status_id : statut
         };
+
+        console.log(userData)
 
         setSuccess(true);
 
@@ -88,7 +91,7 @@ function AddProfile() {
                     //status={status} setStatus={setStatus}
                     prenom={prenom} setPrenom={setPrenom}
                     nom={nom} setNom={setNom}
-                    login={login} setLogin={setLogin}
+                    account={idAccount} setAccount={setidAccount}
                     statut={statut} setStatut={setStatut}
                     quota={quota} setQuota={setQuota}
                     handleSubmit={handleSignUp}
