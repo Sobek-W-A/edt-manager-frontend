@@ -1,64 +1,19 @@
 import React, { useState } from "react";
 import NodeAPI from "../../scripts/API/ModelAPIs/NodeAPI";
+import { APINode } from "../../scripts/API/APITypes/Tree";
 
-type Ue = {
-    academic_year: string;
-    id: string;
+type TreeNode = {
+    academic_year: number;
+    id: number;
     name: string;
-    type: "ue";
-    child_nodes: Array<Node | Ue>;
-};
-
-type Node = {
-    type: "node";
-    id: string;
-    name: string;
-    children: Array<Node | Ue>;
+    type: "node" | "ue";
     child_nodes: number[];
+    children?: TreeNode[];
+    isLoaded?: boolean;
 };
 
 type TreeProps = {
-    data: Node;
-    onSelectCourse: (course: Ue) => void;
-};
-
-const data: Node = {
-    type: "node",
-    id: "root",
-    name: "root",
-    children: [
-        {
-            type: "node",
-            id: "2024",
-            name: "2024",
-            children: [
-                {
-                    type: "node",
-                    id: "2024-l3-info",
-                    name: "L3-Informatique",
-                    children: [
-                        {
-                            academic_year: "2024",
-                            id: "5",
-                            name: "UE 502 ALGORITHMIQUE-CONCEPTION PROGRAMMATION OBJET AVANCÉE",
-                            type: "ue",
-                            child_nodes: [],
-                        },
-                        {
-                            academic_year: "2024",
-                            id: "2",
-                            name: "UE 503 BASES DE DONNÉES",
-                            type: "ue",
-                            child_nodes: [],
-                        }
-                    ],
-                    child_nodes: [],
-                }
-            ],
-            child_nodes: [],
-        }
-    ],
-    child_nodes: [],
+    onSelectCourse: (course: TreeNode) => void;
 };
 
 const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
@@ -70,41 +25,104 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         nodeId: string | null;
     }>({ visible: false, x: 0, y: 0, nodeId: null });
 
-    const [dataState, setDataState] = useState<Node>(data);
+    const [dataState, setDataState] = useState<TreeNode | null>(null);
     const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
     const [newNodeName, setNewNodeName] = useState<string>("");
 
     // Fonction pour charger les données depuis le backend
     const chargementDonneeBackend = async () => {
         try {
-            const response = await NodeAPI.getNodeById(7);
+            const response = await NodeAPI.getRootNode(2024);
             if (response.isError()) {
-                console.error("Erreur lors du chargement du node 4:", response.errorMessage());
+                console.error("Erreur lors du chargement du node racine:", response.errorMessage());
             } else {
-                console.log("Node 4 chargé:", response.responseObject());
+                const rootNode = response.responseObject();
+                setDataState({
+                    ...rootNode,
+                    children: [],
+                    isLoaded: false
+                });
             }
         } catch (error) {
             console.error("Erreur lors de l'appel à l'API:", error);
         }
     };
 
-    // Appel de la fonction lors du chargement du composant
-    React.useEffect(() => {
-        chargementDonneeBackend();
-    }, []);
+    // Fonction pour charger les enfants d'un nœud
+    const loadNodeChildren = async (nodeId: number, academicYear: number) => {
+        try {
+            const response = await NodeAPI.getNodeById(nodeId);
+            if (response.isError()) {
+                console.error(`Erreur lors du chargement des enfants du node ${nodeId}:`, response.errorMessage());
+                return null;
+            }
+            return response.responseObject();
+        } catch (error) {
+            console.error("Erreur lors de l'appel à l'API:", error);
+            return null;
+        }
+    };
 
     // Fonction pour basculer l'état d'ouverture d'un nœud
-    const toggleNode = (id: string) => {
-        setOpenNodes((prev) => {
+    const toggleNode = async (node: TreeNode) => {
+        const nodeId = node.id.toString();
+        
+        // Si le nœud n'est pas encore chargé, charger ses enfants
+        if (!node.isLoaded && node.type === "node") {
+            const children = await Promise.all(
+                node.child_nodes.map(childId => {
+                    // Si childId est un objet (UE), on le retourne directement
+                    if (typeof childId === 'object') {
+                        return childId;
+                    }
+                    // Sinon, c'est un ID numérique, on charge le nœud
+                    return loadNodeChildren(childId as number, node.academic_year);
+                })
+            );
+
+            // Mettre à jour l'arborescence avec les nouveaux enfants
+            updateNodeInTree(node.id, {
+                ...node,
+                children: children.filter(child => child !== null) as TreeNode[],
+                isLoaded: true
+            });
+        }
+
+        setOpenNodes(prev => {
             const newSet = new Set(prev);
-            if (newSet.has(id)) {
-                newSet.delete(id);
+            if (newSet.has(nodeId)) {
+                newSet.delete(nodeId);
             } else {
-                newSet.add(id);
+                newSet.add(nodeId);
             }
             return newSet;
         });
     };
+
+    // Fonction pour mettre à jour un nœud dans l'arborescence
+    const updateNodeInTree = (nodeId: number, updatedNode: TreeNode) => {
+        if (!dataState) return;
+
+        const updateNode = (node: TreeNode): TreeNode => {
+            if (node.id === nodeId) {
+                return updatedNode;
+            }
+            if (node.children) {
+                return {
+                    ...node,
+                    children: node.children.map(child => updateNode(child))
+                };
+            }
+            return node;
+        };
+
+        setDataState(updateNode(dataState));
+    };
+
+    // Appel de la fonction lors du chargement du composant
+    React.useEffect(() => {
+        chargementDonneeBackend();
+    }, []);
 
     // Fonction pour gérer le menu contextuel
     const handleContextMenu = (e: React.MouseEvent, nodeId: string) => {
@@ -124,20 +142,18 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         if (contextMenu.nodeId) {
             const node = findNode(dataState, contextMenu.nodeId);
             if (action === "Ajouter Dossier") {
-                const newNode: Node = {
+                const newNode: TreeNode = {
                     type: "node",
                     id: `node-${Date.now()}`,
                     name: "Nouveau Dossier",
-                    children: [],
                     child_nodes: [],
                 };
                 node.children.push(newNode);
             } else if (action === "Ajouter UE") {
-                const newUe: Ue = {
-                    academic_year: "2024",
+                const newUe: TreeNode = {
+                    type: "ue",
                     id: `ue-${Date.now()}`,
                     name: "Nouvelle UE",
-                    type: "ue",
                     child_nodes: [],
                 };
                 node.children.push(newUe);
@@ -156,7 +172,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
     };
 
     // Fonction pour trouver un nœud par son ID
-    const findNode = (node: Node, id: string): Node => {
+    const findNode = (node: TreeNode, id: string): TreeNode => {
         if (node.id === id) return node;
         for (const child of node.children) {
             if (child.type === "node") {
@@ -168,7 +184,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
     };
 
     // Fonction pour trouver le nœud parent d'un nœud donné
-    const findParentNode = (node: Node, id: string): Node | null => {
+    const findParentNode = (node: TreeNode, id: string): TreeNode | null => {
         for (const child of node.children) {
             if (child.id === id) return node;
             if (child.type === "node") {
@@ -201,53 +217,42 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
     };
 
     // Fonction pour rendre un nœud ou un cours
-    const renderNode = (node: Node | Ue) => {
-        if (node.type === "ue") {
-            return (
-                <div
-                    key={node.id}
-                    className="ml-8 mt-2 p-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-md cursor-pointer min-h-[50px] min-w-[300px]"
-                    onClick={() => onSelectCourse(node)}
-                >
-                    {node.name}
-                </div>
-            );
-        } else {
-            const isOpen = openNodes.has(node.id);
-            return (
-                <div key={node.id} className="ml-4 relative">
-                    {isOpen && <div className="absolute left-[-5px] top-3 h-full w-[1px] bg-blue-300"></div>}
+    const renderNode = (node: TreeNode) => {
+        const isOpen = openNodes.has(node.id.toString());
+        
+        return (
+            <div key={node.id} className="ml-4 relative">
+                {isOpen && node.type === "node" && <div className="absolute left-[-5px] top-3 h-full w-[1px] bg-blue-300"></div>}
 
-                    <div className="flex items-center gap-2 cursor-pointer hover:text-gray-700" onContextMenu={(e) => handleContextMenu(e, node.id)}>
-                        <button className="text-lg font-bold" onClick={() => toggleNode(node.id)}>
+                <div 
+                    className="flex items-center gap-2 cursor-pointer hover:text-gray-700" 
+                    onContextMenu={(e) => handleContextMenu(e, node.id.toString())}
+                >
+                    {node.type === "node" ? (
+                        <button 
+                            className="text-lg font-bold" 
+                            onClick={() => toggleNode(node)}
+                        >
                             {isOpen ? "∨" : ">"}
                         </button>
-                        {editingNodeId === node.id ? (
-                            <input
-                                type="text"
-                                value={newNodeName}
-                                onChange={handleNodeNameChange}
-                                onBlur={() => handleNodeNameSubmit(node.id)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleNodeNameSubmit(node.id)}
-                                className="text-lg font-semibold"
-                            />
-                        ) : (
-                            <span
-                                className="text-lg font-semibold whitespace-nowrap"
-                                onDoubleClick={() => handleDoubleClick(node.id, node.name)}
-                            >
-                                {node.name}
-                            </span>
-                        )}
-                    </div>
-                    {isOpen && (
-                        <div className="mt-2 ml-2">
-                            {node.children.map((child) => renderNode(child))}
-                        </div>
+                    ) : (
+                        <span className="w-6">📚</span> // Icône pour les UEs
                     )}
+                    <span 
+                        className={`text-lg font-semibold whitespace-nowrap ${node.type === "ue" ? "text-blue-600" : ""}`}
+                        onClick={() => node.type === "ue" && onSelectCourse(node)}
+                    >
+                        {node.name}
+                    </span>
                 </div>
-            );
-        }
+
+                {isOpen && node.type === "node" && node.children && (
+                    <div className="mt-2 ml-2">
+                        {node.children.map((child) => renderNode(child))}
+                    </div>
+                )}
+            </div>
+        );
     };
 
     // Fonction pour valider les actions
@@ -258,7 +263,9 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
 
     return (
         <div className="relative p-4 h-full" onClick={closeContextMenu}>
-            <div className="flex-grow h-full">{dataState.children.map((child) => renderNode(child))}</div>
+            <div className="flex-grow h-full">
+                {dataState && renderNode(dataState)}
+            </div>
             {contextMenu.visible && (
                 <div
                     className="absolute bg-white border border-gray-300 rounded shadow-md"
