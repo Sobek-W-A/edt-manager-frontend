@@ -1,71 +1,91 @@
 import React, { useState } from "react";
+import NodeAPI from "../../scripts/API/ModelAPIs/NodeAPI";
 
-type Course = {
-    type: "course";
-    id: string;
-    title: string;
-};
-
-type Folder = {
-    type: "folder";
+type Ue = {
+    academic_year: string;
     id: string;
     name: string;
-    children: Array<Folder | Course>;
+    type: "ue";
+    child_nodes: Array<Node | Ue>;
+};
+
+type Node = {
+    type: "node";
+    id: string;
+    name: string;
+    children: Array<Node | Ue>;
+    child_nodes: number[];
 };
 
 type TreeProps = {
-    data: Folder;
-    onSelectCourse: (course: Course) => void;
+    data: Node;
+    onSelectCourse: (course: Ue) => void;
 };
-const data: Folder = {
-    type: "folder",
+
+const data: Node = {
+    type: "node",
     id: "root",
     name: "root",
     children: [
         {
-            type: "folder",
+            type: "node",
             id: "2024",
             name: "2024",
             children: [
                 {
-                    type: "folder",
+                    type: "node",
                     id: "2024-l3-info",
                     name: "L3-Informatique",
                     children: [
                         {
-                            type: "course",
+                            academic_year: "2024",
                             id: "5",
-                            title: "UE 502 ALGORITHMIQUE-CONCEPTION PROGRAMMATION OBJET AVANCÉE",
+                            name: "UE 502 ALGORITHMIQUE-CONCEPTION PROGRAMMATION OBJET AVANCÉE",
+                            type: "ue",
+                            child_nodes: [],
                         },
                         {
-                            type: "course",
+                            academic_year: "2024",
                             id: "2",
-                            title: "UE 503 BASES DE DONNÉES",
+                            name: "UE 503 BASES DE DONNÉES",
+                            type: "ue",
+                            child_nodes: [],
                         }
-                    ]
+                    ],
+                    child_nodes: [],
                 }
-            ]
+            ],
+            child_nodes: [],
         }
-    ]
+    ],
+    child_nodes: [],
 };
 
-
 const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
-    const [openFolders, setOpenFolders] = useState<Set<string>>(new Set());
+    const [openNodes, setOpenNodes] = useState<Set<string>>(new Set());
     const [contextMenu, setContextMenu] = useState<{
         visible: boolean;
         x: number;
         y: number;
-        folderId: string | null;
-    }>({ visible: false, x: 0, y: 0, folderId: null });
+        nodeId: string | null;
+    }>({ visible: false, x: 0, y: 0, nodeId: null });
 
-    const [dataState, setDataState] = useState<Folder>(data);
-    const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
-    const [newFolderName, setNewFolderName] = useState<string>("");
+    const [dataState, setDataState] = useState<Node>(data);
+    const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
+    const [newNodeName, setNewNodeName] = useState<string>("");
 
     // Fonction pour charger les données depuis le backend
-    const chargementDonneeBackend = () => {
-        // TODO: Implémenter la logique pour charger les données depuis le backend dans data
+    const chargementDonneeBackend = async () => {
+        try {
+            const response = await NodeAPI.getNodeById(7);
+            if (response.isError()) {
+                console.error("Erreur lors du chargement du node 4:", response.errorMessage());
+            } else {
+                console.log("Node 4 chargé:", response.responseObject());
+            }
+        } catch (error) {
+            console.error("Erreur lors de l'appel à l'API:", error);
+        }
     };
 
     // Appel de la fonction lors du chargement du composant
@@ -73,9 +93,9 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         chargementDonneeBackend();
     }, []);
 
-    // Fonction pour basculer l'état d'ouverture d'un dossier
-    const toggleFolder = (id: string) => {
-        setOpenFolders((prev) => {
+    // Fonction pour basculer l'état d'ouverture d'un nœud
+    const toggleNode = (id: string) => {
+        setOpenNodes((prev) => {
             const newSet = new Set(prev);
             if (newSet.has(id)) {
                 newSet.delete(id);
@@ -87,43 +107,46 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
     };
 
     // Fonction pour gérer le menu contextuel
-    const handleContextMenu = (e: React.MouseEvent, folderId: string) => {
+    const handleContextMenu = (e: React.MouseEvent, nodeId: string) => {
         e.preventDefault();
         const x = e.clientX + 0;
         const y = e.clientY - 40;
-        setContextMenu({ visible: true, x: x, y: y, folderId });
+        setContextMenu({ visible: true, x: x, y: y, nodeId: nodeId });
     };
 
     // Fonction pour fermer le menu contextuel
     const closeContextMenu = () => {
-        setContextMenu({ visible: false, x: 0, y: 0, folderId: null });
+        setContextMenu({ visible: false, x: 0, y: 0, nodeId: null });
     };
 
     // Fonction pour gérer les actions du menu contextuel
     const handleAction = (action: string) => {
-        if (contextMenu.folderId) {
-            const folder = findFolder(dataState, contextMenu.folderId);
+        if (contextMenu.nodeId) {
+            const node = findNode(dataState, contextMenu.nodeId);
             if (action === "Ajouter Dossier") {
-                const newFolder: Folder = {
-                    type: "folder",
-                    id: `folder-${Date.now()}`,
+                const newNode: Node = {
+                    type: "node",
+                    id: `node-${Date.now()}`,
                     name: "Nouveau Dossier",
                     children: [],
+                    child_nodes: [],
                 };
-                folder.children.push(newFolder);
+                node.children.push(newNode);
             } else if (action === "Ajouter UE") {
-                const newCourse: Course = {
-                    type: "course",
-                    id: `course-${Date.now()}`,
-                    title: "Nouvelle UE",
+                const newUe: Ue = {
+                    academic_year: "2024",
+                    id: `ue-${Date.now()}`,
+                    name: "Nouvelle UE",
+                    type: "ue",
+                    child_nodes: [],
                 };
-                folder.children.push(newCourse);
+                node.children.push(newUe);
             } else if (action === "Supprimer") {
-                const parentFolder = findParentFolder(dataState, contextMenu.folderId);
-                if (parentFolder) {
-                    const index = parentFolder.children.findIndex(child => child.id === contextMenu.folderId);
+                const parentNode = findParentNode(dataState, contextMenu.nodeId);
+                if (parentNode) {
+                    const index = parentNode.children.findIndex(child => child.id === contextMenu.nodeId);
                     if (index > -1) {
-                        parentFolder.children.splice(index, 1);
+                        parentNode.children.splice(index, 1);
                     }
                 }
             }
@@ -132,80 +155,80 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         closeContextMenu();
     };
 
-    // Fonction pour trouver un dossier par son ID
-    const findFolder = (node: Folder, id: string): Folder => {
+    // Fonction pour trouver un nœud par son ID
+    const findNode = (node: Node, id: string): Node => {
         if (node.id === id) return node;
         for (const child of node.children) {
-            if (child.type === "folder") {
-                const found = findFolder(child, id);
+            if (child.type === "node") {
+                const found = findNode(child, id);
                 if (found) return found;
             }
         }
         return null!;
     };
 
-    // Fonction pour trouver le dossier parent d'un dossier donné
-    const findParentFolder = (node: Folder, id: string): Folder | null => {
+    // Fonction pour trouver le nœud parent d'un nœud donné
+    const findParentNode = (node: Node, id: string): Node | null => {
         for (const child of node.children) {
             if (child.id === id) return node;
-            if (child.type === "folder") {
-                const found = findParentFolder(child, id);
+            if (child.type === "node") {
+                const found = findParentNode(child, id);
                 if (found) return found;
             }
         }
         return null;
     };
 
-    // Fonction pour gérer le double clic sur un dossier
+    // Fonction pour gérer le double clic sur un nœud
     const handleDoubleClick = (id: string, name: string) => {
-        setEditingFolderId(id);
-        setNewFolderName(name);
+        setEditingNodeId(id);
+        setNewNodeName(name);
     };
 
-    // Fonction pour gérer le changement de nom d'un dossier
-    const handleFolderNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setNewFolderName(e.target.value);
+    // Fonction pour gérer le changement de nom d'un nœud
+    const handleNodeNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setNewNodeName(e.target.value);
     };
 
-    // Fonction pour soumettre le changement de nom d'un dossier
-    const handleFolderNameSubmit = (id: string) => {
-        const folder = findFolder(dataState, id);
-        if (folder) {
-            folder.name = newFolderName.trim() === "" ? "default" : newFolderName;
+    // Fonction pour soumettre le changement de nom d'un nœud
+    const handleNodeNameSubmit = (id: string) => {
+        const node = findNode(dataState, id);
+        if (node) {
+            node.name = newNodeName.trim() === "" ? "default" : newNodeName;
             setDataState({ ...dataState });
         }
-        setEditingFolderId(null);
+        setEditingNodeId(null);
     };
 
-    // Fonction pour rendre un dossier ou un cours
-    const renderFolder = (node: Folder | Course) => {
-        if (node.type === "course") {
+    // Fonction pour rendre un nœud ou un cours
+    const renderNode = (node: Node | Ue) => {
+        if (node.type === "ue") {
             return (
                 <div
                     key={node.id}
                     className="ml-8 mt-2 p-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-md cursor-pointer min-h-[50px] min-w-[300px]"
                     onClick={() => onSelectCourse(node)}
                 >
-                    {node.title}
+                    {node.name}
                 </div>
             );
         } else {
-            const isOpen = openFolders.has(node.id);
+            const isOpen = openNodes.has(node.id);
             return (
                 <div key={node.id} className="ml-4 relative">
                     {isOpen && <div className="absolute left-[-5px] top-3 h-full w-[1px] bg-blue-300"></div>}
 
                     <div className="flex items-center gap-2 cursor-pointer hover:text-gray-700" onContextMenu={(e) => handleContextMenu(e, node.id)}>
-                        <button className="text-lg font-bold" onClick={() => toggleFolder(node.id)}>
+                        <button className="text-lg font-bold" onClick={() => toggleNode(node.id)}>
                             {isOpen ? "∨" : ">"}
                         </button>
-                        {editingFolderId === node.id ? (
+                        {editingNodeId === node.id ? (
                             <input
                                 type="text"
-                                value={newFolderName}
-                                onChange={handleFolderNameChange}
-                                onBlur={() => handleFolderNameSubmit(node.id)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleFolderNameSubmit(node.id)}
+                                value={newNodeName}
+                                onChange={handleNodeNameChange}
+                                onBlur={() => handleNodeNameSubmit(node.id)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleNodeNameSubmit(node.id)}
                                 className="text-lg font-semibold"
                             />
                         ) : (
@@ -219,7 +242,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                     </div>
                     {isOpen && (
                         <div className="mt-2 ml-2">
-                            {node.children.map((child) => renderFolder(child))}
+                            {node.children.map((child) => renderNode(child))}
                         </div>
                     )}
                 </div>
@@ -235,7 +258,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
 
     return (
         <div className="relative p-4 h-full" onClick={closeContextMenu}>
-            <div className="flex-grow h-full">{dataState.children.map((child) => renderFolder(child))}</div>
+            <div className="flex-grow h-full">{dataState.children.map((child) => renderNode(child))}</div>
             {contextMenu.visible && (
                 <div
                     className="absolute bg-white border border-gray-300 rounded shadow-md"
