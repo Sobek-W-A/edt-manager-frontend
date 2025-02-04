@@ -88,7 +88,6 @@ function AddProfile() {
 
                 <ProfileForm
                     email={email} setEmail={setEmail}
-                    //status={status} setStatus={setStatus}
                     prenom={prenom} setPrenom={setPrenom}
                     nom={nom} setNom={setNom}
                     account={idAccount} setAccount={setidAccount}
