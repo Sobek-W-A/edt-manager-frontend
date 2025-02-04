@@ -24,8 +24,8 @@ export default class StatusModel {
      * This method builds status models from all available models in the API.
      * @returns A promise that resolves into an array of StatusModel or into an Error.
      */
-    static async getAllStatus(): Promise<StatusModel[] | ErrorResponse<StatusType[]>> {
-        const response: APIResponse<StatusType[]> = await StatusAPI.getAllStatus();
+    static async getAllStatusByYear(academic_year : number): Promise<StatusModel[] | ErrorResponse<StatusType[]>> {
+        const response: APIResponse<StatusType[]> = await StatusAPI.getStatusByAcademicYear(academic_year);
         if (response.isError()) return response as ErrorResponse<StatusType[]>;
 
         const result: StatusModel[] = [];
