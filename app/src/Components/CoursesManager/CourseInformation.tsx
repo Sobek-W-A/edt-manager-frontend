@@ -1,49 +1,33 @@
-
 import React, {useState, useEffect, useImperativeHandle, forwardRef} from 'react';
 import CollapsibleButton from './CollapsibleButton';
 import SearchAndChose from "./SearchAndChose";
+import UEModel from "../../scripts/Models/UEModel.ts";
+import {Course} from "../../scripts/API/APITypes/Course.ts";
+import AlreadyAffectedList from "./AlreadyAffectedList.tsx";
 
-interface CourseInformationProps {
-    id: string; // ID passée en props
-}
-
-interface Teacher {
-    name: string;
-    lastname: string;
-}
-
-interface Affectation {
-    teacher: Teacher;
-    idgroupe: string;
-    hours: number;
-}
-
-interface Course {
-    type: string;
-    affectations: Affectation[]; // Nouveau champ
-}
-
-interface UEData {
-    name: string;
-    courses: Course[];
-}
-
-const CourseInformation = forwardRef ( (props, ref) => {
+const CourseInformation = forwardRef ( (_props, ref) => {
     const [ueName, setUeName] = useState<string>('');
+    const [academicYear, setacademicYear] = useState<number>(0);
     const [courses, setCourses] = useState<Course[]>([]);
     const [isEditing, setIsEditing] = useState<boolean>(false);
     const [idUE, setIDUE] = useState<string>('');
+    const [idUELoad, setidUELoad] = useState<boolean>(false);
 
-    // Exposez la méthode displayUE_By_ID via la référence
     useImperativeHandle(ref, () => ({
         displayUE_By_ID(id: string) {
-            console.log(id + " ON UTILISE CETTE ID");
             setIDUE(id)
             const fetchUEData = async () => {
                 try {
-                    const response = null //TODO appel de l'API pour tout ce qu'il faut
-                    //setUeName(response.data.name);
-                    //setCourses(response.data.courses);
+                    const response = UEModel.getUEById(id);
+                    response.then((ue) => {
+                        if (ue instanceof UEModel) {
+                            console.log(ue)
+                            setUeName(ue.name);
+                            setCourses(ue.courses)
+                            setacademicYear(ue.academic_year)
+                            setidUELoad(true)
+                        }
+                    })
                 } catch (error) {
                     console.error('Erreur lors de la récupération des données de l\'UE:', error);
                 }
@@ -67,20 +51,13 @@ const CourseInformation = forwardRef ( (props, ref) => {
 
     const handleBlur = async () => {
         setIsEditing(false);
-        //TODO update de l'ue, pour le moment que le nom
     };
 
-    // Utilisez selectedCourseId pour afficher les informations de l'UE
-    React.useEffect(() => {
-        if (props.selectedCourseId) {
-            ref.current.displayUE_By_ID(props.selectedCourseId); // Appel de la fonction avec l'ID sélectionné
-        }
-    }, [props.selectedCourseId]);
-
+    //TODO récupérer les heures déjà assignées et les mettre à la place du "x"
     return (
         <div className="p-5">
-            <div className="w-full text-center">
 
+            <span className="w-full text-center inline-block">
                 {isEditing ? (
                     <input
                         type="text"
@@ -92,26 +69,38 @@ const CourseInformation = forwardRef ( (props, ref) => {
                     />
                 ) : (
                     <h1 onDoubleClick={handleDoubleClick} className="cursor-pointer">
-                        {ueName}
+                        {idUELoad ? (ueName + " ( " + idUE + " : " + academicYear + " )") : null}
                     </h1>
                 )}
+            </span>
+
+            <div>
+                {courses.map((course, index) => (
+
+                    <div key={index} className="form-field">
+                            <p>{course.course_type.name} : {course.duration} * {course.group_count}</p>
+                    </div>
+                ))}
             </div>
 
             <div>
                 {courses.map((course, index) => (
 
                     <div key={index} className="form-field pt-5">
-                        <div><p>{course.type}</p></div>
-                        {course.affectations.map((affectation, indexBis) => (
-                            <div key={indexBis}>
-                                <p>
-                                    {affectation.teacher.name} {affectation.teacher.lastname} est affecté au groupe {affectation.idgroupe} pour une durée de {affectation.hours} heures
-                                </p>
-                            </div>
-                        ))}
+                        <div>
+                            <p>ID cours : {course.id}</p>
+                            <b>{course.course_type.name} </b>
+                            <p>description : {course.course_type.description}</p>
+                            <p>assignées/total : x/{course.duration}</p>
+                        </div>
+
                         <CollapsibleButton>
-                            <SearchAndChose />
+                            <SearchAndChose
+                                id_cours={course.id}
+                                groupCount={course.group_count}/>
                         </CollapsibleButton>
+
+                        <AlreadyAffectedList course_id={course.id}></AlreadyAffectedList>
                     </div>
                 ))}
             </div>

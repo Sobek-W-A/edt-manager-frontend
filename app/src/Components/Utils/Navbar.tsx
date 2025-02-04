@@ -39,7 +39,7 @@ function Navbar() {
                         </div>
                         <div className="flex items-center">
                             <Link to="/assigned-courses" className="text-sm hover:text-green-300 transition duration-200">
-                                Verifier collègues
+                            Cours attribués
                             </Link>
                         </div>
                     </>

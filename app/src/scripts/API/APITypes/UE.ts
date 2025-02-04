@@ -1,10 +1,10 @@
 import { Course, CourseInCreation, CourseInUpdate } from "./Course";
 
 export type UE = {
-    academic_year: number[];
-    ue_id: number;
+    id: string;
     name: string;
     courses: Course[];
+    academic_year: number;
 }
 
 export type UEInCreation = {

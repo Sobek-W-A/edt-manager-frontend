@@ -2,9 +2,10 @@ import { CourseType, CourseTypeInCreation, CourseTypeInUpdate } from "./CourseTy
 
 export type Course = {
     academic_year: number[];
-    course_id:	number;	
+    id:	number;
     duration: number;
-    courses_typeS: CourseType[];
+    course_type: CourseType;
+    group_count: number;
 }
 
 export type CourseInCreation = {
