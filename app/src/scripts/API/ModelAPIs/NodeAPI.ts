@@ -12,12 +12,14 @@ export default class NodeAPI {
      * @returns Une promesse contenant le noeud ou une erreur
      */
     static async getNodeById(nodeId: number): Promise<APIResponse<APINode>> {
-        return api.requestLogged<APINode>(
+        const response = await api.requestLogged<APINode>(
             HTTPMethod.GET,
             `${NodeAPI.NODE_PATH}/id/${nodeId}`,
             undefined,
             undefined
         );
+        console.log('Réponse du backend pour getNodeById:', response);
+        return response;
     }
 
     /**

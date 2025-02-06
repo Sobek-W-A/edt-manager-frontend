@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import NodeAPI from "../../scripts/API/ModelAPIs/NodeAPI";
 import { APINode } from "../../scripts/API/APITypes/Tree";
+import { NodeInUpdate } from "../../scripts/API/APITypes/Tree";
 
 type TreeNode = {
     academic_year: number;
@@ -9,7 +10,6 @@ type TreeNode = {
     type: "node" | "ue";
     child_nodes: number[];
     children?: TreeNode[];
-    isLoaded?: boolean;
 };
 
 type TreeProps = {
@@ -39,8 +39,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                 const rootNode = response.responseObject();
                 setDataState({
                     ...rootNode,
-                    children: [],
-                    isLoaded: false
+                    children: []
                 });
             }
         } catch (error) {
@@ -67,25 +66,30 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
     const toggleNode = async (node: TreeNode) => {
         const nodeId = node.id.toString();
         
-        // Si le nœud n'est pas encore chargé, charger ses enfants
-        if (!node.isLoaded && node.type === "node") {
-            const children = await Promise.all(
-                node.child_nodes.map(childId => {
-                    // Si childId est un objet (UE), on le retourne directement
-                    if (typeof childId === 'object') {
-                        return childId;
-                    }
-                    // Sinon, c'est un ID numérique, on charge le nœud
-                    return loadNodeChildren(childId as number, node.academic_year);
-                })
-            );
+        if (node.type === "node") {
+            if (!openNodes.has(nodeId)) {
+                // Chargement des données du nœud cliqué
+                const updatedNode = await loadNodeChildren(node.id, node.academic_year);
+                
+                if (updatedNode) {
+                    // Chargement des données de chaque nœud enfant
+                    const childrenNodes = await Promise.all(
+                        updatedNode.child_nodes.map(async (childId) => {
+                            if (typeof childId === 'number') {
+                                const childNode = await loadNodeChildren(childId, node.academic_year);
+                                return childNode;
+                            }
+                            return null;
+                        })
+                    );
 
-            // Mettre à jour l'arborescence avec les nouveaux enfants
-            updateNodeInTree(node.id, {
-                ...node,
-                children: children.filter(child => child !== null) as TreeNode[],
-                isLoaded: true
-            });
+                    // Mise à jour de l'arborescence avec les données du nœud et ses enfants
+                    updateNodeInTree(node.id, {
+                        ...updatedNode,
+                        children: childrenNodes.filter(child => child !== null) // Filtrer les résultats null
+                    });
+                }
+            }
         }
 
         setOpenNodes(prev => {
