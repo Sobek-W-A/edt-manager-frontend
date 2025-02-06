@@ -25,9 +25,9 @@ function AddProfile() {
 
     const [statut, setStatut] = useState(0);
 
-    const [quota, setQuota] = useState(0); //éditable ou non
+    const [quota, setQuota] = useState(0);
 
-    const [idAccount, setidAccount] = useState(0);
+    const [idAccount, setidAccount] = useState(-1);
 
     const [generalError, setGeneralError] = useState("");
     const [success, setSuccess] = useState(false);

@@ -132,4 +132,11 @@ export default class ProfileModel {
     set id(value: number) {
         this._id = value;
     }
+
+    get quota(): number {
+        return this._quota;
+    }
+    set quota(value: number) {
+        this._quota = value;
+    }
 }

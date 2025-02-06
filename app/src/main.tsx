@@ -10,6 +10,7 @@ import ManageHumanResources from "./Vues/ManageHumanResources.tsx";
 import AddProfile from "./Vues/AddProfile.tsx";
 import AssignedCoursesPage from './Vues/AssignedCoursesPage.tsx';
 import Guard from "./Components/Utils/Guard.tsx";
+import ModifyProfile from "./Vues/ModifyProfile.tsx";
 
 
 // Configuration des routes
@@ -21,6 +22,7 @@ const routes = createRoutesFromElements(
         <Route path="management" element={<Guard><ManageHumanResources /></Guard>} />
         <Route path="login" element={<LoginVue />} />
         <Route path="assigned-courses" element={<Guard><AssignedCoursesPage /></Guard>} />
+            <Route path="modify/:id" element={<Guard><ModifyProfile/></Guard>} />
     </Route>
 );
 
