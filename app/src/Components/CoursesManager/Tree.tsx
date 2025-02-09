@@ -198,13 +198,30 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                     setDataState({ ...dataState });
                 }
             } else if (action === "Supprimer") {
-                const parentNode = findParentNode(dataState, contextMenu.nodeId);
-                if (parentNode && parentNode.children) {
-                    const index = parentNode.children.findIndex(child => child.id.toString() === contextMenu.nodeId);
-                    if (index > -1) {
-                        parentNode.children.splice(index, 1);
-                        setDataState({ ...dataState });
+                try {
+                    // Appel à l'API pour supprimer le dossier côté backend
+                    const response = await NodeAPI.deleteNode(dataState.academic_year, nodeIdNumber);
+                    if (response.isError()) {
+                        console.error("Erreur lors de la suppression du dossier:", response.errorMessage());
+                        return;
                     }
+
+                    // Mise à jour de l'arborescence dans l'interface
+                    // Si le nœud supprimé est le nœud racine
+                    if (dataState.id.toString() === contextMenu.nodeId) {
+                        setDataState(null);
+                    } else {
+                        const parentNode = findParentNode(dataState, contextMenu.nodeId);
+                        if (parentNode && parentNode.children) {
+                            const index = parentNode.children.findIndex(child => child.id.toString() === contextMenu.nodeId);
+                            if (index > -1) {
+                                parentNode.children.splice(index, 1);
+                                setDataState({ ...dataState });
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error("Erreur lors de la suppression du dossier:", error);
                 }
             }
             closeContextMenu();
