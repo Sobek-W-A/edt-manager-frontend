@@ -142,7 +142,6 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
     };
 
     // Fonction pour gérer les actions du menu contextuel
-// Fonction pour gérer les actions du menu contextuel
     const handleAction = async (action: string) => {
         if (contextMenu.nodeId && dataState) {
             const nodeIdNumber = parseInt(contextMenu.nodeId);
@@ -229,7 +228,6 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
     };
 
     // Fonction pour trouver un nœud par son ID
-// Recherche récursive d'un nœud par son id (comparaison en chaîne)
     const findNode = (node: TreeNode, id: string): TreeNode | null => {
         if (node.id.toString() === id) return node;
         if (node.children) {
@@ -314,12 +312,6 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         );
     };
 
-    // Fonction pour valider les actions
-    const handleValidate = () => {
-        // TODO
-        console.log("APPEL AU BACKEND");
-    };
-
     return (
         <div className="relative p-4 h-full" onClick={closeContextMenu}>
             <div className="flex-grow h-full">
@@ -350,11 +342,6 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                     </button>
                 </div>
             )}
-            <div className="flex justify-center mt-4">
-                <button className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" onClick={handleValidate}>
-                    Valider
-                </button>
-            </div>
         </div>
     );
 };
