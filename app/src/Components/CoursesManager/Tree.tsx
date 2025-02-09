@@ -8,6 +8,7 @@ type TreeNode = {
     id: number;
     name: string;
     type: "node" | "ue";
+    // Pour le rendu, on ne se sert pas de child_nodes (issu de l’API) mais de children (arborescence enrichie)
     child_nodes: number[];
     children?: TreeNode[];
 };
@@ -29,7 +30,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
     const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
     const [newNodeName, setNewNodeName] = useState<string>("");
 
-    // Fonction pour charger les données depuis le backend
+    // Chargement du noeud racine depuis le backend
     const chargementDonneeBackend = async () => {
         try {
             const response = await NodeAPI.getRootNode(2024);
@@ -47,12 +48,12 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         }
     };
 
-    // Fonction pour charger les enfants d'un nœud
+    // Chargement d'un noeud par son ID (les données proviennent de l'API)
     const loadNodeChildren = async (nodeId: number, academicYear: number) => {
         try {
             const response = await NodeAPI.getNodeById(nodeId);
             if (response.isError()) {
-                console.error(`Erreur lors du chargement des enfants du node ${nodeId}:`, response.errorMessage());
+                console.error(`Erreur lors du chargement du node ${nodeId}:`, response.errorMessage());
                 return null;
             }
             return response.responseObject();
@@ -62,31 +63,35 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         }
     };
 
-    // Fonction pour basculer l'état d'ouverture d'un nœud
+    // Fonction appelée lors du clic sur le bouton pour ouvrir/fermer un noeud
     const toggleNode = async (node: TreeNode) => {
         const nodeId = node.id.toString();
 
         if (node.type === "node") {
             if (!openNodes.has(nodeId)) {
-                // Chargement des données du nœud cliqué
+                // Récupération du noeud depuis l'API (qui peut contenir des enfants sous forme d'identifiants ou d'objets)
                 const updatedNode = await loadNodeChildren(node.id, node.academic_year);
-
                 if (updatedNode) {
-                    // Chargement des données de chaque nœud enfant
+                    // Pour chaque élément de child_nodes, on gère deux cas :
+                    // - Si c'est un nombre, on lance un appel pour récupérer le noeud correspondant.
+                    // - Si c'est un objet (cas d'une UE ou d'un noeud déjà inclus), on le retourne directement.
                     const childrenNodes = await Promise.all(
-                        updatedNode.child_nodes.map(async (childId) => {
-                            if (typeof childId === "number") {
-                                const childNode = await loadNodeChildren(childId, node.academic_year);
-                                return childNode;
+                        (updatedNode.child_nodes || []).map(async (child: number | APINode) => {
+                            if (typeof child === "number") {
+                                return await loadNodeChildren(child, node.academic_year);
+                            } else if (typeof child === "object" && child !== null) {
+                                // Ici, le noeud enfant est déjà fourni (par exemple, une UE)
+                                return child;
+                            } else {
+                                return null;
                             }
-                            return null;
                         })
                     );
 
-                    // Mise à jour de l'arborescence avec les données du nœud et ses enfants
+                    // Mise à jour de l'arborescence en ajoutant la propriété "children" avec les noeuds chargés
                     updateNodeInTree(node.id, {
                         ...updatedNode,
-                        children: childrenNodes.filter((child) => child !== null) // Filtrer les résultats null
+                        children: childrenNodes.filter((child) => child !== null)
                     });
                 }
             }
@@ -103,7 +108,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         });
     };
 
-    // Fonction pour mettre à jour un nœud dans l'arborescence
+    // Mise à jour d'un noeud dans l'arborescence (mise à jour récursive)
     const updateNodeInTree = (nodeId: number, updatedNode: TreeNode) => {
         if (!dataState) return;
 
@@ -123,12 +128,12 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         setDataState(updateNode(dataState));
     };
 
-    // Appel de la fonction lors du chargement du composant
+    // Chargement initial des données lors du montage du composant
     React.useEffect(() => {
         chargementDonneeBackend();
     }, []);
 
-    // Fonction pour gérer le menu contextuel
+    // Gestion du menu contextuel (affichage à la position du clic droit)
     const handleContextMenu = (e: React.MouseEvent, nodeId: string) => {
         e.preventDefault();
         const x = e.clientX;
@@ -136,12 +141,11 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         setContextMenu({ visible: true, x: x, y: y, nodeId: nodeId });
     };
 
-    // Fonction pour fermer le menu contextuel
     const closeContextMenu = () => {
         setContextMenu({ visible: false, x: 0, y: 0, nodeId: null });
     };
 
-    // Fonction pour gérer les actions du menu contextuel
+    // Gestion des actions du menu contextuel (Ajouter Dossier, Ajouter UE, Supprimer, Renommer)
     const handleAction = async (action: string) => {
         if (contextMenu.nodeId && dataState) {
             const nodeIdNumber = parseInt(contextMenu.nodeId);
@@ -159,10 +163,9 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                         return;
                     }
 
-                    // Mise à jour optimiste : ajout direct du nouveau dossier dans l'arborescence
+                    // Ajout optimiste du nouveau dossier dans l'arborescence
                     const parent = findNode(dataState, contextMenu.nodeId);
                     if (parent) {
-                        // Récupérer l'id du nouveau dossier retourné par l'API ou générer un id temporaire
                         const newFolderId = response.responseObject()?.id || Date.now();
                         const newFolder: TreeNode = {
                             academic_year: parent.academic_year,
@@ -170,7 +173,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                             name: "Nouveau Dossier",
                             type: "node",
                             child_nodes: [],
-                            children: [] // Initialisation du tableau des enfants
+                            children: []
                         };
 
                         if (!parent.children) {
@@ -183,11 +186,10 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                     console.error("Erreur lors de la création du dossier:", error);
                 }
             } else if (action === "Ajouter UE") {
-                // Pour assurer la cohérence, on ajoute également l'année académique dans l'objet UE
                 const newUe: TreeNode = {
                     academic_year: dataState.academic_year,
                     type: "ue",
-                    id: Date.now(), // Ici on utilise un id numérique temporaire
+                    id: Date.now(), // id temporaire
                     name: "Nouvelle UE",
                     child_nodes: []
                 };
@@ -199,14 +201,12 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                 }
             } else if (action === "Supprimer") {
                 try {
-                    // Appel à l'API pour supprimer le dossier côté backend
                     const response = await NodeAPI.deleteNode(dataState.academic_year, nodeIdNumber);
                     if (response.isError()) {
                         console.error("Erreur lors de la suppression du dossier:", response.errorMessage());
                         return;
                     }
 
-                    // Mise à jour de l'arborescence dans l'interface
                     if (dataState.id.toString() === contextMenu.nodeId) {
                         setDataState(null);
                     } else {
@@ -225,7 +225,6 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                     console.error("Erreur lors de la suppression du dossier:", error);
                 }
             } else if (action === "Renommer") {
-                // Active le mode édition pour renommer le nœud
                 const node = findNode(dataState, contextMenu.nodeId);
                 if (node) {
                     setEditingNodeId(contextMenu.nodeId);
@@ -236,7 +235,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         }
     };
 
-    // Fonction pour trouver un nœud par son ID
+    // Recherche récursive d'un noeud par son ID
     const findNode = (node: TreeNode, id: string): TreeNode | null => {
         if (node.id.toString() === id) return node;
         if (node.children) {
@@ -248,7 +247,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         return null;
     };
 
-    // Recherche récursive du nœud parent d'un nœud donné
+    // Recherche récursive du parent d'un noeud donné
     const findParentNode = (node: TreeNode, id: string): TreeNode | null => {
         if (node.children) {
             for (const child of node.children) {
@@ -260,18 +259,18 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         return null;
     };
 
-    // Fonction pour gérer le double clic sur un nœud (mode édition)
+    // Passage en mode édition lors d'un double-clic
     const handleDoubleClick = (id: string, name: string) => {
         setEditingNodeId(id);
         setNewNodeName(name);
     };
 
-    // Fonction pour gérer le changement de nom d'un nœud
+    // Mise à jour du nom en local lors de la saisie
     const handleNodeNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setNewNodeName(e.target.value);
     };
 
-    // Fonction pour soumettre le changement de nom d'un nœud et l'envoyer au backend
+    // Soumission du nouveau nom et envoi vers le backend
     const handleNodeNameSubmit = async (id: string) => {
         if (!dataState) return;
         const node = findNode(dataState, id);
@@ -281,7 +280,6 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                 const response = await NodeAPI.updateNode(node.academic_year, node.id, { name: trimmedName });
                 if (response.isError()) {
                     console.error("Erreur lors de la mise à jour du nom:", response.errorMessage());
-                    // Vous pouvez ici afficher un message d'erreur ou annuler la modification
                 } else {
                     node.name = trimmedName;
                     setDataState({ ...dataState });
@@ -293,7 +291,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         setEditingNodeId(null);
     };
 
-    // Fonction pour rendre un nœud ou un cours
+    // Rendu d'un noeud (ou UE) et de ses éventuels enfants
     const renderNode = (node: TreeNode) => {
         const isOpen = openNodes.has(node.id.toString());
 
@@ -312,7 +310,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                             {isOpen ? "∨" : ">"}
                         </button>
                     ) : (
-                        <span className="w-6">📚</span> // Icône pour les UEs
+                        <span className="w-6">📚</span> // Icône pour les UE
                     )}
                     {editingNodeId === node.id.toString() ? (
                         <input
