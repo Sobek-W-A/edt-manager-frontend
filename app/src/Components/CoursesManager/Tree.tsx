@@ -65,17 +65,17 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
     // Fonction pour basculer l'état d'ouverture d'un nœud
     const toggleNode = async (node: TreeNode) => {
         const nodeId = node.id.toString();
-        
+
         if (node.type === "node") {
             if (!openNodes.has(nodeId)) {
                 // Chargement des données du nœud cliqué
                 const updatedNode = await loadNodeChildren(node.id, node.academic_year);
-                
+
                 if (updatedNode) {
                     // Chargement des données de chaque nœud enfant
                     const childrenNodes = await Promise.all(
                         updatedNode.child_nodes.map(async (childId) => {
-                            if (typeof childId === 'number') {
+                            if (typeof childId === "number") {
                                 const childNode = await loadNodeChildren(childId, node.academic_year);
                                 return childNode;
                             }
@@ -86,13 +86,13 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                     // Mise à jour de l'arborescence avec les données du nœud et ses enfants
                     updateNodeInTree(node.id, {
                         ...updatedNode,
-                        children: childrenNodes.filter(child => child !== null) // Filtrer les résultats null
+                        children: childrenNodes.filter((child) => child !== null) // Filtrer les résultats null
                     });
                 }
             }
         }
 
-        setOpenNodes(prev => {
+        setOpenNodes((prev) => {
             const newSet = new Set(prev);
             if (newSet.has(nodeId)) {
                 newSet.delete(nodeId);
@@ -114,7 +114,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
             if (node.children) {
                 return {
                     ...node,
-                    children: node.children.map(child => updateNode(child))
+                    children: node.children.map((child) => updateNode(child))
                 };
             }
             return node;
@@ -131,7 +131,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
     // Fonction pour gérer le menu contextuel
     const handleContextMenu = (e: React.MouseEvent, nodeId: string) => {
         e.preventDefault();
-        const x = e.clientX + 0;
+        const x = e.clientX;
         const y = e.clientY - 40;
         setContextMenu({ visible: true, x: x, y: y, nodeId: nodeId });
     };
@@ -173,7 +173,6 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                             children: [] // Initialisation du tableau des enfants
                         };
 
-                        // Si le tableau des enfants n'existe pas, on l'initialise
                         if (!parent.children) {
                             parent.children = [];
                         }
@@ -184,11 +183,13 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                     console.error("Erreur lors de la création du dossier:", error);
                 }
             } else if (action === "Ajouter UE") {
+                // Pour assurer la cohérence, on ajoute également l'année académique dans l'objet UE
                 const newUe: TreeNode = {
+                    academic_year: dataState.academic_year,
                     type: "ue",
-                    id: `ue-${Date.now()}`,
+                    id: Date.now(), // Ici on utilise un id numérique temporaire
                     name: "Nouvelle UE",
-                    child_nodes: [],
+                    child_nodes: []
                 };
                 const node = findNode(dataState, contextMenu.nodeId);
                 if (node) {
@@ -206,13 +207,14 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                     }
 
                     // Mise à jour de l'arborescence dans l'interface
-                    // Si le nœud supprimé est le nœud racine
                     if (dataState.id.toString() === contextMenu.nodeId) {
                         setDataState(null);
                     } else {
                         const parentNode = findParentNode(dataState, contextMenu.nodeId);
                         if (parentNode && parentNode.children) {
-                            const index = parentNode.children.findIndex(child => child.id.toString() === contextMenu.nodeId);
+                            const index = parentNode.children.findIndex(
+                                (child) => child.id.toString() === contextMenu.nodeId
+                            );
                             if (index > -1) {
                                 parentNode.children.splice(index, 1);
                                 setDataState({ ...dataState });
@@ -221,6 +223,13 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                     }
                 } catch (error) {
                     console.error("Erreur lors de la suppression du dossier:", error);
+                }
+            } else if (action === "Renommer") {
+                // Active le mode édition pour renommer le nœud
+                const node = findNode(dataState, contextMenu.nodeId);
+                if (node) {
+                    setEditingNodeId(contextMenu.nodeId);
+                    setNewNodeName(node.name);
                 }
             }
             closeContextMenu();
@@ -239,7 +248,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         return null;
     };
 
-// Recherche récursive du nœud parent d'un nœud donné
+    // Recherche récursive du nœud parent d'un nœud donné
     const findParentNode = (node: TreeNode, id: string): TreeNode | null => {
         if (node.children) {
             for (const child of node.children) {
@@ -251,8 +260,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         return null;
     };
 
-
-    // Fonction pour gérer le double clic sur un nœud
+    // Fonction pour gérer le double clic sur un nœud (mode édition)
     const handleDoubleClick = (id: string, name: string) => {
         setEditingNodeId(id);
         setNewNodeName(name);
@@ -263,12 +271,24 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         setNewNodeName(e.target.value);
     };
 
-    // Fonction pour soumettre le changement de nom d'un nœud
-    const handleNodeNameSubmit = (id: string) => {
+    // Fonction pour soumettre le changement de nom d'un nœud et l'envoyer au backend
+    const handleNodeNameSubmit = async (id: string) => {
+        if (!dataState) return;
         const node = findNode(dataState, id);
         if (node) {
-            node.name = newNodeName.trim() === "" ? "default" : newNodeName;
-            setDataState({ ...dataState });
+            const trimmedName = newNodeName.trim() === "" ? "default" : newNodeName.trim();
+            try {
+                const response = await NodeAPI.updateNode(node.academic_year, node.id, { name: trimmedName });
+                if (response.isError()) {
+                    console.error("Erreur lors de la mise à jour du nom:", response.errorMessage());
+                    // Vous pouvez ici afficher un message d'erreur ou annuler la modification
+                } else {
+                    node.name = trimmedName;
+                    setDataState({ ...dataState });
+                }
+            } catch (error) {
+                console.error("Erreur lors de l'appel à l'API de mise à jour:", error);
+            }
         }
         setEditingNodeId(null);
     };
@@ -276,31 +296,47 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
     // Fonction pour rendre un nœud ou un cours
     const renderNode = (node: TreeNode) => {
         const isOpen = openNodes.has(node.id.toString());
-        
+
         return (
             <div key={node.id} className="ml-4 relative">
-                {isOpen && node.type === "node" && <div className="absolute left-[-5px] top-3 h-full w-[1px] bg-blue-300"></div>}
+                {isOpen && node.type === "node" && (
+                    <div className="absolute left-[-5px] top-3 h-full w-[1px] bg-blue-300"></div>
+                )}
 
-                <div 
-                    className="flex items-center gap-2 cursor-pointer hover:text-gray-700" 
+                <div
+                    className="flex items-center gap-2 cursor-pointer hover:text-gray-700"
                     onContextMenu={(e) => handleContextMenu(e, node.id.toString())}
                 >
                     {node.type === "node" ? (
-                        <button 
-                            className="text-lg font-bold" 
-                            onClick={() => toggleNode(node)}
-                        >
+                        <button className="text-lg font-bold" onClick={() => toggleNode(node)}>
                             {isOpen ? "∨" : ">"}
                         </button>
                     ) : (
                         <span className="w-6">📚</span> // Icône pour les UEs
                     )}
-                    <span 
-                        className={`text-lg font-semibold whitespace-nowrap ${node.type === "ue" ? "text-blue-600" : ""}`}
-                        onClick={() => node.type === "ue" && onSelectCourse(node)}
-                    >
-                        {node.name}
-                    </span>
+                    {editingNodeId === node.id.toString() ? (
+                        <input
+                            type="text"
+                            value={newNodeName}
+                            onChange={handleNodeNameChange}
+                            onBlur={() => handleNodeNameSubmit(node.id.toString())}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    handleNodeNameSubmit(node.id.toString());
+                                }
+                            }}
+                            className="text-lg font-semibold whitespace-nowrap"
+                            autoFocus
+                        />
+                    ) : (
+                        <span
+                            className={`text-lg font-semibold whitespace-nowrap ${node.type === "ue" ? "text-blue-600" : ""}`}
+                            onDoubleClick={() => handleDoubleClick(node.id.toString(), node.name)}
+                            onClick={() => node.type === "ue" && onSelectCourse(node)}
+                        >
+              {node.name}
+            </span>
+                    )}
                 </div>
 
                 {isOpen && node.type === "node" && node.children && (
@@ -314,14 +350,18 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
 
     return (
         <div className="relative p-4 h-full" onClick={closeContextMenu}>
-            <div className="flex-grow h-full">
-                {dataState && renderNode(dataState)}
-            </div>
+            <div className="flex-grow h-full">{dataState && renderNode(dataState)}</div>
             {contextMenu.visible && (
                 <div
                     className="absolute bg-white border border-gray-300 rounded shadow-md"
                     style={{ top: contextMenu.y, left: contextMenu.x }}
                 >
+                    <button
+                        className="block px-4 py-2 text-left hover:bg-gray-100 w-full"
+                        onClick={() => handleAction("Renommer")}
+                    >
+                        Renommer
+                    </button>
                     <button
                         className="block px-4 py-2 text-left hover:bg-gray-100 w-full"
                         onClick={() => handleAction("Ajouter Dossier")}
