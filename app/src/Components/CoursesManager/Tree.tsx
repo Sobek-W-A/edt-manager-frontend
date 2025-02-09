@@ -142,17 +142,48 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
     };
 
     // Fonction pour gérer les actions du menu contextuel
-    const handleAction = (action: string) => {
-        if (contextMenu.nodeId) {
-            const node = findNode(dataState, contextMenu.nodeId);
+// Fonction pour gérer les actions du menu contextuel
+    const handleAction = async (action: string) => {
+        if (contextMenu.nodeId && dataState) {
+            const nodeIdNumber = parseInt(contextMenu.nodeId);
             if (action === "Ajouter Dossier") {
-                const newNode: TreeNode = {
-                    type: "node",
-                    id: `node-${Date.now()}`,
-                    name: "Nouveau Dossier",
-                    child_nodes: [],
-                };
-                node.children.push(newNode);
+                try {
+                    const newNodeData: NodeInUpdate = {
+                        name: "Nouveau Dossier",
+                        parent_id: nodeIdNumber
+                    };
+
+                    const response = await NodeAPI.createNode(dataState.academic_year, newNodeData);
+
+                    if (response.isError()) {
+                        console.error("Erreur lors de la création du dossier:", response.errorMessage());
+                        return;
+                    }
+
+                    // Mise à jour optimiste : ajout direct du nouveau dossier dans l'arborescence
+                    const parent = findNode(dataState, contextMenu.nodeId);
+                    if (parent) {
+                        // Récupérer l'id du nouveau dossier retourné par l'API ou générer un id temporaire
+                        const newFolderId = response.responseObject()?.id || Date.now();
+                        const newFolder: TreeNode = {
+                            academic_year: parent.academic_year,
+                            id: newFolderId,
+                            name: "Nouveau Dossier",
+                            type: "node",
+                            child_nodes: [],
+                            children: [] // Initialisation du tableau des enfants
+                        };
+
+                        // Si le tableau des enfants n'existe pas, on l'initialise
+                        if (!parent.children) {
+                            parent.children = [];
+                        }
+                        parent.children.push(newFolder);
+                        setDataState({ ...dataState });
+                    }
+                } catch (error) {
+                    console.error("Erreur lors de la création du dossier:", error);
+                }
             } else if (action === "Ajouter UE") {
                 const newUe: TreeNode = {
                     type: "ue",
@@ -160,44 +191,51 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                     name: "Nouvelle UE",
                     child_nodes: [],
                 };
-                node.children.push(newUe);
+                const node = findNode(dataState, contextMenu.nodeId);
+                if (node) {
+                    if (!node.children) node.children = [];
+                    node.children.push(newUe);
+                    setDataState({ ...dataState });
+                }
             } else if (action === "Supprimer") {
                 const parentNode = findParentNode(dataState, contextMenu.nodeId);
-                if (parentNode) {
-                    const index = parentNode.children.findIndex(child => child.id === contextMenu.nodeId);
+                if (parentNode && parentNode.children) {
+                    const index = parentNode.children.findIndex(child => child.id.toString() === contextMenu.nodeId);
                     if (index > -1) {
                         parentNode.children.splice(index, 1);
+                        setDataState({ ...dataState });
                     }
                 }
             }
-            setDataState({ ...dataState });
+            closeContextMenu();
         }
-        closeContextMenu();
     };
 
     // Fonction pour trouver un nœud par son ID
-    const findNode = (node: TreeNode, id: string): TreeNode => {
-        if (node.id === id) return node;
-        for (const child of node.children) {
-            if (child.type === "node") {
+// Recherche récursive d'un nœud par son id (comparaison en chaîne)
+    const findNode = (node: TreeNode, id: string): TreeNode | null => {
+        if (node.id.toString() === id) return node;
+        if (node.children) {
+            for (const child of node.children) {
                 const found = findNode(child, id);
                 if (found) return found;
             }
         }
-        return null!;
+        return null;
     };
 
-    // Fonction pour trouver le nœud parent d'un nœud donné
+// Recherche récursive du nœud parent d'un nœud donné
     const findParentNode = (node: TreeNode, id: string): TreeNode | null => {
-        for (const child of node.children) {
-            if (child.id === id) return node;
-            if (child.type === "node") {
+        if (node.children) {
+            for (const child of node.children) {
+                if (child.id.toString() === id) return node;
                 const found = findParentNode(child, id);
                 if (found) return found;
             }
         }
         return null;
     };
+
 
     // Fonction pour gérer le double clic sur un nœud
     const handleDoubleClick = (id: string, name: string) => {
