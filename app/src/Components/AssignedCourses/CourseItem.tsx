@@ -25,6 +25,7 @@ const CourseItem: React.FC<CourseItemProps> = ({ course }) => {
   const [colleagues, setColleagues] = useState<Colleague[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [currentProfessor, setCurrentProfessor] = useState<{ firstname: string; lastname: string } | null>(null);
+  const [courseName, setCourseName] = useState<string>('');
 
   // Fetch the current professor's profile
   useEffect(() => {
@@ -42,6 +43,23 @@ const CourseItem: React.FC<CourseItemProps> = ({ course }) => {
 
     fetchCurrentProfessor();
   }, []);
+
+  // Fetch the course name
+  useEffect(() => {
+    const fetchCourseName = async () => {
+      try {
+        const response = await AffectationAPI.getCourseById(course.course_id);
+        if (!response.isError()) {
+          const courseData = response.responseObject();
+          setCourseName(courseData.course_type.name); // Extract the course name
+        }
+      } catch (error) {
+        console.error('Error fetching course name:', error);
+      }
+    };
+
+    fetchCourseName();
+  }, [course.course_id]);
 
   // Remove duplicate colleagues and filter out the current professor
   const filterColleagues = (colleagues: Colleague[]) => {
@@ -62,6 +80,7 @@ const CourseItem: React.FC<CourseItemProps> = ({ course }) => {
     return Array.from(uniqueColleagues.values());
   };
 
+  // Fetch colleagues assigned to the course
   useEffect(() => {
     const fetchColleagues = async () => {
       try {
@@ -87,9 +106,9 @@ const CourseItem: React.FC<CourseItemProps> = ({ course }) => {
       <div className="flex flex-col space-y-4">
         {/* Course Information */}
         <div className="space-y-3">
-          {/* Course ID */}
+          {/* Course Name */}
           <div className="flex items-center space-x-2">
-            <span className="text-lg font-semibold text-gray-800">📚 Course ID: {course.course_id}</span>
+            <span className="text-lg font-semibold text-gray-800">📚 Course: {courseName || 'Loading...'}</span>
           </div>
 
           {/* Hours */}
