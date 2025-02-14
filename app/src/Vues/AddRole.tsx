@@ -302,7 +302,11 @@ function AddRole() {
 
     // Utilisation de useEffect pour récupérer les comptes et profils lors du changement de filtre
     useEffect(() => {
-        fetchAccountsAndProfiles();
+        if (searchTerm === '') {
+            fetchAccountsAndProfiles();
+        } else {
+            handleSearchChange({ target: { value: searchTerm } } as React.ChangeEvent<HTMLInputElement>);
+        }
     }, [filterAccount, filterProfile]);
 
         return (
