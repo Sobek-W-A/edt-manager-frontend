@@ -309,6 +309,15 @@ function AddRole() {
         }
     }, [filterAccount, filterProfile]);
 
+    // Utilisation de useEffect pour récupérer les comptes et profils lors du changement de nombre d'élements par page
+    useEffect(() => {
+        if (searchTerm === '') {
+            fetchAccountsAndProfiles();
+        } else {
+            handleSearchChange({ target: { value: searchTerm } } as React.ChangeEvent<HTMLInputElement>);
+        }
+    }, [nbOfItemsPerPage]);
+
         return (
             <div className="flex justify-center mt-6">
                 <div className="w-fit p-6 rounded-lg shadow-md">
