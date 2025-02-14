@@ -1,8 +1,7 @@
-import React, {ChangeEvent, useState} from 'react';
+import React, {ChangeEvent, useEffect, useState} from 'react';
 import ProfileAPI from "../../scripts/API/ModelAPIs/ProfileAPI.ts";
 import {Profile} from "../../scripts/API/APITypes/Profiles.ts";
 import AffectationForm from "./AffectationForm.tsx";
-
 
 
 interface SearchAndChoseProps {
@@ -14,40 +13,58 @@ function SearchAndChose({id_cours, groupCount}: SearchAndChoseProps) {
     const [searchInput, setSearchInput] = useState<string>("");
     const [searchResult, setSearchResult] = useState<Profile[] | null>();
     const [loading, setLoading] = useState<boolean>();
-    console.log(groupCount)
+
+    const [showSuggestions, setShowSuggestions] = useState<boolean>();
+
     const [, setNotification] = useState<{ message: string; type: string } | null>(null);
     const [, setShowNotification] = useState<boolean>(false);
-    const [error, setError] = useState("");
 
-    const handleChangeSearchInput = async (e: ChangeEvent<HTMLInputElement>) => {
+    const handleChangeSearchInput = (e: ChangeEvent<HTMLInputElement>) => {
         setSearchInput(e.target.value);
     }
 
+    useEffect(() => {
+        setTimeout(async () => {
+            if (searchInput.length > 0) {
+                setShowSuggestions(true);
+                await searchProfessors();
+            } else {
+                setShowSuggestions(false);
+                setSearchResult(null);
+            }
+        }, 500)
+    }, [searchInput])
+
     const searchProfessors = async () => {
         setLoading(true);
-        setError("");
-        if (searchInput.length > 1) {
-            const profilesResponse = await ProfileAPI.searchProfilesByKeywords(searchInput);
-            if (profilesResponse.isError()) {
-                setNotification({
-                    message: `Une erreur est survenue : ${profilesResponse.errorMessage()}.`,
-                    type: 'alert-error'
-                });
-                setShowNotification(true);
-            } else {
-                setSearchResult(profilesResponse.responseObject());
-            }
-            setLoading(false);
+        const profilesResponse = await ProfileAPI.searchProfilesByKeywords(searchInput);
+        if (profilesResponse.isError()) {
+            setNotification({
+                message: `Une erreur est survenue : ${profilesResponse.errorMessage()}.`,
+                type: 'alert-error'
+            });
+            setShowNotification(true);
         } else {
-            setError("Veuillez commencer à saisir le nom ou le prénom")
-            setSearchResult(null);
-            setLoading(false);
+            setSearchResult(profilesResponse.responseObject());
         }
+        setLoading(false);
     }
+
+    const selectProfessor = (professor: Profile) => {
+        setShowSuggestions(false);
+        setSearchResult([professor]);
+    }
+
+    const handleClickOnKey = async (e: KeyboardEvent) => {
+        if (e.key === "Enter") {
+            setShowSuggestions(false);
+            await searchProfessors();
+        }
+    };
 
     return (
         <div className="w-full flex flex-col p-3">
-            <div className="relative w-full mb-3 flex items-center">
+            <div className="relative w-full mb-3">
                 <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
                     <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true"
                          xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
@@ -62,23 +79,35 @@ function SearchAndChose({id_cours, groupCount}: SearchAndChoseProps) {
                     className="w-full px-3 ps-10 py-2 mt-1 text-green-900 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
                     placeholder="Recherche professeur par Nom et Prénom"
                     value={searchInput}
-                    onChange={(e) => handleChangeSearchInput(e)}
+                    onChange={handleChangeSearchInput}
+                    onKeyDown={e => handleClickOnKey(e)}
                 />
-                <button
-                    disabled={loading}
-                    className="ml-3 px-4 py-2 text-white rounded hover:border-green-300 bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500"
-                    onClick={searchProfessors}>Recherche
-                </button>
+                {showSuggestions && <div className="absolute bg-white border rounded shadow-lg z-10 w-full">
+                    {loading && <div className="text-center">Recherche ...</div>}
+                    {!loading && searchResult?.length > 0 && searchResult?.map((professor) => (
+                        <div
+                            key={professor.firstname}
+                            className="px-3 py-2 hover:bg-green-100 cursor-pointer"
+                            onClick={() => selectProfessor(professor)}
+                        >
+                            {professor.lastname} {professor.firstname}
+                        </div>
+                    ))}
+                    {!loading && searchResult && searchResult?.length == 0 &&
+                        <div className="text-center">Aucun résultat trouvé</div>}
+                </div>}
+
             </div>
-            {error && <div className="text-red-500">{error}</div>}
-            {loading && <div className="text-center">Recherche ...</div>}
-            {!loading && searchResult?.length > 0 && searchResult?.map(profile => (
+
+            {!showSuggestions && loading && <div className="text-center">Recherche ...</div>}
+            {!showSuggestions && !loading && searchResult?.length > 0 && searchResult?.map(profile => (
                 <AffectationForm
                     profile={profile}
                     idCours={id_cours}
                     groupCount={groupCount}/>
-                ))}
-            {!loading && searchResult?.length == 0 && <div className="text-center">Aucun résultat trouvé</div>}
+            ))}
+            {!showSuggestions && !loading && searchResult?.length == 0 &&
+                <div className="text-center">Aucun résultat trouvé</div>}
         </div>
     );
 }

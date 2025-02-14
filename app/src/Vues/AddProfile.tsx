@@ -3,8 +3,9 @@ import ErrorResponse from "../scripts/API/Responses/ErrorResponse.ts";
 import {AlertError, AlertSuccess} from "../Components/Utils/Alert.tsx";
 import ProfileForm from "../Components/Profile/ProfileForm.tsx";
 import ProfileModel from "../scripts/Models/ProfileModel.ts";
-import {Profile} from "../scripts/API/APITypes/Profiles.ts";
+import {ProfileInCreate} from "../scripts/API/APITypes/Profiles.ts";
 
+const global_academic_year = 2025;
 
 function AddProfile() {
 
@@ -14,6 +15,7 @@ function AddProfile() {
         nomError: '',
         loginError: '',
         statutError: '',
+        accountError: '',
         quotaError : ''
     });
     
@@ -21,11 +23,11 @@ function AddProfile() {
     const [prenom, setPrenom] = useState('');
     const [email, setEmail] = useState(''); //email non obligatoire
 
-    const [statut, setStatut] = useState('');
+    const [statut, setStatut] = useState(0);
 
-    const [quota, setQuota] = useState(''); //éditable ou non
+    const [quota, setQuota] = useState(0); //éditable ou non
 
-    const [login, setLogin] = useState('');
+    const [idAccount, setidAccount] = useState(0);
 
     const [generalError, setGeneralError] = useState("");
     const [success, setSuccess] = useState(false);
@@ -42,19 +44,18 @@ function AddProfile() {
 
 
     const handleSignUp = async () => {
-        const userData: Profile = {
-            id: 0,
-            academic_year: [2024, 2025],
+        const userData: ProfileInCreate = {
+            academic_year: global_academic_year,
             firstname: prenom,
             lastname: nom,
             mail: email,
-            //statut : statut, //TODO  quand on aura le statut
-            //quota : quota //TODO quand on aura la quota
-            //status_id : statut,
-            //account_id: 0,          // TODO MAIS POUR PLUS TARD
-
+            quota : quota,
+            account_id: idAccount,
+            status_id : statut
 
         };
+
+        console.log(userData)
 
         setSuccess(true);
 
@@ -79,8 +80,8 @@ function AddProfile() {
         <div className="flex flex-col items-center justify-center pt-12 pb-12">
             <div className="w-full max-w-md p-8 space-y-6 rounded-lg shadow-md">
                 <div className="flex flex-col items-center">
-                    <h1 className="text-4xl font-semibold">Création de profile</h1>
-                    <p className="text-sm">Créez un nouveau profile</p>
+                    <h1 className="text-4xl font-semibold">Création de profil</h1>
+                    <p className="text-sm">Créez un nouveau profil</p>
                 </div>
 
                 {generalError && <AlertError title="Oups ! Une erreur est survenue." details={generalError} />}
@@ -88,10 +89,9 @@ function AddProfile() {
 
                 <ProfileForm
                     email={email} setEmail={setEmail}
-                    //status={status} setStatus={setStatus}
                     prenom={prenom} setPrenom={setPrenom}
                     nom={nom} setNom={setNom}
-                    login={login} setLogin={setLogin}
+                    account={idAccount} setAccount={setidAccount}
                     statut={statut} setStatut={setStatut}
                     quota={quota} setQuota={setQuota}
                     handleSubmit={handleSignUp}

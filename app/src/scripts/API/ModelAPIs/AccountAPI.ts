@@ -29,6 +29,18 @@ export default class AccountAPI {
     }
 
     /**
+     * This method builds and sends the request to get all the accounts.
+     */
+    static getAllAccountsNotLinkedToProfile(academic_year : number): Promise<APIResponse<Account[]>> {
+        return api.requestLogged<Account[]>(
+            HTTPMethod.GET,
+            `${AccountAPI.ACCOUNTS_PATH}/notlinkedtoprofile/${academic_year}`,
+            undefined,
+            undefined
+        );
+    }
+
+    /**
      * This method returns the account specified by the id provided.
      * @param account_id The id of the account to be returned.
      */

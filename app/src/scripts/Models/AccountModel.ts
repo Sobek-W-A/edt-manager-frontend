@@ -50,6 +50,21 @@ export default class AccountModel {
     }
 
     /**
+     * This method sends and handles the request to get all AccountModel from the API.
+     * @returns A promise that resolves into an array of AccountModel or an ErrorResponse.
+     */
+    static async getAllAccountsNotLinkedToProfile(academic_year : number): Promise<AccountModel[] | ErrorResponse<Account[]>> {
+        const response = await AccountAPI.getAllAccountsNotLinkedToProfile(academic_year);
+
+        const result: AccountModel[] = [];
+        if (response.isError()) return result;
+        response.responseObject().forEach((element: Account) => {
+            result.push(new AccountModel(element));
+        });
+        return result
+    }
+
+    /**
      * This method gets and builds an AccountModel based on the account_id provided.
      * @param account_id The id of the account to be returned.
      * @returns A promise that resolves into an AccountModel or an ErrorResponse.
