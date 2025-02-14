@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEnvelope, faPlus, faTimes, faEdit, faUserCircle } from "@fortawesome/free-solid-svg-icons";
+import { faEnvelope, faPlus, faTimes, faEdit, faUserCircle, faCalendarDays } from "@fortawesome/free-solid-svg-icons";
 import { useEffect, useState } from "react";
 import RoleAPI from "../../scripts/API/ModelAPIs/RoleAPI";
 import { Account } from "../../scripts/API/APITypes/Accounts";
@@ -68,9 +68,13 @@ function AddRoleCard({ user, rolesList, openRoleMenu, setOpenRoleMenu, addRoleTo
   };
 
   return (
-    <div key={user.id} className="border p-4 rounded shadow-md relative flex justify-between bg-white">
+    <div key={user.id} className="border p-4 rounded shadow-md relative flex justify-between bg-white hover:shadow-lg hover:scale-105 transition-transform duration-200">
       {/* Bouton de modification */}
       <div className="absolute top-2 right-2">
+        <Link to={"/affectation/" + user.id} title="Voir affectations">
+          <FontAwesomeIcon icon={faCalendarDays} className="text-green-500 hover:text-green-700 cursor-pointer text-xl" />
+        </Link>
+        &nbsp;
         <Link to={"/modify/" + user.id} title="Modifier le compte">
           <FontAwesomeIcon icon={faEdit} className="text-green-500 hover:text-green-700 cursor-pointer text-xl" />
         </Link>
