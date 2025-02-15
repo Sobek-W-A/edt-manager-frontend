@@ -77,10 +77,11 @@ export default class ProfileModel {
         const body: ProfileInUpdate = {
             firstname: this._firstname,
             lastname: this._lastname,
+            academic_year: this._academic_year,
             mail: this._mail,
             account_id: this._account_id,
             status_id: this._status_id,
-            quota : 0
+            quota: this._quota
         }
         const response = await ProfileAPI.updateProfile(this._id, body);
         if (response.isError()) return response as ErrorResponse<undefined>;

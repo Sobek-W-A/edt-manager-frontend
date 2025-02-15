@@ -94,7 +94,7 @@ const UserForm: React.FC<UserFormProps> = ({
 
     const handleQuota = (e: React.ChangeEvent<HTMLInputElement>) => {
         setQuota(Number(e.target.value));
-        errors.setStatutError(e.target.value.length >= 2 ? "" : "Veuillez choisir quota valide.");
+        errors.setStatutError(Number(e.target.value) > 0 ? "" : "Veuillez choisir quota valide.");
     };
 
     React.useEffect(() => {

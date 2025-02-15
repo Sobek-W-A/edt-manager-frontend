@@ -4,6 +4,9 @@ import {AlertError, AlertSuccess} from "../Components/Utils/Alert.tsx";
 import UserForm from "../Components/Profile/ProfileForm.tsx";
 import {useParams} from "react-router";
 import ProfileModel from "../scripts/Models/ProfileModel.ts";
+import {ProfileInUpdate} from "../scripts/API/APITypes/Profiles.ts";
+
+const global_academic_year = 2025;
 
 const ModifyProfile = () => {
     const [nom, setNom] = useState('');
@@ -19,6 +22,8 @@ const ModifyProfile = () => {
     const [generalError, setGeneralError] = useState("");
     const [success, setSuccess] = useState(false);
 
+    const [id_profile, setId_profile] = useState(-1);
+
     const params = useParams();
     const userModel = useRef<ProfileModel>();
 
@@ -27,7 +32,8 @@ const ModifyProfile = () => {
         emailError: '',
         prenomError: '',
         nomError: '',
-        loginError: ''
+        loginError: '',
+        statutError: '',
     });
 
     useEffect(() => {
@@ -45,6 +51,7 @@ const ModifyProfile = () => {
                 setId_account(userModel.current.account_id || -1);
                 setQuota(userModel.current.quota)
                 setStatut(Number(userModel.current.status_id))
+                setId_profile(Number(userModel.current.id))
             } else {
                 setGeneralError("Utilisateur non trouvé.");
             }})
@@ -59,6 +66,7 @@ const ModifyProfile = () => {
     const setPrenomError = (error : string) => setErrors(prev => ({ ...prev, prenomError: error }));
     const setNomError = (error : string) => setErrors(prev => ({ ...prev, nomError: error }));
     const setLoginError = (error : string) => setErrors(prev => ({ ...prev, loginError: error }));
+    const setStatutError = (error : string) => setErrors(prev => ({ ...prev, statutError: error }));
 
     const handleSignUp = async () => {
 
@@ -69,13 +77,39 @@ const ModifyProfile = () => {
             account_id : id_account
         };**/
 
+        //TODO REMETTRE LE MAIL DANS LE BODY
+
+        const userData: ProfileInUpdate = {
+                id : userModel.current?.id,
+                //mail : email,
+                academic_year: global_academic_year,
+                firstname: prenom,
+                lastname: nom,
+                quota : quota,
+                account_id: id_account,
+                status_id : statut
+            };
+
+
+        if (!(email === userModel.current.mail)) {
+            userData["mail"] = email
+        }
+
         try {
+
+
+
             // We check if the user has been successfully fetched.
             if (!userModel.current) {
                 setGeneralError("Utilisateur non trouvé.");
                 return;
             }
-            const response = await userModel.current.updateProfile();
+
+
+
+            const model = new ProfileModel(userData);
+            const response = await model.updateProfile();
+
             if (response instanceof ErrorResponse) {
                 setSuccess(false);
                 setGeneralError(response.errorCode() === 401
@@ -115,7 +149,8 @@ const ModifyProfile = () => {
                         setEmailError,
                         setPrenomError,
                         setNomError,
-                        setLoginError
+                        setLoginError,
+                        setStatutError
                     }}
                 />
                 </div>

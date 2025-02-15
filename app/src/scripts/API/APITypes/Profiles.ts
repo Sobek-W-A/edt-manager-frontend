@@ -20,10 +20,12 @@ export type ProfileInCreate = {
 }
 
 export type ProfileInUpdate = {
+    id : number | undefined;
     firstname:  string | undefined;
     lastname:   string | undefined;
     mail:       string | undefined;
     quota:      number | undefined;
+    academic_year : number
     account_id: number | undefined;
-    status_id:  string | undefined;
+    status_id:  number | undefined;
 }
