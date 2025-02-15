@@ -45,4 +45,12 @@ export default class Storage {
     static isAccessTokenStored(): boolean {
         return window.sessionStorage.getItem("access_token") !== null && window.sessionStorage.getItem("refresh_token") !== null;
     }
+
+    static setAcademicYear(academicYear: number): void {
+        window.sessionStorage.setItem("academic_year", academicYear);
+    }
+
+    static getAcademicYear(): number {
+        return window.sessionStorage.getItem("academic_year");
+    }
 }
