@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import NodeAPI from "../../scripts/API/ModelAPIs/NodeAPI";
+import UEAPI from "../../scripts/API/ModelAPIs/UEAPI";
 import { APINode } from "../../scripts/API/APITypes/Tree";
 import { NodeInUpdate } from "../../scripts/API/APITypes/Tree";
+import { UEInCreation } from "../../scripts/API/APITypes/UE.ts";
 
 type TreeNode = {
     academic_year: number;
@@ -9,7 +11,7 @@ type TreeNode = {
     name: string;
     type: "node" | "ue";
     // Pour le rendu, on ne se sert pas de child_nodes (issu de l’API) mais de children (arborescence enrichie)
-    child_nodes: number[];
+    child_nodes: number[] | any[];
     children?: TreeNode[];
 };
 
@@ -65,6 +67,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
 
     // Fonction appelée lors du clic sur le bouton pour ouvrir/fermer un noeud
     const toggleNode = async (node: TreeNode) => {
+        console.log(node);
         const nodeId = node.id.toString();
 
         if (node.type === "node") {
@@ -72,15 +75,16 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                 // Récupération du noeud depuis l'API (qui peut contenir des enfants sous forme d'identifiants ou d'objets)
                 const updatedNode = await loadNodeChildren(node.id, node.academic_year);
                 if (updatedNode) {
-                    // Pour chaque élément de child_nodes, on gère deux cas :
-                    // - Si c'est un nombre, on lance un appel pour récupérer le noeud correspondant.
-                    // - Si c'est un objet (cas d'une UE ou d'un noeud déjà inclus), on le retourne directement.
                     const childrenNodes = await Promise.all(
                         (updatedNode.child_nodes || []).map(async (child: number | APINode) => {
                             if (typeof child === "number") {
                                 return await loadNodeChildren(child, node.academic_year);
                             } else if (typeof child === "object" && child !== null) {
-                                // Ici, le noeud enfant est déjà fourni (par exemple, une UE)
+                                // Le noeud enfant est déjà fourni (par exemple, une UE)
+                                // Si le noeud possède une propriété "courses", il s'agit d'une UE : on force son type.
+                                if ("courses" in child) {
+                                    return { ...child, type: "ue" };
+                                }
                                 return child;
                             } else {
                                 return null;
@@ -88,7 +92,6 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                         })
                     );
 
-                    // Mise à jour de l'arborescence en ajoutant la propriété "children" avec les noeuds chargés
                     updateNodeInTree(node.id, {
                         ...updatedNode,
                         children: childrenNodes.filter((child) => child !== null)
@@ -136,6 +139,8 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
     // Gestion du menu contextuel (affichage à la position du clic droit)
     const handleContextMenu = (e: React.MouseEvent, nodeId: string) => {
         e.preventDefault();
+        // On arrête la propagation pour éviter que le clic droit sur un enfant ne déclenche aussi le menu du parent.
+        e.stopPropagation();
         const x = e.clientX;
         const y = e.clientY - 40;
         setContextMenu({ visible: true, x: x, y: y, nodeId: nodeId });
@@ -145,7 +150,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         setContextMenu({ visible: false, x: 0, y: 0, nodeId: null });
     };
 
-    // Gestion des actions du menu contextuel (Ajouter Dossier, Ajouter UE, Supprimer, Renommer)
+    // Gestion des actions du menu contextuel
     const handleAction = async (action: string) => {
         if (contextMenu.nodeId && dataState) {
             const nodeIdNumber = parseInt(contextMenu.nodeId);
@@ -157,7 +162,6 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                     };
 
                     const response = await NodeAPI.createNode(dataState.academic_year, newNodeData);
-
                     if (response.isError()) {
                         console.error("Erreur lors de la création du dossier:", response.errorMessage());
                         return;
@@ -186,25 +190,61 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                     console.error("Erreur lors de la création du dossier:", error);
                 }
             } else if (action === "Ajouter UE") {
-                const newUe: TreeNode = {
-                    academic_year: dataState.academic_year,
-                    type: "ue",
-                    id: Date.now(), // id temporaire
-                    name: "Nouvelle UE",
-                    child_nodes: []
-                };
-                const node = findNode(dataState, contextMenu.nodeId);
-                if (node) {
-                    if (!node.children) node.children = [];
-                    node.children.push(newUe);
-                    setDataState({ ...dataState });
+                try {
+                    // Création d'une UE de base via l'API UE
+                    const newUEData: UEInCreation = {
+                        academic_year: 2024,
+                        name: "Nouvelle UE",
+                        parent_id: nodeIdNumber,
+                        courses: []
+                    };
+
+                    const ueResponse = await UEAPI.createUE(newUEData);
+                    if (ueResponse.isError()) {
+                        console.error("Erreur lors de la création de l'UE:", ueResponse.errorMessage());
+                        return;
+                    }
+
+                    const createdUE = ueResponse.responseObject();
+                    // Conversion de l'ID reçu (de type string) en nombre si nécessaire
+                    const newUe: TreeNode = {
+                        academic_year: createdUE.academic_year,
+                        id: Number(createdUE.id),
+                        name: createdUE.name,
+                        type: "ue",
+                        child_nodes: []
+                    };
+
+                    const parent = findNode(dataState, contextMenu.nodeId);
+                    if (parent) {
+                        if (!parent.children) parent.children = [];
+                        parent.children.push(newUe);
+                        setDataState({ ...dataState });
+                    }
+                } catch (error) {
+                    console.error("Erreur lors de la création de l'UE:", error);
                 }
             } else if (action === "Supprimer") {
+                // Recherche du noeud à supprimer
+                const nodeToDelete = findNode(dataState, contextMenu.nodeId);
+                if (!nodeToDelete) {
+                    console.error("Noeud non trouvé pour la suppression.");
+                    closeContextMenu();
+                    return;
+                }
                 try {
-                    const response = await NodeAPI.deleteNode(dataState.academic_year, nodeIdNumber);
-                    if (response.isError()) {
-                        console.error("Erreur lors de la suppression du dossier:", response.errorMessage());
-                        return;
+                    if (nodeToDelete.type === "node") {
+                        const response = await NodeAPI.deleteNode(dataState.academic_year, nodeToDelete.id);
+                        if (response.isError()) {
+                            console.error("Erreur lors de la suppression du dossier:", response.errorMessage());
+                            return;
+                        }
+                    } else if (nodeToDelete.type === "ue") {
+                        const response = await UEAPI.deleteUE(nodeToDelete.id);
+                        if (response.isError()) {
+                            console.error("Erreur lors de la suppression de l'UE:", response.errorMessage());
+                            return;
+                        }
                     }
 
                     if (dataState.id.toString() === contextMenu.nodeId) {
@@ -222,7 +262,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                         }
                     }
                 } catch (error) {
-                    console.error("Erreur lors de la suppression du dossier:", error);
+                    console.error("Erreur lors de la suppression:", error);
                 }
             } else if (action === "Renommer") {
                 const node = findNode(dataState, contextMenu.nodeId);
@@ -293,9 +333,11 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
 
     // Rendu d'un noeud (ou UE) et de ses éventuels enfants
     const renderNode = (node: TreeNode) => {
+        
         const isOpen = openNodes.has(node.id.toString());
 
         return (
+            
             <div key={node.id} className="ml-4 relative">
                 {isOpen && node.type === "node" && (
                     <div className="absolute left-[-5px] top-3 h-full w-[1px] bg-blue-300"></div>
@@ -347,6 +389,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
     };
 
     return (
+        
         <div className="relative p-4 h-full" onClick={closeContextMenu}>
             <div className="flex-grow h-full">{dataState && renderNode(dataState)}</div>
             {contextMenu.visible && (

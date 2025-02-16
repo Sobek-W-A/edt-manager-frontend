@@ -8,7 +8,7 @@ export type UE = {
 }
 
 export type UEInCreation = {
-    academic_year: number[];
+    academic_year: number;
     name: string;
     parent_id: number;
     courses: CourseInCreation[];
