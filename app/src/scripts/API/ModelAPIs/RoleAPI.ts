@@ -27,9 +27,9 @@ export default class RoleAPI {
      * @returns A promise that resolves into an array of roles or an error.
      */
     static getUserRoles(account_id: number, academic_year: string): Promise<APIResponse<RoleType>> {
-        return api.requestLogged<RoleType>(
+        return api.requestLoggedWithAcademicYear<RoleType>(
             HTTPMethod.GET,
-            `${RoleAPI.ACCOUNTS_PATH}/${account_id}${RoleAPI.ROLE_URL}/${academic_year}`,
+            `${RoleAPI.ACCOUNTS_PATH}/${account_id}${RoleAPI.ROLE_URL}`,
             undefined,
             undefined
         );
