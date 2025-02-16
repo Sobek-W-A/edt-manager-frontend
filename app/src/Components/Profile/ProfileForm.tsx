@@ -48,6 +48,7 @@ const UserForm: React.FC<UserFormProps> = ({
                                                setPrenom,
                                                nom,
                                                setNom,
+                                               account,
                                                setAccount,
                                                 statut,
                                                 setStatut,
@@ -62,6 +63,7 @@ const UserForm: React.FC<UserFormProps> = ({
     const [availableAccounts, setAvailableAccounts] = useState<Account[]>([])
     const [filteredAccounts, setFilteredAccounts] = useState<Account[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
+    const [accountName, setAccountName] = useState("");
 
     // Handlers de validation internes avec types
     const handleMailType = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -80,11 +82,6 @@ const UserForm: React.FC<UserFormProps> = ({
         errors.setNomError(e.target.value.length >= 2 ? "" : "Veuillez entrer un nom valide, d'au moins 2 caractères.");
     };
 
-    /**const handleLogin = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setAccount(e.target.value);
-        errors.setLoginError(e.target.value.length >= 2 ? "" : "Veuillez entrer un login valide, d'au moins 2 caractères.");
-    };**/
-
     const handleStatut = (e: React.ChangeEvent<HTMLSelectElement>) => {
         console.log(e.target.value)
         const listMatch = availableStatus.find(function (element) {
@@ -95,21 +92,13 @@ const UserForm: React.FC<UserFormProps> = ({
 
     };
 
-    /**const handleLinkAccount = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const listMatch = availableAccounts.find(function (element) {
-            return element.login === e.target.value
-        } )
-        setAccount(listMatch?.id);
-        setLabelAccount(listMatch?.login)
-        console.log(account);
-    };**/
-
     const handleQuota = (e: React.ChangeEvent<HTMLInputElement>) => {
         setQuota(Number(e.target.value));
-        errors.setStatutError(e.target.value.length >= 2 ? "" : "Veuillez choisir quota valide.");
+        errors.setStatutError(Number(e.target.value) > 0 ? "" : "Veuillez choisir quota valide.");
     };
 
     React.useEffect(() => {
+
         StatusModel.getAllStatusByYear(global_academic_year).then(response => {
             if (!(response instanceof ErrorResponse)) {
                 setAvailableStatus(response);
@@ -121,6 +110,9 @@ const UserForm: React.FC<UserFormProps> = ({
                 setAvailableAccounts(response);
             }
         });
+
+
+
     }, []);
 
     React.useEffect(() => {
@@ -133,6 +125,8 @@ const UserForm: React.FC<UserFormProps> = ({
         } else {
             setFilteredAccounts([]);
         }
+
+        setAccountName(availableAccounts.find((element) => element.id === account)?.login);
     }, [searchTerm, availableAccounts]);
 
     const handleAccountSelection = (selectedAccount: Account) => {
@@ -141,6 +135,10 @@ const UserForm: React.FC<UserFormProps> = ({
         setAccount(selectedAccount.id);
         setFilteredAccounts([]);
     };
+
+    const resetAccount = () => {
+        setAccount(-1)
+    }
 
     return (
         <div className="form-group">
@@ -190,6 +188,8 @@ const UserForm: React.FC<UserFormProps> = ({
                         ))}
                     </ul>
                 )}
+                <label className="form-label block text-sm font-medium text-green-700">{account === -1 ? (<div>Aucun compte lié</div>) : (<div>Compte lié : {accountName} (id : {account}) <button className="text-red-700" onClick={resetAccount}> retirer</button></div>)}</label>
+
             </div>
 
             <div>

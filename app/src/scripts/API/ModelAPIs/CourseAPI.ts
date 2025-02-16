@@ -27,7 +27,7 @@ export default class CourseAPI {
      * @param course The new values of the Course.
      * @returns The response of the request.
      */
-    static async modifyCourse(id: number, course: CourseInUpdate): Promise<APIResponse<undefined>> {
+    static async modifyCourse(id: number, course: Course): Promise<APIResponse<undefined>> {
         return api.requestLogged<undefined>(
             HTTPMethod.PATCH,
             `${CourseAPI.COURSE_PATH}/${id}`,
