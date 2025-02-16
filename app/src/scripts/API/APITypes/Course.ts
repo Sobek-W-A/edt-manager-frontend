@@ -1,7 +1,7 @@
-import { CourseType, CourseTypeInCreation, CourseTypeInUpdate } from "./CourseType";
+import { CourseType, CourseTypeInCreation } from "./CourseType";
 
 export type Course = {
-    academic_year: number[];
+    academic_year: number;
     id:	number;
     duration: number;
     course_type: CourseType;
@@ -16,7 +16,9 @@ export type CourseInCreation = {
 }
 
 export type CourseInUpdate = {
-    academic_year: number[] | undefined;
-    duration: number | undefined;
-    courses_types: CourseTypeInUpdate[] | undefined;
+    academic_year: number[];
+    id:	number;
+    duration: number;
+    course_type: CourseType;
+    group_count: number;
 }

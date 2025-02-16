@@ -2,7 +2,8 @@ import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
 import AuthModel from '../../scripts/Models/AuthModel';
-import { useEffect, useState } from 'react';
+import {ChangeEvent, useEffect, useState} from 'react';
+import Storage from '../../scripts/API/Storage.ts'
 
 function Navbar() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -10,6 +11,19 @@ function Navbar() {
     useEffect(() => {
         setIsLoggedIn(AuthModel.isLoggedIn());
     }, []);
+
+    const ACADEMIC_YEAR = [2023, 2024, 2025];
+    const [academicYear, setAcademicYear] = useState<number>(ACADEMIC_YEAR[2]);
+
+    useEffect(() => {
+        const date = new Date();
+        Storage.setAcademicYear(date.getFullYear());
+    }, []);
+
+    const handleChangeAcadmicYear = (year: number) => {
+        setAcademicYear(year);
+        Storage.setAcademicYear(year);
+    }
 
     return (
         <div className="w-full bg-green-700 border-b-2 border-t-2 p-2 pb-3 text-xl font-bold text-white flex justify-between items-center">
@@ -33,14 +47,32 @@ function Navbar() {
                             </Link>
                         </div>
                         <div className="flex items-center">
-                            <Link to="/profileCreation" className="text-sm hover:text-green-300 transition duration-200">
+                            <Link to="/profileCreation"
+                                  className="text-sm hover:text-green-300 transition duration-200">
                                 Créer un profile
                             </Link>
                         </div>
                         <div className="flex items-center">
-                            <Link to="/assigned-courses" className="text-sm hover:text-green-300 transition duration-200">
-                            Cours attribués
+                            <Link to="/assigned-courses"
+                                  className="text-sm hover:text-green-300 transition duration-200">
+                                Cours attribués
                             </Link>
+                        </div>
+                        <div className="flex items-center">
+                            <div className="dropdown dropdown-hover">
+                                <div tabIndex={0}
+                                     className="cursor-pointer text-sm bg-green-700 text-white focus:outline-none">
+                                    Année {academicYear}
+                                </div>
+                                <ul tabIndex={0}
+                                    className="dropdown-content menu bg-green-100 text-gray-700 rounded-box z-[1] w-52 p-2 shadow">
+                                    {ACADEMIC_YEAR.map(year => (
+                                        <li onClick={() => handleChangeAcadmicYear(year)}
+                                            className="cursor-pointer p-2 hover:bg-green-200 rounded">
+                                            {year}
+                                        </li>))}
+                                </ul>
+                            </div>
                         </div>
                     </>
                 )}
@@ -48,7 +80,8 @@ function Navbar() {
                 {!isLoggedIn && (
                     <>
                         <div className="flex items-center">
-                            <Link to="/accountcreation" className="text-sm hover:text-green-300 transition duration-200">
+                            <Link to="/accountcreation"
+                                  className="text-sm hover:text-green-300 transition duration-200">
                                 Creer un utilisateur
                             </Link>
                         </div>

@@ -15,7 +15,6 @@ export type UEInCreation = {
 }
 
 export type UeInUpdate = {
-    academic_year: number[] | undefined;
+    academic_year: number | undefined;
     name: string | undefined;
-    courses: CourseInUpdate[] | undefined;
 }
