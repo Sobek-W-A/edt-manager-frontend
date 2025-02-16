@@ -1,4 +1,4 @@
-import {UE} from "../API/APITypes/UE.ts";
+import {UE, UeInUpdate} from "../API/APITypes/UE.ts";
 import ErrorResponse from "../API/Responses/ErrorResponse.ts";
 import UEAPI from "../API/ModelAPIs/UEAPI.ts";
 import {Course} from "../API/APITypes/Course.ts";
@@ -23,11 +23,18 @@ export default class UEModel {
      * @returns A promise that resolves into an AccountModel or an ErrorResponse.
      * @param ue_id
      */
-    static async getUEById(ue_id: string): Promise<UEModel | ErrorResponse<UE>> {
+    static async getUEById(ue_id: number): Promise<UEModel | ErrorResponse<UE>> {
 
         const response = await UEAPI.getUEById(ue_id);
         if (response.isError()) return response as ErrorResponse<UE>;
         return new UEModel(response.responseObject());
+    }
+
+    static async modifyUEById(ue_id: number, new_ue: UeInUpdate): Promise<ErrorResponse<undefined> | undefined> {
+
+        const response = await UEAPI.modifyUE(ue_id, new_ue);
+        if (response.isError()) return response as ErrorResponse<undefined>;
+
     }
 
     get name(): string {
