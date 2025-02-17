@@ -18,7 +18,6 @@ export default class NodeAPI {
             undefined,
             undefined
         );
-        console.log('Réponse du backend pour getNodeById:', response);
         return response;
     }
 

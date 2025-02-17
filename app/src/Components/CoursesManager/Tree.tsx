@@ -67,8 +67,6 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
 
     // Fonction appelée lors du clic sur le bouton pour ouvrir/fermer un noeud
     const toggleNode = async (node: TreeNode) => {
-        console.log(node);
-        console.log("ICI")
         const nodeId = node.id.toString();
 
         if (node.type === "node") {
@@ -206,21 +204,27 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                         return;
                     }
 
-                    const createdUE = ueResponse.responseObject();
-                    // Conversion de l'ID reçu (de type string) en nombre si nécessaire
-                    const newUe: TreeNode = {
-                        academic_year: createdUE.academic_year,
-                        id: Number(createdUE.id),
-                        name: createdUE.name,
-                        type: "ue",
-                        child_nodes: []
-                    };
-
-                    const parent = findNode(dataState, contextMenu.nodeId);
-                    if (parent) {
-                        if (!parent.children) parent.children = [];
-                        parent.children.push(newUe);
-                        setDataState({ ...dataState });
+                    // Une fois l'UE ajoutée, recharger le noeud parent depuis le backend
+                    const updatedParent = await loadNodeChildren(nodeIdNumber, dataState.academic_year);
+                    if (updatedParent) {
+                        const childrenNodes = await Promise.all(
+                            (updatedParent.child_nodes || []).map(async (child: number | APINode) => {
+                                if (typeof child === "number") {
+                                    return await loadNodeChildren(child, updatedParent.academic_year);
+                                } else if (typeof child === "object" && child !== null) {
+                                    if ("courses" in child) {
+                                        return { ...child, type: "ue" };
+                                    }
+                                    return child;
+                                } else {
+                                    return null;
+                                }
+                            })
+                        );
+                        updateNodeInTree(nodeIdNumber, {
+                            ...updatedParent,
+                            children: childrenNodes.filter((child) => child !== null)
+                        });
                     }
                 } catch (error) {
                     console.error("Erreur lors de la création de l'UE:", error);
@@ -228,8 +232,6 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
             } else if (action === "Supprimer") {
                 // Recherche du noeud à supprimer
                 const nodeToDelete = findNode(dataState, contextMenu.nodeId);
-                console.log(nodeToDelete)
-                console.log("LALALALAL")
                 if (!nodeToDelete) {
                     console.error("Noeud non trouvé pour la suppression.");
                     closeContextMenu();
@@ -336,11 +338,9 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
 
     // Rendu d'un noeud (ou UE) et de ses éventuels enfants
     const renderNode = (node: TreeNode) => {
-        
         const isOpen = openNodes.has(node.id.toString());
 
         return (
-            
             <div key={node.id} className="ml-4 relative">
                 {isOpen && node.type === "node" && (
                     <div className="absolute left-[-5px] top-3 h-full w-[1px] bg-blue-300"></div>
@@ -392,7 +392,6 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
     };
 
     return (
-        
         <div className="relative p-4 h-full" onClick={closeContextMenu}>
             <div className="flex-grow h-full">{dataState && renderNode(dataState)}</div>
             {contextMenu.visible && (
