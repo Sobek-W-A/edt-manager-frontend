@@ -8,21 +8,33 @@ class ManageHumanResources extends Component {
 
     render() {
         return (
-            <div className="flex-grow flex flex-col" style={{ height: '100%', overflow: 'hidden' }}>
+            // Utilisation de 100vh pour occuper toute la hauteur de la page
+            <div style={{ minHeight: '80vh', overflow: 'hidden' }} className="flex flex-col">
                 <SplitPane
                     split="vertical"
                     minSize={200}
                     defaultSize={500}
-                    pane1Style={{ display: 'flex', flexDirection: 'column', overflow: 'auto', height: '100%', borderRight: 'none' }}
-                    pane2Style={{ display: 'flex', flexDirection: 'column', overflow: 'auto', height: '100%', borderLeft: 'none' }}
+                    pane1Style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        overflow: 'auto',
+                        borderRight: 'none'
+                    }}
+                    pane2Style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        overflow: 'auto',
+                        height: '100%',
+                        borderLeft: 'none'
+                    }}
                     resizerStyle={{ cursor: 'col-resize', background: '#ccc', width: '5px' }}
-                    style={{ height: 'auto', position: 'relative' }}
+                    // On passe ici une hauteur de 100% pour que le SplitPane prenne tout l'espace disponible
+                    style={{ height: '100%', position: 'relative' }}
                 >
                     <div>
-                        {/* Passez la fonction displayUE_By_ID de CourseInformation comme prop */}
                         <Tree onSelectCourse={(course) => this.courseInfoRef.current?.displayUE_By_ID(course.id)} />
                     </div>
-                    <div className="col-start-4 col-span-7">
+                    <div>
                         <CourseInformation ref={this.courseInfoRef} />
                     </div>
                 </SplitPane>

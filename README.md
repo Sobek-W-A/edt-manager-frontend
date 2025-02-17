@@ -7,7 +7,7 @@ A Web Application designed to provide convenient tools to manage classes.
 The following tools are required :
 
 - NodeJS 20.04 or higher.
-- npm
+- npmgit
 
 To run the program, simply run the build script.
 
