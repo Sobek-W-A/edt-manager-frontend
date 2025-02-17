@@ -22,7 +22,7 @@ function AddRoleCard({ user, rolesList, openRoleMenu, setOpenRoleMenu, addRoleTo
   const [, setShowNotification] = useState<boolean>(false);
 
   const ROLE_DEFAULT = { name: "Non assigné", description: "Rôle par défaut." } as RoleType;
-  const ACADEMIC_YEAR = "2024"; // ATTENTION -> A MODIFIER
+  const ACADEMIC_YEAR = window.sessionStorage.getItem("academic_year"); // ATTENTION -> A MODIFIER
 
   useEffect(() => {
     const fetchData = async () => {
