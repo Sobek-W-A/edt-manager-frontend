@@ -16,13 +16,8 @@ export default class ProfileAPI {
      * This method builds and sends the request to get all the profiles
      * @returns Promise<APIResponse<Profile[]>> A promise that resolves to the APIResponse containing the Profile array.
      */
-    static getAllProfiles(academic_year: string, page?: number, limit?: number, order?: string): Promise<APIResponse<Profile[]>> {
-        const params = new URLSearchParams();
-        if (page !== undefined) params.append('page', page.toString());
-        if (limit !== undefined) params.append('limit', limit.toString());
-        if (order !== undefined) params.append('order', order);
-        
-        return api.requestLogged<Profile[]>(
+    static getAllProfiles(): Promise<APIResponse<Profile[]>> {
+        return api.requestLoggedWithAcademicYear<Profile[]>(
             HTTPMethod.GET,
             `${ProfileAPI.PROFILE_URL}/notlinked/${academic_year}?${params.toString()}`,
             undefined,

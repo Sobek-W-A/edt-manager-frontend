@@ -41,7 +41,7 @@ function AddRole() {
     const [filterAccount, setFilterAccount] = useState<string>("id");
     const [filterProfile, setFilterProfile] = useState<string>("id");
 
-    const ACADEMIC_YEAR = "2024"; // ATTENTION -> A MODIFIER
+    const ACADEMIC_YEAR = window.sessionStorage.getItem("academic_year") //2024
 
 
     // Utilisation de useEffect pour récupérer les comptes, les profils et les rôles
@@ -79,7 +79,7 @@ function AddRole() {
         };
 
         fetchData().then();
-    }, [nbOfItemsPerPage, numberOfProfiles]);
+    }, [ACADEMIC_YEAR, nbOfItemsPerPage, numberOfProfiles]);
 
     // Fonction pour récuperer les comptes et profils
     const fetchAccountsAndProfiles = async () => {
