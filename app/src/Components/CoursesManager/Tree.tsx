@@ -68,6 +68,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
     // Fonction appelée lors du clic sur le bouton pour ouvrir/fermer un noeud
     const toggleNode = async (node: TreeNode) => {
         console.log(node);
+        console.log("ICI")
         const nodeId = node.id.toString();
 
         if (node.type === "node") {
@@ -227,6 +228,8 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
             } else if (action === "Supprimer") {
                 // Recherche du noeud à supprimer
                 const nodeToDelete = findNode(dataState, contextMenu.nodeId);
+                console.log(nodeToDelete)
+                console.log("LALALALAL")
                 if (!nodeToDelete) {
                     console.error("Noeud non trouvé pour la suppression.");
                     closeContextMenu();

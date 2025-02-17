@@ -14,7 +14,7 @@ export default class NodeAPI {
     static async getNodeById(nodeId: number): Promise<APIResponse<APINode>> {
         const response = await api.requestLogged<APINode>(
             HTTPMethod.GET,
-            `${NodeAPI.NODE_PATH}/id/${nodeId}`,
+            `${NodeAPI.NODE_PATH}/${nodeId}`,
             undefined,
             undefined
         );
@@ -28,9 +28,9 @@ export default class NodeAPI {
      * @returns Une promesse contenant le noeud racine ou une erreur
      */
     static async getRootNode(academicYear: number): Promise<APIResponse<APINode>> {
-        return api.requestLogged<APINode>(
+        return api.requestLoggedWithAcademicYear<APINode>(
             HTTPMethod.GET,
-            `${NodeAPI.NODE_PATH}/root/${academicYear}`,
+            `${NodeAPI.NODE_PATH}/root`,
             undefined,
             undefined
         );
@@ -72,9 +72,9 @@ export default class NodeAPI {
      * @returns Une promesse contenant le nœud créé ou une erreur
      */
     static async createNode(academicYear: number, node: NodeInUpdate): Promise<APIResponse<APINode>> {
-        return api.requestLogged<APINode>(
+        return api.requestLoggedWithAcademicYear<APINode>(
             HTTPMethod.POST,
-            `${NodeAPI.NODE_PATH}/${academicYear}`,
+            `${NodeAPI.NODE_PATH}`,
             JSON.stringify(node),
             undefined
         );
@@ -88,9 +88,9 @@ export default class NodeAPI {
      * @returns Une promesse contenant une confirmation ou une erreur
      */
     static async updateNode(academicYear: number, nodeId: number, node: NodeInUpdate): Promise<APIResponse<undefined>> {
-        return api.requestLogged<undefined>(
+        return api.requestLoggedWithAcademicYear<undefined>(
             HTTPMethod.PATCH,
-            `${NodeAPI.NODE_PATH}/${academicYear}/${nodeId}`,
+            `${NodeAPI.NODE_PATH}/${nodeId}`,
             JSON.stringify(node),
             undefined
         );
@@ -103,9 +103,9 @@ export default class NodeAPI {
      * @returns Une promesse contenant une confirmation ou une erreur
      */
     static async deleteNode(academicYear: number, nodeId: number): Promise<APIResponse<undefined>> {
-        return api.requestLogged<undefined>(
+        return api.requestLoggedWithAcademicYear<undefined>(
             HTTPMethod.DELETE,
-            `${NodeAPI.NODE_PATH}/${academicYear}/${nodeId}`,
+            `${NodeAPI.NODE_PATH}/${nodeId}`,
             undefined,
             undefined
         );
