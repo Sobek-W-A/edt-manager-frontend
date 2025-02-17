@@ -9,7 +9,6 @@ function AlreadyAffectedList(props: { course_id: number; }) {
     useEffect(() => {
         const fetchAffectationsParCours = async () => {
             const response = await AffectationAPI.getAffectationsByCourseId(props.course_id);
-            //console.log(response.responseObject());
             setaffectationsResponse(response.responseObject())
         }
 
