@@ -54,9 +54,22 @@ export default class AffectationAPI {
   static getTeacherAffectations(profile_id: number): Promise<APIResponse<AffectationType[]>> {
     return api.requestLogged<AffectationType[]>(
       HTTPMethod.GET,
-      `${AffectationAPI.PROFILE_PATH}/${profile_id}`,
+      `${AffectationAPI.AFFECTATION_URL}/${profile_id}`,
       undefined,
       undefined
+    );
+  }
+
+  /**
+   * Fetch teacher affectations.
+   */
+  static getAffectationsByCourseId(course_id: number): Promise<APIResponse<AffectationType[]>> {
+    console.log(`${AffectationAPI.AFFECTATION_URL}/course/${course_id}`)
+    return api.requestLogged<AffectationType[]>(
+        HTTPMethod.GET,
+        `${AffectationAPI.AFFECTATION_URL}/course/${course_id}`,
+        undefined,
+        undefined
     );
   }
 
