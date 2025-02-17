@@ -17,7 +17,7 @@ export default class ProfileAPI {
      * @returns Promise<APIResponse<Profile[]>> A promise that resolves to the APIResponse containing the Profile array.
      */
     static getAllProfiles(): Promise<APIResponse<Profile[]>> {
-        return api.requestLogged<Profile[]>(
+        return api.requestLoggedWithAcademicYear<Profile[]>(
             HTTPMethod.GET,
             `${ProfileAPI.PROFILE_URL}/`,
             undefined,

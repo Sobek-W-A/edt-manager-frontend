@@ -12,8 +12,8 @@ function Navbar() {
         setIsLoggedIn(AuthModel.isLoggedIn());
     }, []);
 
-    const ACADEMIC_YEAR = [2023, 2024, 2025];
-    const [academicYear, setAcademicYear] = useState<number>(ACADEMIC_YEAR[2]);
+    const ACADEMIC_YEAR = [2023, 2024, 2025, 2026];
+    const [academicYear, setAcademicYear] = useState<number>(ACADEMIC_YEAR[3]);
 
     useEffect(() => {
         const date = new Date();
