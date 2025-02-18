@@ -1,4 +1,4 @@
-import { useState, useImperativeHandle, forwardRef } from 'react';
+import {useState, useImperativeHandle, forwardRef, useEffect} from 'react';
 import CollapsibleButton from './CollapsibleButton';
 import SearchAndChose from "./SearchAndChose";
 import UEModel from "../../scripts/Models/UEModel.ts";
@@ -36,7 +36,7 @@ const CourseInformation = forwardRef((_props, ref) => {
             };
             fetchUEData();
         }
-    }));
+    }), []);
 
     const handleCourseChange = (index: number, field: "group_count" | "duration", newValue: string) => {
         const updatedCourses = [...courses];
@@ -81,6 +81,12 @@ const CourseInformation = forwardRef((_props, ref) => {
     // Handler pour activer/désactiver le mode édition
     const toggleEditMode = () => {
         setIsEditing(!isEditing); // bascule entre les modes
+    };
+
+    const [refreshKey, setRefreshKey] = useState(0); // Clé pour forcer le refresh
+
+    const handleRefresh = () => {
+        setRefreshKey((prevKey) => prevKey + 1); // Change la clé pour rerender
     };
 
     // Filtrer les cours pour ne pas afficher ceux où duration ou group_count sont égaux à 0
@@ -178,7 +184,7 @@ const CourseInformation = forwardRef((_props, ref) => {
                                     <SearchAndChose id_cours={course.id} groupCount={course.group_count} />
                                 </CollapsibleButton>
 
-                                <AlreadyAffectedList course_id={course.id} />
+                                <AlreadyAffectedList course_id={course.id} refresh = {handleRefresh}/>
                             </div>
                         ))}
                     </div>
