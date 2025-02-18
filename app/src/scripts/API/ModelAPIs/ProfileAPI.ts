@@ -98,7 +98,7 @@ export default class ProfileAPI {
         if (limit !== undefined) params.append('limit', limit.toString());
         if (order !== undefined) params.append('order', order);
 
-        return api.requestLogged<Profile[]>(
+        return api.requestLoggedWithAcademicYear<Profile[]>(
             HTTPMethod.GET,
             `${ProfileAPI.PROFILE_URL}/search/${keywords}/?${params.toString()}`,
             undefined,

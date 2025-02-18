@@ -91,7 +91,7 @@ function AddRole() {
         };
 
         fetchData().then();
-    }, [ACADEMIC_YEAR]);
+    }, [ACADEMIC_YEAR, searchTerm, nbOfItemsPerPage]);
 
     // Utilisation de useEffect pour récupérer les rôles de chaque utilisateur
     useEffect(() => {
@@ -129,7 +129,7 @@ function AddRole() {
     // Calculer le nombre de pages
     useEffect(() => {
         setNbOfPage(Math.ceil((numberOfAccounts + numberOfProfiles) / nbOfItemsPerPage));
-    }, [numberOfAccounts, numberOfProfiles]);
+    }, [numberOfAccounts, numberOfProfiles, nbOfItemsPerPage]);
 
     // Utilisation de useEffect pour récupérer les comptes et profils lors du changement de page
     useEffect(() => {
@@ -167,12 +167,12 @@ function AddRole() {
         }
 
         // Récupérer la liste des rôles
-        const profilesResponse = await ProfileAPI.getAllProfiles(currentPage, nbOfItemsPerPage/2, filterProfile);
+        const profilesResponse = await ProfileAPI.getAllProfiles(currentPage, nbOfItemsPerPage / 2, filterProfile);
         if (profilesResponse.isError()) {
             setNotification({ message: `Erreur dans la récuperation des profiles : ${profilesResponse.errorMessage()}.`, type: 'alert-error' });
             setShowNotification(true);
         } else {
-            const filteredProfiles = profilesResponse.responseObject().filter((profile: Profile) => profile.account_id === null);
+            const filteredProfiles = profilesResponse.responseObject();
             setProfiles(filteredProfiles);
             seFilteredProfiles(filteredProfiles);
         }
