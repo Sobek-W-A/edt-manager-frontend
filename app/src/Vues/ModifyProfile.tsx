@@ -70,13 +70,6 @@ const ModifyProfile = () => {
 
     const handleSignUp = async () => {
 
-        /**const userData : ProfileModel = {
-            lastname : nom,
-            firstname : prenom,
-            mail : email,
-            account_id : id_account
-        };**/
-
         //TODO REMETTRE LE MAIL DANS LE BODY
 
         const userData: ProfileInUpdate = {

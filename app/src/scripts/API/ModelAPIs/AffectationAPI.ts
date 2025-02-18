@@ -64,7 +64,6 @@ export default class AffectationAPI {
    * Fetch teacher affectations.
    */
   static getAffectationsByCourseId(course_id: number): Promise<APIResponse<AffectationType[]>> {
-    console.log(`${AffectationAPI.AFFECTATION_URL}/course/${course_id}`)
     return api.requestLogged<AffectationType[]>(
         HTTPMethod.GET,
         `${AffectationAPI.AFFECTATION_URL}/course/${course_id}`,
@@ -86,6 +85,18 @@ export default class AffectationAPI {
   }
 
   /**
+   * delete affectation
+   */
+  static deleteAffectationById(affectation_id: number): Promise<APIResponse<AffectationType[]>> {
+    return api.requestLogged<AffectationType[]>(
+        HTTPMethod.DELETE,
+        `${AffectationAPI.AFFECTATION_URL}/unassign/${affectation_id}`,
+        undefined,
+        undefined
+    );
+  }
+
+  /**
    * Fetch course details by course ID.
    */
   static getCourseById(course_id: number): Promise<APIResponse<{ course_type: { name: string } }>> {
@@ -94,6 +105,22 @@ export default class AffectationAPI {
       `/course/${course_id}`,
       undefined,
       undefined
+    );
+  }
+
+  static async updateAffectationById(body: {
+    affectation_id: number;
+    profile_id: number;
+    course_id: number;
+    hours: number;
+    notes: string;
+    group: number
+  }) {
+    return api.requestLogged<undefined>(
+        HTTPMethod.PATCH,
+        `${AffectationAPI.AFFECTATION_URL}/${body.affectation_id}`,
+        JSON.stringify(body),
+        undefined
     );
   }
 }

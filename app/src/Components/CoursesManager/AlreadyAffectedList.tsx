@@ -2,9 +2,12 @@ import {useEffect, useState} from 'react';
 import AffectationAPI, {AffectationType} from "../../scripts/API/ModelAPIs/AffectationAPI.ts";
 import TuileAffectation from "./TuileAffectation.tsx";
 
-function AlreadyAffectedList(props: { course_id: number; }) {
+
+function AlreadyAffectedList(props: { course_id: number, refresh: () => never }) {
 
     const [affectationsResponse, setaffectationsResponse] = useState<(AffectationType)[]>();
+
+
 
     useEffect(() => {
         const fetchAffectationsParCours = async () => {
@@ -14,13 +17,18 @@ function AlreadyAffectedList(props: { course_id: number; }) {
 
         fetchAffectationsParCours()
 
-        console.log(affectationsResponse)
-    }, []);
+    });
 
     return (
-        <div>{affectationsResponse?.map((affectation : AffectationType) =>
-            <TuileAffectation data = {affectation}></TuileAffectation>
-        )}</div>
+        <div>
+            {affectationsResponse?.map((affectation: AffectationType) => (
+                <TuileAffectation
+                    key={affectation.id}  // Ajout de la clé unique ici
+                    data={affectation}
+                    onRefresh={props.refresh}
+                />
+            ))}
+        </div>
     );
 }
 
