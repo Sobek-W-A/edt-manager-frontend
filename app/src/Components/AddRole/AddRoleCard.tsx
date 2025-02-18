@@ -22,12 +22,11 @@ function AddRoleCard({ user, rolesList, openRoleMenu, setOpenRoleMenu, addRoleTo
   const [, setShowNotification] = useState<boolean>(false);
 
   const ROLE_DEFAULT = { name: "Non assigné", description: "Rôle par défaut." } as RoleType;
-  const ACADEMIC_YEAR = window.sessionStorage.getItem("academic_year");
 
   useEffect(() => {
     const fetchData = async () => {
       if ('profile' in user && user.profile) {
-        const userRolesResponse = await RoleAPI.getUserRoles(user.id, ACADEMIC_YEAR);
+        const userRolesResponse = await RoleAPI.getUserRoles(user.id);
         if (userRolesResponse.isError()) {
           setNotification({ message: `Une erreur est survenue : ${userRolesResponse.errorMessage()}.`, type: 'alert-error' });
           setShowNotification(true);
@@ -39,7 +38,7 @@ function AddRoleCard({ user, rolesList, openRoleMenu, setOpenRoleMenu, addRoleTo
     };
 
     fetchData().then();
-  }, [user, rolesList]);
+  }, []);
 
   const handleAddRole = (user: Account, role: RoleType) => {
     addRoleToUser(user, role);

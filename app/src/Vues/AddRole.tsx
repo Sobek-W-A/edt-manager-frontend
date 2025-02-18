@@ -41,10 +41,30 @@ function AddRole() {
     const [filterAccount, setFilterAccount] = useState<string>("id");
     const [filterProfile, setFilterProfile] = useState<string>("id");
 
-    const ACADEMIC_YEAR = window.sessionStorage.getItem("academic_year") //2024
+    const [ACADEMIC_YEAR, setACADEMIC_YEAR] = useState<string>(window.sessionStorage.getItem("academic_year") || '2024') //2024
+
+    // Utilisation de useEffect pour récupérer l'année académique lorsqu'elle change dans le session storage
+    useEffect(() => {
+        const handleSessionStorageChange = () => {
+            const academicYear = window.sessionStorage.getItem("academic_year");
+            if (academicYear) {
+                setACADEMIC_YEAR(academicYear);
+            }
+        };
+
+        const originalSetItem = sessionStorage.setItem;
+        sessionStorage.setItem = function (key, value) {
+            originalSetItem.apply(this, arguments);
+            handleSessionStorageChange();
+        };
+
+        return () => {
+            sessionStorage.setItem = originalSetItem;
+        };
+    }, []);
 
 
-    // Utilisation de useEffect pour récupérer les comptes, les profils et les rôles
+    // Utilisation de useEffect pour récupérer le nombre de comptes, de profils et les rôles
     useEffect(() => {
         const fetchData = async () => {
             // Si la barre de recherche est vide
@@ -59,7 +79,7 @@ function AddRole() {
                 }
 
                 // Récupere le nombre de profils
-                const profileNumber = await ProfileAPI.getNumberOfProfiles(ACADEMIC_YEAR);
+                const profileNumber = await ProfileAPI.getNumberOfProfiles();
                 if (profileNumber.isError()) {
                     setNotification({ message: `Une erreur est survenue : ${profileNumber.errorMessage()}.`, type: 'alert-error' });
                     setShowNotification(true);
@@ -79,38 +99,14 @@ function AddRole() {
         };
 
         fetchData().then();
-    }, [ACADEMIC_YEAR, nbOfItemsPerPage, numberOfProfiles]);
-
-    // Fonction pour récuperer les comptes et profils
-    const fetchAccountsAndProfiles = async () => {
-        // Récupérer les comptes liés à des profils
-        const accountResponse = await AccountAPI.getAllAccounts(currentPage, nbOfItemsPerPage / 2, filterAccount);
-        if (accountResponse.isError()) {
-            setNotification({ message: `Une erreur est survenue : ${accountResponse.errorMessage()}.`, type: 'alert-error' });
-            setShowNotification(true);
-        } else {
-            setAccountsAndProfils(accountResponse.responseObject().filter((account: Account) => account.profile !== null));
-            setFilteredAccountsAndProfiles(accountResponse.responseObject().filter((account: Account) => account.profile !== null));
-        }
-
-        // Récupérer la liste des rôles
-        const profilesResponse = await ProfileAPI.getAllProfiles(ACADEMIC_YEAR, currentPage, nbOfItemsPerPage/2, filterProfile);
-        if (profilesResponse.isError()) {
-            setNotification({ message: `Une erreur est survenue : ${profilesResponse.errorMessage()}.`, type: 'alert-error' });
-            setShowNotification(true);
-        } else {
-            const filteredProfiles = profilesResponse.responseObject().filter((profile: Profile) => profile.account_id === null);
-            setProfiles(filteredProfiles);
-            seFilteredProfiles(filteredProfiles);
-        }
-    };
+    }, [ACADEMIC_YEAR]);
 
     // Utilisation de useEffect pour récupérer les rôles de chaque utilisateur
     useEffect(() => {
         const fetchUserRoles = async () => {
             const updatedUserRoles = [];
             for (let i = 0; i < accountsAndProfils.length; i++) {
-                const userRolesResponse = await RoleAPI.getUserRoles(accountsAndProfils[i].id, ACADEMIC_YEAR);
+                const userRolesResponse = await RoleAPI.getUserRoles(accountsAndProfils[i].id);
                 if (userRolesResponse.isError()) {
                     setNotification({ message: `Une erreur est survenue : ${userRolesResponse.errorMessage()}.`, type: 'alert-error' });
                     setShowNotification(true);
@@ -137,6 +133,58 @@ function AddRole() {
             return () => clearTimeout(timer);
         }
     }, [showNotification]);
+
+    // Calculer le nombre de pages
+    useEffect(() => {
+        setNbOfPage(Math.ceil((numberOfAccounts + numberOfProfiles) / nbOfItemsPerPage));
+    }, [numberOfAccounts, numberOfProfiles]);
+
+    // Utilisation de useEffect pour récupérer les comptes et profils lors du changement de page
+    useEffect(() => {
+        fetchAccountsAndProfiles();
+    }, [currentPage]);
+
+    // Utilisation de useEffect pour récupérer les comptes et profils lors du changement de filtre
+    useEffect(() => {
+        if (searchTerm === '') {
+            fetchAccountsAndProfiles();
+        } else {
+            handleSearchChange({ target: { value: searchTerm } } as React.ChangeEvent<HTMLInputElement>);
+        }
+    }, [filterAccount, filterProfile]);
+
+    // Utilisation de useEffect pour récupérer les comptes et profils lors du changement de nombre d'élements par page
+    useEffect(() => {
+        if (searchTerm === '') {
+            fetchAccountsAndProfiles();
+        } else {
+            handleSearchChange({ target: { value: searchTerm } } as React.ChangeEvent<HTMLInputElement>);
+        }
+    }, [ACADEMIC_YEAR, nbOfItemsPerPage]);
+
+    // Fonction pour récuperer les comptes et profils
+    const fetchAccountsAndProfiles = async () => {
+        // Récupérer les comptes liés à des profils
+        const accountResponse = await AccountAPI.getAllAccounts(currentPage, nbOfItemsPerPage / 2, filterAccount);
+        if (accountResponse.isError()) {
+            setNotification({ message: `Une erreur est survenue : ${accountResponse.errorMessage()}.`, type: 'alert-error' });
+            setShowNotification(true);
+        } else {
+            setAccountsAndProfils(accountResponse.responseObject().filter((account: Account) => account.profile !== null));
+            setFilteredAccountsAndProfiles(accountResponse.responseObject().filter((account: Account) => account.profile !== null));
+        }
+
+        // Récupérer la liste des rôles
+        const profilesResponse = await ProfileAPI.getAllProfiles(currentPage, nbOfItemsPerPage/2, filterProfile);
+        if (profilesResponse.isError()) {
+            setNotification({ message: `Une erreur est survenue : ${profilesResponse.errorMessage()}.`, type: 'alert-error' });
+            setShowNotification(true);
+        } else {
+            const filteredProfiles = profilesResponse.responseObject().filter((profile: Profile) => profile.account_id === null);
+            setProfiles(filteredProfiles);
+            seFilteredProfiles(filteredProfiles);
+        }
+    };
 
     // Gestion de la recherche
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -201,7 +249,7 @@ function AddRole() {
             userTmp.id === user.id
                 ? {
                     ...userTmp,
-                    role: (RoleAPI.modifyUserRole(user.id, selectedRole, ACADEMIC_YEAR).then((response: APIResponse<RoleType>) => {
+                    role: (RoleAPI.modifyUserRole(user.id, selectedRole, ACADEMIC_YEAR || '').then((response: APIResponse<RoleType>) => {
                         if (response.isError()) {
                             setNotification({ message: `Une erreur est survenue : ${response.errorMessage()}.`, type: 'alert-error' });
                             setShowNotification(true);
@@ -229,7 +277,7 @@ function AddRole() {
                 userTmp.id === user.id
                     ? {
                         ...userTmp,
-                        roles : (RoleAPI.removeUserRole(user.id, ACADEMIC_YEAR).then((response: APIResponse<undefined>) => {
+                        roles : (RoleAPI.removeUserRole(user.id, ACADEMIC_YEAR || '').then((response: APIResponse<undefined>) => {
                             if (response.isError()) {
                                 setNotification({ message: `Une erreur est survenue : ${response.errorMessage()}.`, type: 'alert-error' });
                                 setShowNotification(true);
@@ -248,16 +296,6 @@ function AddRole() {
         setNotification({ message: `Rôle "${roleToRemove.name}" retiré à ${user.profile ? user.profile.firstname : ""} ${user.profile ? user.profile.lastname : user.login}.`, type: 'alert-success' });
         setShowNotification(true);
     };
-
-    // Calculer le nombre de pages
-    useEffect(() => {
-        setNbOfPage(Math.ceil((numberOfAccounts + numberOfProfiles) / nbOfItemsPerPage));
-    }, [numberOfAccounts, numberOfProfiles, nbOfItemsPerPage]);
-
-    // Utilisation de useEffect pour récupérer les comptes et profils lors du changement de page
-    useEffect(() => {
-        fetchAccountsAndProfiles();
-    }, [currentPage]);
 
     // Filtrer les comptes et profils par tags
     const filteredAccountsAndProfilesByTags = selectedTag.name !== undefined
@@ -299,24 +337,6 @@ function AddRole() {
                 setFilterProfile(order + 'id');
         }
     }
-
-    // Utilisation de useEffect pour récupérer les comptes et profils lors du changement de filtre
-    useEffect(() => {
-        if (searchTerm === '') {
-            fetchAccountsAndProfiles();
-        } else {
-            handleSearchChange({ target: { value: searchTerm } } as React.ChangeEvent<HTMLInputElement>);
-        }
-    }, [filterAccount, filterProfile]);
-
-    // Utilisation de useEffect pour récupérer les comptes et profils lors du changement de nombre d'élements par page
-    useEffect(() => {
-        if (searchTerm === '') {
-            fetchAccountsAndProfiles();
-        } else {
-            handleSearchChange({ target: { value: searchTerm } } as React.ChangeEvent<HTMLInputElement>);
-        }
-    }, [nbOfItemsPerPage]);
 
         return (
             <div className="flex justify-center mt-6">

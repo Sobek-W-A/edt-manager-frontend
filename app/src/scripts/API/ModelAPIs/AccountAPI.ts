@@ -31,7 +31,7 @@ export default class AccountAPI {
     /**
      * This method builds and sends the request to get all the accounts.
      */
-    static getAllAccountsNotLinkedToProfile(academic_year : number): Promise<APIResponse<Account[]>> {
+    static getAllAccountsNotLinkedToProfile(): Promise<APIResponse<Account[]>> {
         return api.requestLoggedWithAcademicYear<Account[]>(
             HTTPMethod.GET,
             `${AccountAPI.ACCOUNTS_PATH}/notlinkedtoprofile`,
