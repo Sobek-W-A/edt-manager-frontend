@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
 import AuthModel from '../../scripts/Models/AuthModel';
-import {ChangeEvent, useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 import Storage from '../../scripts/API/Storage.ts'
 
 function Navbar() {
@@ -12,8 +12,8 @@ function Navbar() {
         setIsLoggedIn(AuthModel.isLoggedIn());
     }, []);
 
-    const ACADEMIC_YEAR = [2023, 2024, 2025, 2026];
-    const [academicYear, setAcademicYear] = useState<number>(ACADEMIC_YEAR[3]);
+    const ACADEMIC_YEAR = [2023, 2024, 2025];
+    const [academicYear, setAcademicYear] = useState<number>(ACADEMIC_YEAR[1]);
 
     useEffect(() => {
         const date = new Date();
