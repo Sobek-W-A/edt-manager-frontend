@@ -34,7 +34,7 @@ function AddRole() {
     const [numberOfAccounts, setNumberOfAccounts] = useState<number>(0);
     const [numberOfProfiles, setNumberOfProfiles] = useState<number>(0);
 
-    const [nbOfItemsPerPage, setNbOfItemsPerPage] = useState<number>(10);
+    const [nbOfItemsPerPage, setNbOfItemsPerPage] = useState<number>(12);
     const [nbOfPage, setNbOfPage] = useState<number>(1);
     const [currentPage, setCurrentPage] = useState<number>(1);
 
@@ -69,21 +69,13 @@ function AddRole() {
         const fetchData = async () => {
             // Si la barre de recherche est vide
             if (searchTerm === "") {
-                // Récupere le nombre de comptes
-                const accountNumber = await AccountAPI.getNumberOfAccounts();
-                if (accountNumber.isError()) {
-                    setNotification({ message: `Une erreur est survenue : ${accountNumber.errorMessage()}.`, type: 'alert-error' });
-                    setShowNotification(true);
-                } else {
-                    setNumberOfAccounts(accountNumber.responseObject().number_of_elements);
-                }
-
-                // Récupere le nombre de profils
+                // Récupere le nombre de profils seuls et de comptes liés à des profils
                 const profileNumber = await ProfileAPI.getNumberOfProfiles();
                 if (profileNumber.isError()) {
-                    setNotification({ message: `Une erreur est survenue : ${profileNumber.errorMessage()}.`, type: 'alert-error' });
+                    setNotification({ message: `Erreur dans le nombre de comptes et profils : ${profileNumber.errorMessage()}.`, type: 'alert-error' });
                     setShowNotification(true);
                 } else {
+                    setNumberOfAccounts(profileNumber.responseObject().number_of_profiles_with_account);
                     setNumberOfProfiles(profileNumber.responseObject().number_of_profiles_without_account);
                 }
             }
@@ -91,7 +83,7 @@ function AddRole() {
             // Récupérer la liste des rôles
             const rolesResponse = await RoleAPI.getAllRoles();
             if (rolesResponse.isError()) {
-                setNotification({ message: `Une erreur est survenue : ${rolesResponse.errorMessage()}.`, type: 'alert-error' });
+                setNotification({ message: `Erreur dans la récuperation des rôles : ${rolesResponse.errorMessage()}.`, type: 'alert-error' });
                 setShowNotification(true);
             } else {
                 setRolesList(rolesResponse.responseObject());
@@ -108,7 +100,7 @@ function AddRole() {
             for (let i = 0; i < accountsAndProfils.length; i++) {
                 const userRolesResponse = await RoleAPI.getUserRoles(accountsAndProfils[i].id);
                 if (userRolesResponse.isError()) {
-                    setNotification({ message: `Une erreur est survenue : ${userRolesResponse.errorMessage()}.`, type: 'alert-error' });
+                    setNotification({ message: `Erreur dans la récuperation des rôles : ${userRolesResponse.errorMessage()}.`, type: 'alert-error' });
                     setShowNotification(true);
                     updatedUserRoles.push({ user: accountsAndProfils[i], role: {} as RoleType });
                 } else {
@@ -153,7 +145,7 @@ function AddRole() {
         }
     }, [filterAccount, filterProfile]);
 
-    // Utilisation de useEffect pour récupérer les comptes et profils lors du changement de nombre d'élements par page
+    // Utilisation de useEffect pour récupérer les comptes et profils lors du changement de nombre d'élements par page ou d'année académique
     useEffect(() => {
         if (searchTerm === '') {
             fetchAccountsAndProfiles();
@@ -167,7 +159,7 @@ function AddRole() {
         // Récupérer les comptes liés à des profils
         const accountResponse = await AccountAPI.getAllAccounts(currentPage, nbOfItemsPerPage / 2, filterAccount);
         if (accountResponse.isError()) {
-            setNotification({ message: `Une erreur est survenue : ${accountResponse.errorMessage()}.`, type: 'alert-error' });
+            setNotification({ message: `Erreur dans la récuperation des comptes : ${accountResponse.errorMessage()}.`, type: 'alert-error' });
             setShowNotification(true);
         } else {
             setAccountsAndProfils(accountResponse.responseObject().filter((account: Account) => account.profile !== null));
@@ -177,7 +169,7 @@ function AddRole() {
         // Récupérer la liste des rôles
         const profilesResponse = await ProfileAPI.getAllProfiles(currentPage, nbOfItemsPerPage/2, filterProfile);
         if (profilesResponse.isError()) {
-            setNotification({ message: `Une erreur est survenue : ${profilesResponse.errorMessage()}.`, type: 'alert-error' });
+            setNotification({ message: `Erreur dans la récuperation des profiles : ${profilesResponse.errorMessage()}.`, type: 'alert-error' });
             setShowNotification(true);
         } else {
             const filteredProfiles = profilesResponse.responseObject().filter((profile: Profile) => profile.account_id === null);
@@ -200,7 +192,7 @@ function AddRole() {
         if (keywords !== "") {
             AccountAPI.searchAccountsByKeywords(keywords, currentPage, nbOfItemsPerPage / 2, filterAccount).then((accountsByKeywords) => {
                 if (accountsByKeywords.isError()) {
-                    setNotification({ message: `Une erreur est survenue : ${accountsByKeywords.errorMessage()}.`, type: 'alert-error' });
+                    setNotification({ message: `Erreur dans la récuperation des comptes : ${accountsByKeywords.errorMessage()}.`, type: 'alert-error' });
                     setShowNotification(true);
                 } else {
                     // On filtre les comptes ayant des profils et les comptes seuls
@@ -218,7 +210,7 @@ function AddRole() {
         if (keywords !== "") {
             ProfileAPI.searchProfilesByKeywords(keywords, currentPage, nbOfItemsPerPage / 2, filterProfile).then((profilesByKeywords) => {
                 if (profilesByKeywords.isError()) {
-                    setNotification({ message: `Une erreur est survenue : ${profilesByKeywords.errorMessage()}.`, type: 'alert-error' });
+                    setNotification({ message: `Erreur dans la récuperation des profiles : ${profilesByKeywords.errorMessage()}.`, type: 'alert-error' });
                     setShowNotification(true);
                 } else {
                     const profilesWithoutAccounts = profilesByKeywords.responseObject().filter((profile: Profile) => !accountsAndProfils.some(acc => acc.profile?.id === profile.id));
@@ -251,7 +243,7 @@ function AddRole() {
                     ...userTmp,
                     role: (RoleAPI.modifyUserRole(user.id, selectedRole, ACADEMIC_YEAR || '').then((response: APIResponse<RoleType>) => {
                         if (response.isError()) {
-                            setNotification({ message: `Une erreur est survenue : ${response.errorMessage()}.`, type: 'alert-error' });
+                            setNotification({ message: `Erreur lors de la modification d'un utilisateur : ${response.errorMessage()}.`, type: 'alert-error' });
                             setShowNotification(true);
                         } else {
                             setNotification({ message: `Rôle "${selectedRole.name}" ajouté à ${user.profile ? user.profile.firstname : ""} ${user.profile ? user.profile.lastname : user.login}.`, type: 'alert-success' });
@@ -279,7 +271,7 @@ function AddRole() {
                         ...userTmp,
                         roles : (RoleAPI.removeUserRole(user.id, ACADEMIC_YEAR || '').then((response: APIResponse<undefined>) => {
                             if (response.isError()) {
-                                setNotification({ message: `Une erreur est survenue : ${response.errorMessage()}.`, type: 'alert-error' });
+                                setNotification({ message: `Erreur lors de la suppresion d'un rôle: ${response.errorMessage()}.`, type: 'alert-error' });
                                 setShowNotification(true);
                             } else {
                                 setNotification({ message: `Rôle "${roleToRemove.name}" retiré à ${user.profile ? user.profile.firstname : ""} ${user.profile ? user.profile.lastname : user.login}.`, type: 'alert-success' });
@@ -538,9 +530,9 @@ function AddRole() {
                                         onChange={(e) => setNbOfItemsPerPage(Number(e.target.value))}
                                         className="py-1 px-2 border rounded"
                                     >
-                                        <option value={10}>10</option>
-                                        <option value={20}>20</option>
-                                        <option value={50}>50</option>
+                                        <option value={10}>12</option>
+                                        <option value={20}>24</option>
+                                        <option value={50}>48</option>
                                     </select>
                                 </div>
                                 <div>

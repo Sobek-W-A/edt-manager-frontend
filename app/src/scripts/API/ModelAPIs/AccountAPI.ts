@@ -20,9 +20,9 @@ export default class AccountAPI {
         if (limit !== undefined) params.append('limit', limit.toString());
         if (order !== undefined) params.append('order', order);
 
-        return api.requestLogged<Account[]>(
+        return api.requestLoggedWithAcademicYear<Account[]>(
             HTTPMethod.GET,
-            `${AccountAPI.ACCOUNTS_PATH}/?${params.toString()}`,
+            `${AccountAPI.ACCOUNTS_PATH}/linked?${params.toString()}`,
             undefined,
             undefined
         );
@@ -104,7 +104,7 @@ export default class AccountAPI {
         if (limit !== undefined) params.append('limit', limit.toString());
         if (order !== undefined) params.append('order', order);
 
-        return api.requestLogged<Account[]>(
+        return api.requestLoggedWithAcademicYear<Account[]>(
             HTTPMethod.GET,
             `${AccountAPI.ACCOUNTS_PATH}/search/${keywords}/?${params.toString()}`,
             undefined,

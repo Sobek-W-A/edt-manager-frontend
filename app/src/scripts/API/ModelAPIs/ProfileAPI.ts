@@ -110,8 +110,8 @@ export default class ProfileAPI {
      * This method returns the number of profiles in the database.
      * @returns Promise<APIResponse<number>> A promise that resolves to the APIResponse containing the number of profiles.
      */
-    static getNumberOfProfiles(): Promise<APIResponse<{number_of_profiles_without_account: number}>> {
-        return api.requestLoggedWithAcademicYear<{number_of_profiles_without_account: number}>(
+    static getNumberOfProfiles(): Promise<APIResponse<{number_of_profiles_with_account :number, number_of_profiles_without_account: number}>> {
+        return api.requestLoggedWithAcademicYear<{number_of_profiles_with_account: number, number_of_profiles_without_account: number}>(
             HTTPMethod.GET,
             `${ProfileAPI.PROFILE_URL}/nb`,
             undefined,
