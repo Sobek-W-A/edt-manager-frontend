@@ -19,14 +19,18 @@ type TreeProps = {
     onSelectCourse: (course: TreeNode) => void;
 };
 
+// Fonction utilitaire pour générer une clé unique en combinant le type et l'ID
+const getNodeKey = (node: TreeNode) => `${node.type}-${node.id}`;
+
 const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
+    // On stocke dans openNodes les clés composites (ex: "node-123" ou "ue-123")
     const [openNodes, setOpenNodes] = useState<Set<string>>(new Set());
     const [contextMenu, setContextMenu] = useState<{
         visible: boolean;
         x: number;
         y: number;
-        nodeId: string | null;
-    }>({ visible: false, x: 0, y: 0, nodeId: null });
+        nodeKey: string | null;
+    }>({ visible: false, x: 0, y: 0, nodeKey: null });
 
     const [dataState, setDataState] = useState<TreeNode | null>(null);
     const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
@@ -67,10 +71,10 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
 
     // Fonction appelée lors du clic sur le bouton pour ouvrir/fermer un noeud
     const toggleNode = async (node: TreeNode) => {
-        const nodeId = node.id.toString();
+        const nodeKey = getNodeKey(node);
 
         if (node.type === "node") {
-            if (!openNodes.has(nodeId)) {
+            if (!openNodes.has(nodeKey)) {
                 // Récupération du noeud depuis l'API (qui peut contenir des enfants sous forme d'identifiants ou d'objets)
                 const updatedNode = await loadNodeChildren(node.id, node.academic_year);
                 if (updatedNode) {
@@ -101,10 +105,10 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
 
         setOpenNodes((prev) => {
             const newSet = new Set(prev);
-            if (newSet.has(nodeId)) {
-                newSet.delete(nodeId);
+            if (newSet.has(nodeKey)) {
+                newSet.delete(nodeKey);
             } else {
-                newSet.add(nodeId);
+                newSet.add(nodeKey);
             }
             return newSet;
         });
@@ -115,7 +119,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         if (!dataState) return;
 
         const updateNode = (node: TreeNode): TreeNode => {
-            if (node.id === nodeId) {
+            if (node.id === nodeId && node.type === updatedNode.type) {
                 return updatedNode;
             }
             if (node.children) {
@@ -136,28 +140,57 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
     }, []);
 
     // Gestion du menu contextuel (affichage à la position du clic droit)
-    const handleContextMenu = (e: React.MouseEvent, nodeId: string) => {
+    const handleContextMenu = (e: React.MouseEvent, nodeKey: string) => {
         e.preventDefault();
         // On arrête la propagation pour éviter que le clic droit sur un enfant ne déclenche aussi le menu du parent.
         e.stopPropagation();
         const x = e.clientX;
         const y = e.clientY - 40;
-        setContextMenu({ visible: true, x: x, y: y, nodeId: nodeId });
+        setContextMenu({ visible: true, x: x, y: y, nodeKey: nodeKey });
     };
 
     const closeContextMenu = () => {
-        setContextMenu({ visible: false, x: 0, y: 0, nodeId: null });
+        setContextMenu({ visible: false, x: 0, y: 0, nodeKey: null });
+    };
+
+    // Recherche récursive d'un noeud par sa clé composite (type-id)
+    const findNode = (node: TreeNode, compositeKey: string): TreeNode | null => {
+        if (getNodeKey(node) === compositeKey) return node;
+        if (node.children) {
+            for (const child of node.children) {
+                const found = findNode(child, compositeKey);
+                if (found) return found;
+            }
+        }
+        return null;
+    };
+
+    // Recherche récursive du parent d'un noeud donné via sa clé composite
+    const findParentNode = (node: TreeNode, compositeKey: string): TreeNode | null => {
+        if (node.children) {
+            for (const child of node.children) {
+                if (getNodeKey(child) === compositeKey) return node;
+                const found = findParentNode(child, compositeKey);
+                if (found) return found;
+            }
+        }
+        return null;
     };
 
     // Gestion des actions du menu contextuel
     const handleAction = async (action: string) => {
-        if (contextMenu.nodeId && dataState) {
-            const nodeIdNumber = parseInt(contextMenu.nodeId);
+        if (contextMenu.nodeKey && dataState) {
+            const node = findNode(dataState, contextMenu.nodeKey);
+            if (!node) {
+                console.error("Noeud non trouvé pour l'action.");
+                closeContextMenu();
+                return;
+            }
             if (action === "Ajouter Dossier") {
                 try {
                     const newNodeData: NodeInUpdate = {
                         name: "Nouveau Dossier",
-                        parent_id: nodeIdNumber
+                        parent_id: node.id
                     };
 
                     const response = await NodeAPI.createNode(dataState.academic_year, newNodeData);
@@ -167,7 +200,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                     }
 
                     // Ajout optimiste du nouveau dossier dans l'arborescence
-                    const parent = findNode(dataState, contextMenu.nodeId);
+                    const parent = findNode(dataState, contextMenu.nodeKey);
                     if (parent) {
                         const newFolderId = response.responseObject()?.id || Date.now();
                         const newFolder: TreeNode = {
@@ -194,7 +227,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                     const newUEData: UEInCreation = {
                         academic_year: 2024,
                         name: "Nouvelle UE",
-                        parent_id: nodeIdNumber,
+                        parent_id: node.id,
                         courses: []
                     };
 
@@ -205,7 +238,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                     }
 
                     // Une fois l'UE ajoutée, recharger le noeud parent depuis le backend
-                    const updatedParent = await loadNodeChildren(nodeIdNumber, dataState.academic_year);
+                    const updatedParent = await loadNodeChildren(node.id, dataState.academic_year);
                     if (updatedParent) {
                         const childrenNodes = await Promise.all(
                             (updatedParent.child_nodes || []).map(async (child: number | APINode) => {
@@ -221,7 +254,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                                 }
                             })
                         );
-                        updateNodeInTree(nodeIdNumber, {
+                        updateNodeInTree(node.id, {
                             ...updatedParent,
                             children: childrenNodes.filter((child) => child !== null)
                         });
@@ -231,7 +264,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                 }
             } else if (action === "Supprimer") {
                 // Recherche du noeud à supprimer
-                const nodeToDelete = findNode(dataState, contextMenu.nodeId);
+                const nodeToDelete = findNode(dataState, contextMenu.nodeKey);
                 if (!nodeToDelete) {
                     console.error("Noeud non trouvé pour la suppression.");
                     closeContextMenu();
@@ -252,13 +285,13 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                         }
                     }
 
-                    if (dataState.id.toString() === contextMenu.nodeId) {
+                    if (getNodeKey(dataState) === contextMenu.nodeKey) {
                         setDataState(null);
                     } else {
-                        const parentNode = findParentNode(dataState, contextMenu.nodeId);
+                        const parentNode = findParentNode(dataState, contextMenu.nodeKey);
                         if (parentNode && parentNode.children) {
                             const index = parentNode.children.findIndex(
-                                (child) => child.id.toString() === contextMenu.nodeId
+                                (child) => getNodeKey(child) === contextMenu.nodeKey
                             );
                             if (index > -1) {
                                 parentNode.children.splice(index, 1);
@@ -270,43 +303,16 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                     console.error("Erreur lors de la suppression:", error);
                 }
             } else if (action === "Renommer") {
-                const node = findNode(dataState, contextMenu.nodeId);
-                if (node) {
-                    setEditingNodeId(contextMenu.nodeId);
-                    setNewNodeName(node.name);
-                }
+                setEditingNodeId(contextMenu.nodeKey);
+                setNewNodeName(node.name);
             }
             closeContextMenu();
         }
     };
 
-    // Recherche récursive d'un noeud par son ID
-    const findNode = (node: TreeNode, id: string): TreeNode | null => {
-        if (node.id.toString() === id) return node;
-        if (node.children) {
-            for (const child of node.children) {
-                const found = findNode(child, id);
-                if (found) return found;
-            }
-        }
-        return null;
-    };
-
-    // Recherche récursive du parent d'un noeud donné
-    const findParentNode = (node: TreeNode, id: string): TreeNode | null => {
-        if (node.children) {
-            for (const child of node.children) {
-                if (child.id.toString() === id) return node;
-                const found = findParentNode(child, id);
-                if (found) return found;
-            }
-        }
-        return null;
-    };
-
     // Passage en mode édition lors d'un double-clic
-    const handleDoubleClick = (id: string, name: string) => {
-        setEditingNodeId(id);
+    const handleDoubleClick = (nodeKey: string, name: string) => {
+        setEditingNodeId(nodeKey);
         setNewNodeName(name);
     };
 
@@ -316,9 +322,9 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
     };
 
     // Soumission du nouveau nom et envoi vers le backend
-    const handleNodeNameSubmit = async (id: string) => {
+    const handleNodeNameSubmit = async (nodeKey: string) => {
         if (!dataState) return;
-        const node = findNode(dataState, id);
+        const node = findNode(dataState, nodeKey);
         if (node) {
             const trimmedName = newNodeName.trim() === "" ? "default" : newNodeName.trim();
             try {
@@ -338,17 +344,18 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
 
     // Rendu d'un noeud (ou UE) et de ses éventuels enfants
     const renderNode = (node: TreeNode) => {
-        const isOpen = openNodes.has(node.id.toString());
+        const nodeKey = getNodeKey(node);
+        const isOpen = openNodes.has(nodeKey);
 
         return (
-            <div key={node.id} className="ml-4 relative">
+            <div key={nodeKey} className="ml-4 relative">
                 {isOpen && node.type === "node" && (
                     <div className="absolute left-[-5px] top-3 h-full w-[1px] bg-blue-300"></div>
                 )}
 
                 <div
                     className="flex items-center gap-2 cursor-pointer hover:text-gray-700"
-                    onContextMenu={(e) => handleContextMenu(e, node.id.toString())}
+                    onContextMenu={(e) => handleContextMenu(e, nodeKey)}
                 >
                     {node.type === "node" ? (
                         <button className="text-lg font-bold" onClick={() => toggleNode(node)}>
@@ -357,15 +364,15 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                     ) : (
                         <span className="w-6">📚</span> // Icône pour les UE
                     )}
-                    {editingNodeId === node.id.toString() ? (
+                    {editingNodeId === nodeKey ? (
                         <input
                             type="text"
                             value={newNodeName}
                             onChange={handleNodeNameChange}
-                            onBlur={() => handleNodeNameSubmit(node.id.toString())}
+                            onBlur={() => handleNodeNameSubmit(nodeKey)}
                             onKeyDown={(e) => {
                                 if (e.key === "Enter") {
-                                    handleNodeNameSubmit(node.id.toString());
+                                    handleNodeNameSubmit(nodeKey);
                                 }
                             }}
                             className="text-lg font-semibold whitespace-nowrap"
@@ -374,7 +381,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                     ) : (
                         <span
                             className={`text-lg font-semibold whitespace-nowrap ${node.type === "ue" ? "text-blue-600" : ""}`}
-                            onDoubleClick={() => handleDoubleClick(node.id.toString(), node.name)}
+                            onDoubleClick={() => handleDoubleClick(nodeKey, node.name)}
                             onClick={() => node.type === "ue" && onSelectCourse(node)}
                         >
               {node.name}
