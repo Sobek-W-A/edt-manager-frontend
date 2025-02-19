@@ -14,10 +14,15 @@ export default class AccountAPI {
     /**
      * This method builds and sends the request to get all the accounts.
      */
-    static getAllAccounts(): Promise<APIResponse<Account[]>> {
-        return api.requestLogged<Account[]>(
+    static getAllAccounts(page?: number, limit?: number, order?: string): Promise<APIResponse<Account[]>> {
+        const params = new URLSearchParams();
+        if (page !== undefined) params.append('page', page.toString());
+        if (limit !== undefined) params.append('limit', limit.toString());
+        if (order !== undefined) params.append('order', order);
+
+        return api.requestLoggedWithAcademicYear<Account[]>(
             HTTPMethod.GET,
-            `${AccountAPI.ACCOUNTS_PATH}/`,
+            `${AccountAPI.ACCOUNTS_PATH}/linked?${params.toString()}`,
             undefined,
             undefined
         );
@@ -26,7 +31,7 @@ export default class AccountAPI {
     /**
      * This method builds and sends the request to get all the accounts.
      */
-    static getAllAccountsNotLinkedToProfile(academic_year : number): Promise<APIResponse<Account[]>> {
+    static getAllAccountsNotLinkedToProfile(): Promise<APIResponse<Account[]>> {
         return api.requestLoggedWithAcademicYear<Account[]>(
             HTTPMethod.GET,
             `${AccountAPI.ACCOUNTS_PATH}/notlinked`,
@@ -93,10 +98,28 @@ export default class AccountAPI {
      * @param query The query to search for.
      * @returns A promise that resolves to an array of accounts or an error.
      */
-    static searchAccountsByKeywords(keywords: string): Promise<APIResponse<Account[]>> {
-        return api.requestLogged<Account[]>(
+    static searchAccountsByKeywords(keywords: string, page?: number, limit?: number, order?: string): Promise<APIResponse<Account[]>> {
+        const params = new URLSearchParams();
+        if (page !== undefined) params.append('page', page.toString());
+        if (limit !== undefined) params.append('limit', limit.toString());
+        if (order !== undefined) params.append('order', order);
+
+        return api.requestLoggedWithAcademicYear<Account[]>(
             HTTPMethod.GET,
-            `${AccountAPI.ACCOUNTS_PATH}/search/${keywords}`,
+            `${AccountAPI.ACCOUNTS_PATH}/search/${keywords}/?${params.toString()}`,
+            undefined,
+            undefined
+        );
+    }
+
+    /**
+     * This method returns the number of accounts
+     * @returns A promise that resolves to the number of accounts or an error.
+     */
+    static getNumberOfAccounts(): Promise<APIResponse<{ number_of_elements: number }>> {
+        return api.requestLogged<{ number_of_elements: number }>(
+            HTTPMethod.GET,
+            `${AccountAPI.ACCOUNTS_PATH}/nb/`,
             undefined,
             undefined
         );

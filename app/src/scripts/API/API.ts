@@ -151,7 +151,8 @@ class API {
 
     async requestLoggedWithAcademicYear<T>(method: HTTPMethod, url: string, body: BodyInit | undefined, content_type: ContentType = ContentType.JSON): Promise<APIResponse<T>> {
 
-        const urlWithAcademicYear = url.concat("?academic_year="+Storage.getAcademicYear());
+        const separator = url.includes('?') ? '&' : '?';
+        const urlWithAcademicYear = url.concat(`${separator}academic_year=${Storage.getAcademicYear()}`);
         return this.requestLogged(method, urlWithAcademicYear, body, content_type);
     }
 }
