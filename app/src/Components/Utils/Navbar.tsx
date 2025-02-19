@@ -59,6 +59,12 @@ function Navbar() {
                             </Link>
                         </div>
                         <div className="flex items-center">
+                            <Link to="/accountcreation"
+                                  className="text-sm hover:text-green-300 transition duration-200">
+                                Creer un utilisateur
+                            </Link>
+                        </div>
+                        <div className="flex items-center">
                             <div className="dropdown dropdown-hover">
                                 <div tabIndex={0}
                                      className="cursor-pointer text-sm bg-green-700 text-white focus:outline-none">
@@ -79,12 +85,6 @@ function Navbar() {
 
                 {!isLoggedIn && (
                     <>
-                        <div className="flex items-center">
-                            <Link to="/accountcreation"
-                                  className="text-sm hover:text-green-300 transition duration-200">
-                                Creer un utilisateur
-                            </Link>
-                        </div>
                         <div className="flex items-center">
                             <Link to="/login" className="text-sm hover:text-green-300 transition duration-200">
                                 LOGIN

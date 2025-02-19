@@ -25,8 +25,7 @@ function AddRole() {
     const [userRoles, setUserRoles] = useState<{ user: Account, role: RoleType }[]>([]);
     const [rolesList, setRolesList] = useState<RoleType[]>([]);
 
-    const ACADEMIC_YEAR = window.sessionStorage.getItem("academic_year") //2024
-
+    const ACADEMIC_YEAR = window.sessionStorage.getItem("academic_year")
 
     // Utilisation de useEffect pour récupérer les comptes, les profils et les rôles
     useEffect(() => {
