@@ -16,10 +16,15 @@ export default class ProfileAPI {
      * This method builds and sends the request to get all the profiles
      * @returns Promise<APIResponse<Profile[]>> A promise that resolves to the APIResponse containing the Profile array.
      */
-    static getAllProfiles(): Promise<APIResponse<Profile[]>> {
+    static getAllProfiles(page?: number, limit?: number, order?: string): Promise<APIResponse<Profile[]>> {
+        const params = new URLSearchParams();
+        if (page !== undefined) params.append('page', page.toString());
+        if (limit !== undefined) params.append('limit', limit.toString());
+        if (order !== undefined) params.append('order', order);
+
         return api.requestLoggedWithAcademicYear<Profile[]>(
             HTTPMethod.GET,
-            `${ProfileAPI.PROFILE_URL}/`,
+            `${ProfileAPI.PROFILE_URL}/notlinked?${params.toString()}`,
             undefined,
             undefined
         );
@@ -87,10 +92,28 @@ export default class ProfileAPI {
      * @param query The query to search for.
      * @returns A promise that resolves to an array of profiles or an error.
      */
-    static searchProfilesByKeywords(keywords: string): Promise<APIResponse<Profile[]>> {
-        return api.requestLogged<Profile[]>(
+    static searchProfilesByKeywords(keywords: string, page?: number, limit?: number, order?: string): Promise<APIResponse<Profile[]>> {
+        const params = new URLSearchParams();
+        if (page !== undefined) params.append('page', page.toString());
+        if (limit !== undefined) params.append('limit', limit.toString());
+        if (order !== undefined) params.append('order', order);
+
+        return api.requestLoggedWithAcademicYear<Profile[]>(
             HTTPMethod.GET,
-            `${ProfileAPI.PROFILE_URL}/search/${keywords}`,
+            `${ProfileAPI.PROFILE_URL}/search/${keywords}/?${params.toString()}`,
+            undefined,
+            undefined
+        );
+    }
+
+    /**
+     * This method returns the number of profiles in the database.
+     * @returns Promise<APIResponse<number>> A promise that resolves to the APIResponse containing the number of profiles.
+     */
+    static getNumberOfProfiles(): Promise<APIResponse<{number_of_profiles_with_account :number, number_of_profiles_without_account: number}>> {
+        return api.requestLoggedWithAcademicYear<{number_of_profiles_with_account: number, number_of_profiles_without_account: number}>(
+            HTTPMethod.GET,
+            `${ProfileAPI.PROFILE_URL}/nb`,
             undefined,
             undefined
         );
