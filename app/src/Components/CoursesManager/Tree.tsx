@@ -10,7 +10,6 @@ type TreeNode = {
     id: number;
     name: string;
     type: "node" | "ue";
-    // Pour le rendu, on ne se sert pas de child_nodes (issu de l’API) mais de children (arborescence enrichie)
     child_nodes: number[] | any[];
     children?: TreeNode[];
 };
@@ -19,20 +18,14 @@ type TreeProps = {
     onSelectCourse: (course: TreeNode) => void;
 };
 
-// Génère une clé unique pour un nœud en combinant son type et son id
 const getNodeKey = (node: TreeNode) => `${node.type}-${node.id}`;
 
-/**
- * Recharge un nœud et ses enfants si la clé du nœud figure dans openNodesSet.
- * La fonction se fait de façon récursive sur les enfants.
- */
 const refreshOpenNodes = async (
     node: TreeNode,
     openNodesSet: Set<string>,
     loadNodeChildren: (nodeId: number, academicYear: number) => Promise<any>
 ): Promise<TreeNode> => {
     let updatedNode = node;
-    // Si le nœud est de type "node" et qu'il est marqué comme ouvert, on recharge ses données (et donc ses enfants)
     if (node.type === "node" && openNodesSet.has(getNodeKey(node))) {
         const updatedData = await loadNodeChildren(node.id, node.academic_year);
         if (updatedData) {
@@ -56,7 +49,6 @@ const refreshOpenNodes = async (
             };
         }
     }
-    // Ensuite, si le nœud possède des enfants, on applique la fonction de façon récursive
     if (updatedNode.children) {
         const refreshedChildren = await Promise.all(
             updatedNode.children.map((child) =>
@@ -82,19 +74,30 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
 
     // Popup d'erreur
     const [errorPopup, setErrorPopup] = useState<string | null>(null);
+    // Popup pour la création d'une UE
+    const [showAddUEPopup, setShowAddUEPopup] = useState(false);
+    const [newUEName, setNewUEName] = useState("");
+    // Nouveaux états pour les paramètres de chaque cours (5 lignes : CM, TD, TP, EI, TPL)
+    const [newUECourses, setNewUECourses] = useState<
+        { duration: number; group_count: number }[]
+    >([
+        { duration: 1, group_count: 1 },
+        { duration: 1, group_count: 1 },
+        { duration: 1, group_count: 1 },
+        { duration: 1, group_count: 1 },
+        { duration: 1, group_count: 1 }
+    ]);
+    const [parentForNewUE, setParentForNewUE] = useState<TreeNode | null>(null);
 
-    // Année académique initialisée depuis le sessionStorage (ou "2024" par défaut)
     const [academicYear, setAcademicYear] = useState<string>(
         window.sessionStorage.getItem("academic_year") || "2024"
     );
 
-    // Fonction utilitaire pour afficher une erreur dans un popup
     const showError = (msg: string) => {
         setErrorPopup(msg);
         console.error(msg);
     };
 
-    // Efface le popup d'erreur après 3 secondes
     useEffect(() => {
         if (errorPopup) {
             const timer = setTimeout(() => setErrorPopup(null), 3000);
@@ -102,7 +105,6 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         }
     }, [errorPopup]);
 
-    // Recharge la racine depuis l'API et, si des nœuds étaient ouverts, on les rafraîchit via refreshOpenNodes
     const chargementDonneeBackend = async () => {
         try {
             const year = parseInt(academicYear, 10);
@@ -123,13 +125,10 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         }
     };
 
-    // Recharge la racine (ainsi que les nœuds ouverts) quand l'année académique change
     useEffect(() => {
         chargementDonneeBackend();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [academicYear]);
 
-    // Détection des modifications dans le sessionStorage provenant d'autres onglets
     useEffect(() => {
         const handleStorageChange = () => {
             const storedYear = window.sessionStorage.getItem("academic_year");
@@ -138,22 +137,15 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                 console.log("Storage event:", storedYear);
             }
         };
-
         window.addEventListener("storage", handleStorageChange);
-        return () => {
-            window.removeEventListener("storage", handleStorageChange);
-        };
+        return () => window.removeEventListener("storage", handleStorageChange);
     }, [academicYear]);
 
-    // Détection des modifications dans le même onglet en surchargeant sessionStorage.setItem
     useEffect(() => {
         const handleSessionStorageChange = () => {
             const storedYear = window.sessionStorage.getItem("academic_year");
-            setAcademicYear((prev) =>
-                storedYear && storedYear !== prev ? storedYear : prev
-            );
+            setAcademicYear((prev) => (storedYear && storedYear !== prev ? storedYear : prev));
         };
-
         const originalSetItem = sessionStorage.setItem;
         sessionStorage.setItem = function (key: string, value: string) {
             originalSetItem.apply(this, arguments);
@@ -161,13 +153,11 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                 handleSessionStorageChange();
             }
         };
-
         return () => {
             sessionStorage.setItem = originalSetItem;
         };
     }, []);
 
-    // Fonction pour charger les enfants d'un nœud par son ID
     const loadNodeChildren = async (nodeId: number, academicYear: number) => {
         try {
             const response = await NodeAPI.getNodeById(nodeId);
@@ -182,43 +172,32 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         }
     };
 
-    // Fonction appelée lors du clic pour basculer l'ouverture/fermeture d'un nœud
     const toggleNode = async (node: TreeNode) => {
         const nodeKey = getNodeKey(node);
         const newSet = new Set(openNodes);
         if (newSet.has(nodeKey)) {
-            // Fermeture : on retire uniquement la clé du nœud parent (les clés des enfants restent conservées)
             newSet.delete(nodeKey);
             setOpenNodes(newSet);
         } else {
-            // Ouverture : on ajoute la clé du nœud parent
             newSet.add(nodeKey);
             setOpenNodes(newSet);
-            // Puis on recharge le nœud en utilisant refreshOpenNodes pour que les enfants qui étaient ouverts soient également rafraîchis
             const refreshed = await refreshOpenNodes(node, newSet, loadNodeChildren);
             updateNodeInTree(node.id, refreshed);
         }
     };
 
-    // Mise à jour d'un nœud dans l'arborescence (de manière récursive)
     const updateNodeInTree = (nodeId: number, updatedNode: TreeNode) => {
         if (!dataState) return;
         const updateNode = (node: TreeNode): TreeNode => {
-            if (node.id === nodeId && node.type === updatedNode.type) {
-                return updatedNode;
-            }
+            if (node.id === nodeId && node.type === updatedNode.type) return updatedNode;
             if (node.children) {
-                return {
-                    ...node,
-                    children: node.children.map((child) => updateNode(child))
-                };
+                return { ...node, children: node.children.map((child) => updateNode(child)) };
             }
             return node;
         };
         setDataState(updateNode(dataState));
     };
 
-    // Gestion du menu contextuel
     const handleContextMenu = (e: React.MouseEvent, nodeKey: string) => {
         e.preventDefault();
         e.stopPropagation();
@@ -231,7 +210,6 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         setContextMenu({ visible: false, x: 0, y: 0, nodeKey: null });
     };
 
-    // Recherche récursive d'un nœud par sa clé composite
     const findNode = (node: TreeNode, compositeKey: string): TreeNode | null => {
         if (getNodeKey(node) === compositeKey) return node;
         if (node.children) {
@@ -243,7 +221,6 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         return null;
     };
 
-    // Recherche récursive du parent d'un nœud via sa clé composite
     const findParentNode = (node: TreeNode, compositeKey: string): TreeNode | null => {
         if (node.children) {
             for (const child of node.children) {
@@ -255,7 +232,6 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         return null;
     };
 
-    // Gestion des actions du menu contextuel
     const handleAction = async (action: string) => {
         if (contextMenu.nodeKey && dataState) {
             const node = findNode(dataState, contextMenu.nodeKey);
@@ -266,10 +242,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
             }
             if (action === "Ajouter Dossier") {
                 try {
-                    const newNodeData: NodeInUpdate = {
-                        name: "Nouveau Dossier",
-                        parent_id: node.id
-                    };
+                    const newNodeData: NodeInUpdate = { name: "Nouveau Dossier", parent_id: node.id };
                     const response = await NodeAPI.createNode(node.academic_year, newNodeData);
                     if (response.isError()) {
                         showError("Erreur lors de la création du dossier: " + response.errorMessage());
@@ -286,84 +259,27 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                             child_nodes: [],
                             children: []
                         };
-                        if (!parent.children) {
-                            parent.children = [];
-                        }
-                        parent.children.push(newFolder);
+                        parent.children = parent.children ? [...parent.children, newFolder] : [newFolder];
                         setDataState({ ...dataState });
                     }
                 } catch (error) {
                     showError("Erreur lors de la création du dossier: " + error);
                 }
             } else if (action === "Ajouter UE") {
-                try {
-                    const newUEData: UEInCreation = {
-                        academic_year: academicYear,
-                        name: "Nouvelle UE",
-                        parent_id: node.id,
-                        courses: [
-                            {
-                                academic_year: academicYear,
-                                duration: 1,
-                                group_count: 1,
-                                course_type_id: 1
-                            },
-                            {
-                                academic_year: academicYear,
-                                duration: 1,
-                                group_count: 1,
-                                course_type_id: 2
-                            },
-                            {
-                                academic_year: academicYear,
-                                duration: 1,
-                                group_count: 1,
-                                course_type_id: 3
-                            },
-                            {
-                                academic_year: academicYear,
-                                duration: 1,
-                                group_count: 1,
-                                course_type_id: 4
-                            },
-                            {
-                                academic_year: academicYear,
-                                duration: 1,
-                                group_count: 1,
-                                course_type_id: 5
-                            }
-                        ]
-                    };
-
-                    const ueResponse = await UEAPI.createUE(newUEData);
-                    if (ueResponse.isError()) {
-                        showError("Erreur lors de la création de l'UE: " + ueResponse.errorMessage());
-                        return;
-                    }
-                    const updatedParent = await loadNodeChildren(node.id, node.academic_year);
-                    if (updatedParent) {
-                        const childrenNodes = await Promise.all(
-                            (updatedParent.child_nodes || []).map(async (child: number | APINode) => {
-                                if (typeof child === "number") {
-                                    return await loadNodeChildren(child, updatedParent.academic_year);
-                                } else if (typeof child === "object" && child !== null) {
-                                    if ("courses" in child) {
-                                        return { ...child, type: "ue" };
-                                    }
-                                    return child;
-                                } else {
-                                    return null;
-                                }
-                            })
-                        );
-                        updateNodeInTree(node.id, {
-                            ...updatedParent,
-                            children: childrenNodes.filter((child) => child !== null)
-                        });
-                    }
-                } catch (error) {
-                    showError("Erreur lors de la création de l'UE: " + error);
-                }
+                // Ouvre le popup pour créer une UE
+                setParentForNewUE(node);
+                setNewUEName("");
+                // Réinitialise les valeurs pour chaque ligne de cours
+                setNewUECourses([
+                    { duration: 1, group_count: 1 },
+                    { duration: 1, group_count: 1 },
+                    { duration: 1, group_count: 1 },
+                    { duration: 1, group_count: 1 },
+                    { duration: 1, group_count: 1 }
+                ]);
+                setShowAddUEPopup(true);
+                closeContextMenu();
+                return;
             } else if (action === "Supprimer") {
                 const nodeToDelete = findNode(dataState, contextMenu.nodeKey);
                 if (!nodeToDelete) {
@@ -410,18 +326,58 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         }
     };
 
-    // Passage en mode édition lors d'un double-clic
+    const handleCreateUE = async () => {
+        if (!parentForNewUE) return;
+        const newUEData: UEInCreation = {
+            academic_year: academicYear,
+            name: newUEName || "Nouvelle UE",
+            parent_id: parentForNewUE.id,
+            courses: newUECourses.map((course, index) => ({
+                academic_year: academicYear,
+                duration: course.duration,
+                group_count: course.group_count,
+                course_type_id: index + 1
+            }))
+        };
+
+        const ueResponse = await UEAPI.createUE(newUEData);
+        if (ueResponse.isError()) {
+            showError("Erreur lors de la création de l'UE: " + ueResponse.errorMessage());
+            return;
+        }
+        const updatedParent = await loadNodeChildren(parentForNewUE.id, parentForNewUE.academic_year);
+        if (updatedParent) {
+            const childrenNodes = await Promise.all(
+                (updatedParent.child_nodes || []).map(async (child: number | APINode) => {
+                    if (typeof child === "number") {
+                        return await loadNodeChildren(child, updatedParent.academic_year);
+                    } else if (typeof child === "object" && child !== null) {
+                        if ("courses" in child) {
+                            return { ...child, type: "ue" };
+                        }
+                        return child;
+                    } else {
+                        return null;
+                    }
+                })
+            );
+            updateNodeInTree(parentForNewUE.id, {
+                ...updatedParent,
+                children: childrenNodes.filter((child) => child !== null)
+            });
+        }
+        setShowAddUEPopup(false);
+    };
+
     const handleDoubleClick = (nodeKey: string, name: string) => {
         setEditingNodeId(nodeKey);
         setNewNodeName(name);
     };
 
-    // Mise à jour du nom en local lors de la saisie
     const handleNodeNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setNewNodeName(e.target.value);
     };
 
-    // Soumission du nouveau nom et envoi vers le backend
     const handleNodeNameSubmit = async (nodeKey: string) => {
         if (!dataState) return;
         const node = findNode(dataState, nodeKey);
@@ -452,26 +408,21 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         setEditingNodeId(null);
     };
 
-    // Rendu d'un nœud (ou UE) et de ses éventuels enfants
     const renderNode = (node: TreeNode) => {
         const nodeKey = getNodeKey(node);
         const isOpen = openNodes.has(nodeKey);
-
         return (
             <div key={nodeKey} className="ml-4 relative">
                 {isOpen && node.type === "node" && (
                     <div className="absolute left-[-5px] top-3 h-full w-[1px] bg-blue-300"></div>
                 )}
-                <div
-                    className="flex items-center gap-2 cursor-pointer hover:text-gray-700"
-                    onContextMenu={(e) => handleContextMenu(e, nodeKey)}
-                >
+                <div className="flex items-center gap-2 cursor-pointer hover:text-gray-700" onContextMenu={(e) => handleContextMenu(e, nodeKey)}>
                     {node.type === "node" ? (
                         <button className="text-lg font-bold" onClick={() => toggleNode(node)}>
                             {isOpen ? "∨" : ">"}
                         </button>
                     ) : (
-                        <span className="w-6">📚</span> // Icône pour les UE
+                        <span className="w-6">📚</span>
                     )}
                     {editingNodeId === nodeKey ? (
                         <input
@@ -479,11 +430,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                             value={newNodeName}
                             onChange={handleNodeNameChange}
                             onBlur={() => handleNodeNameSubmit(nodeKey)}
-                            onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                    handleNodeNameSubmit(nodeKey);
-                                }
-                            }}
+                            onKeyDown={(e) => e.key === "Enter" && handleNodeNameSubmit(nodeKey)}
                             className="text-lg font-semibold whitespace-nowrap"
                             autoFocus
                         />
@@ -509,40 +456,79 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
     return (
         <div className="relative p-4 h-full" onClick={closeContextMenu}>
             {errorPopup && (
-                <div className="fixed top-4 right-4 bg-red-500 text-white p-2 rounded shadow">
+                <div className="fixed top-4 right-4 z-50 bg-red-500 text-white p-2 rounded shadow">
                     {errorPopup}
                 </div>
             )}
             <div className="flex-grow h-full">{dataState && renderNode(dataState)}</div>
             {contextMenu.visible && (
-                <div
-                    className="absolute bg-white border border-gray-300 rounded shadow-md"
-                    style={{ top: contextMenu.y, left: contextMenu.x }}
-                >
-                    <button
-                        className="block px-4 py-2 text-left hover:bg-gray-100 w-full"
-                        onClick={() => handleAction("Renommer")}
-                    >
+                <div className="absolute bg-white border border-gray-300 rounded shadow-md" style={{ top: contextMenu.y, left: contextMenu.x }}>
+                    <button className="block px-4 py-2 text-left hover:bg-gray-100 w-full" onClick={() => handleAction("Renommer")}>
                         Renommer
                     </button>
-                    <button
-                        className="block px-4 py-2 text-left hover:bg-gray-100 w-full"
-                        onClick={() => handleAction("Ajouter Dossier")}
-                    >
+                    <button className="block px-4 py-2 text-left hover:bg-gray-100 w-full" onClick={() => handleAction("Ajouter Dossier")}>
                         Ajouter Dossier
                     </button>
-                    <button
-                        className="block px-4 py-2 text-left hover:bg-gray-100 w-full"
-                        onClick={() => handleAction("Ajouter UE")}
-                    >
+                    <button className="block px-4 py-2 text-left hover:bg-gray-100 w-full" onClick={() => handleAction("Ajouter UE")}>
                         Ajouter UE
                     </button>
-                    <button
-                        className="block px-4 py-2 text-left hover:bg-gray-100 w-full"
-                        onClick={() => handleAction("Supprimer")}
-                    >
+                    <button className="block px-4 py-2 text-left hover:bg-gray-100 w-full" onClick={() => handleAction("Supprimer")}>
                         Supprimer
                     </button>
+                </div>
+            )}
+            {showAddUEPopup && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                    <div className="bg-white p-4 rounded shadow-lg w-96">
+                        <h3 className="text-lg font-bold mb-4">Créer une nouvelle UE</h3>
+                        <label className="block mb-2">
+                            Nom de l'UE:
+                            <input
+                                type="text"
+                                value={newUEName}
+                                onChange={(e) => setNewUEName(e.target.value)}
+                                className="border p-1 w-full mt-1"
+                            />
+                        </label>
+                        {/* Formulaire pour chaque ligne */}
+                        {["CM", "TD", "TP", "EI", "TPL"].map((label, index) => (
+                            <div key={index} className="mb-2">
+                                <strong>{label}</strong>
+                                <div className="flex gap-2 mt-1">
+                                    <input
+                                        type="number"
+                                        placeholder="Durée"
+                                        value={newUECourses[index].duration}
+                                        onChange={(e) => {
+                                            const newCourses = [...newUECourses];
+                                            newCourses[index].duration = parseInt(e.target.value) || 0;
+                                            setNewUECourses(newCourses);
+                                        }}
+                                        className="border p-1 w-1/2"
+                                    />
+                                    <input
+                                        type="number"
+                                        placeholder="Nb Groupes"
+                                        value={newUECourses[index].group_count}
+                                        onChange={(e) => {
+                                            const newCourses = [...newUECourses];
+                                            newCourses[index].group_count = parseInt(e.target.value) || 0;
+                                            setNewUECourses(newCourses);
+                                        }}
+                                        className="border p-1 w-1/2"
+                                    />
+                                </div>
+                            </div>
+                        ))}
+                        <div className="flex justify-end gap-2 mt-4">
+                            <button className="px-3 py-1 bg-gray-200 rounded" onClick={() => setShowAddUEPopup(false)}>
+                                Annuler
+                            </button>
+                            <button className="px-3 py-1 bg-blue-500 text-white rounded" onClick={handleCreateUE}>
+                                Créer
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
