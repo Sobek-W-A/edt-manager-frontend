@@ -3,7 +3,7 @@ import NodeAPI from "../../scripts/API/ModelAPIs/NodeAPI";
 import UEAPI from "../../scripts/API/ModelAPIs/UEAPI";
 import { APINode } from "../../scripts/API/APITypes/Tree";
 import { NodeInUpdate } from "../../scripts/API/APITypes/Tree";
-import {UEInCreation, UeInUpdate} from "../../scripts/API/APITypes/UE.ts";
+import { UEInCreation, UeInUpdate } from "../../scripts/API/APITypes/UE.ts";
 
 type TreeNode = {
     academic_year: number;
@@ -80,10 +80,27 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
     const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
     const [newNodeName, setNewNodeName] = useState<string>("");
 
+    // Popup d'erreur
+    const [errorPopup, setErrorPopup] = useState<string | null>(null);
+
     // Année académique initialisée depuis le sessionStorage (ou "2024" par défaut)
     const [academicYear, setAcademicYear] = useState<string>(
         window.sessionStorage.getItem("academic_year") || "2024"
     );
+
+    // Fonction utilitaire pour afficher une erreur dans un popup
+    const showError = (msg: string) => {
+        setErrorPopup(msg);
+        console.error(msg);
+    };
+
+    // Efface le popup d'erreur après 3 secondes
+    useEffect(() => {
+        if (errorPopup) {
+            const timer = setTimeout(() => setErrorPopup(null), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [errorPopup]);
 
     // Recharge la racine depuis l'API et, si des nœuds étaient ouverts, on les rafraîchit via refreshOpenNodes
     const chargementDonneeBackend = async () => {
@@ -91,7 +108,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
             const year = parseInt(academicYear, 10);
             const response = await NodeAPI.getRootNode(year);
             if (response.isError()) {
-                console.error("Erreur lors du chargement du node racine:", response.errorMessage());
+                showError("Erreur lors du chargement du node racine: " + response.errorMessage());
             } else {
                 const rootNode = response.responseObject();
                 let initialTree: TreeNode = { ...rootNode, children: [] };
@@ -102,7 +119,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                 setDataState(initialTree);
             }
         } catch (error) {
-            console.error("Erreur lors de l'appel à l'API:", error);
+            showError("Erreur lors de l'appel à l'API: " + error);
         }
     };
 
@@ -155,12 +172,12 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         try {
             const response = await NodeAPI.getNodeById(nodeId);
             if (response.isError()) {
-                console.error(`Erreur lors du chargement du node ${nodeId}:`, response.errorMessage());
+                showError(`Erreur lors du chargement du node ${nodeId}: ${response.errorMessage()}`);
                 return null;
             }
             return response.responseObject();
         } catch (error) {
-            console.error("Erreur lors de l'appel à l'API:", error);
+            showError("Erreur lors de l'appel à l'API: " + error);
             return null;
         }
     };
@@ -243,7 +260,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         if (contextMenu.nodeKey && dataState) {
             const node = findNode(dataState, contextMenu.nodeKey);
             if (!node) {
-                console.error("Noeud non trouvé pour l'action.");
+                showError("Noeud non trouvé pour l'action.");
                 closeContextMenu();
                 return;
             }
@@ -255,7 +272,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                     };
                     const response = await NodeAPI.createNode(node.academic_year, newNodeData);
                     if (response.isError()) {
-                        console.error("Erreur lors de la création du dossier:", response.errorMessage());
+                        showError("Erreur lors de la création du dossier: " + response.errorMessage());
                         return;
                     }
                     const parent = findNode(dataState, contextMenu.nodeKey);
@@ -276,51 +293,51 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                         setDataState({ ...dataState });
                     }
                 } catch (error) {
-                    console.error("Erreur lors de la création du dossier:", error);
+                    showError("Erreur lors de la création du dossier: " + error);
                 }
             } else if (action === "Ajouter UE") {
                 try {
                     const newUEData: UEInCreation = {
-                        "academic_year": academicYear,
-                        "name": "Nouvelle UE",
-                        "parent_id": node.id,
-                        "courses": [
+                        academic_year: academicYear,
+                        name: "Nouvelle UE",
+                        parent_id: node.id,
+                        courses: [
                             {
-                                "academic_year": academicYear,
-                                "duration": 1,
-                                "group_count": 1,
-                                "course_type_id": 1
+                                academic_year: academicYear,
+                                duration: 1,
+                                group_count: 1,
+                                course_type_id: 1
                             },
                             {
-                                "academic_year": academicYear,
-                                "duration": 1,
-                                "group_count": 1,
-                                "course_type_id": 2
+                                academic_year: academicYear,
+                                duration: 1,
+                                group_count: 1,
+                                course_type_id: 2
                             },
                             {
-                                "academic_year": academicYear,
-                                "duration": 1,
-                                "group_count": 1,
-                                "course_type_id": 3
+                                academic_year: academicYear,
+                                duration: 1,
+                                group_count: 1,
+                                course_type_id: 3
                             },
                             {
-                                "academic_year": academicYear,
-                                "duration": 1,
-                                "group_count": 1,
-                                "course_type_id": 4
+                                academic_year: academicYear,
+                                duration: 1,
+                                group_count: 1,
+                                course_type_id: 4
                             },
                             {
-                                "academic_year": academicYear,
-                                "duration": 1,
-                                "group_count": 1,
-                                "course_type_id": 5
+                                academic_year: academicYear,
+                                duration: 1,
+                                group_count: 1,
+                                course_type_id: 5
                             }
                         ]
                     };
 
                     const ueResponse = await UEAPI.createUE(newUEData);
                     if (ueResponse.isError()) {
-                        console.error("Erreur lors de la création de l'UE:", ueResponse.errorMessage());
+                        showError("Erreur lors de la création de l'UE: " + ueResponse.errorMessage());
                         return;
                     }
                     const updatedParent = await loadNodeChildren(node.id, node.academic_year);
@@ -345,12 +362,12 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                         });
                     }
                 } catch (error) {
-                    console.error("Erreur lors de la création de l'UE:", error);
+                    showError("Erreur lors de la création de l'UE: " + error);
                 }
             } else if (action === "Supprimer") {
                 const nodeToDelete = findNode(dataState, contextMenu.nodeKey);
                 if (!nodeToDelete) {
-                    console.error("Noeud non trouvé pour la suppression.");
+                    showError("Noeud non trouvé pour la suppression.");
                     closeContextMenu();
                     return;
                 }
@@ -358,13 +375,13 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                     if (nodeToDelete.type === "node") {
                         const response = await NodeAPI.deleteNode(nodeToDelete.academic_year, nodeToDelete.id);
                         if (response.isError()) {
-                            console.error("Erreur lors de la suppression du dossier:", response.errorMessage());
+                            showError("Erreur lors de la suppression du dossier: " + response.errorMessage());
                             return;
                         }
                     } else if (nodeToDelete.type === "ue") {
                         const response = await UEAPI.deleteUE(nodeToDelete.id);
                         if (response.isError()) {
-                            console.error("Erreur lors de la suppression de l'UE:", response.errorMessage());
+                            showError("Erreur lors de la suppression de l'UE: " + response.errorMessage());
                             return;
                         }
                     }
@@ -383,7 +400,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                         }
                     }
                 } catch (error) {
-                    console.error("Erreur lors de la suppression:", error);
+                    showError("Erreur lors de la suppression: " + error);
                 }
             } else if (action === "Renommer") {
                 setEditingNodeId(contextMenu.nodeKey);
@@ -414,7 +431,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                 if (node.type === "node") {
                     const response = await NodeAPI.updateNode(node.academic_year, node.id, { name: trimmedName });
                     if (response.isError()) {
-                        console.error("Erreur lors de la mise à jour du nom:", response.errorMessage());
+                        showError("Erreur lors de la mise à jour du nom: " + response.errorMessage());
                     } else {
                         node.name = trimmedName;
                         setDataState({ ...dataState });
@@ -422,15 +439,14 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                 } else if (node.type === "ue") {
                     const response = await UEAPI.modifyUE(node.id, { name: trimmedName, academic_year: academicYear } as UeInUpdate);
                     if (response.isError()) {
-                        console.error("Erreur lors de la mise à jour du nom de l'UE:", response.errorMessage());
+                        showError("Erreur lors de la mise à jour du nom de l'UE: " + response.errorMessage());
                     } else {
                         node.name = trimmedName;
                         setDataState({ ...dataState });
-                        
                     }
                 }
             } catch (error) {
-                console.error("Erreur lors de l'appel à l'API de mise à jour:", error);
+                showError("Erreur lors de l'appel à l'API de mise à jour: " + error);
             }
         }
         setEditingNodeId(null);
@@ -492,6 +508,11 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
 
     return (
         <div className="relative p-4 h-full" onClick={closeContextMenu}>
+            {errorPopup && (
+                <div className="fixed top-4 right-4 bg-red-500 text-white p-2 rounded shadow">
+                    {errorPopup}
+                </div>
+            )}
             <div className="flex-grow h-full">{dataState && renderNode(dataState)}</div>
             {contextMenu.visible && (
                 <div
