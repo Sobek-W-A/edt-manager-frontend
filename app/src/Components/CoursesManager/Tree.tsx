@@ -281,11 +281,43 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
             } else if (action === "Ajouter UE") {
                 try {
                     const newUEData: UEInCreation = {
-                        academic_year: 2024,
-                        name: "Nouvelle UE",
-                        parent_id: node.id,
-                        courses: []
+                        "academic_year": academicYear,
+                        "name": "Nouvelle UE",
+                        "parent_id": node.id,
+                        "courses": [
+                            {
+                                "academic_year": academicYear,
+                                "duration": 1,
+                                "group_count": 1,
+                                "course_type_id": 1
+                            },
+                            {
+                                "academic_year": academicYear,
+                                "duration": 1,
+                                "group_count": 1,
+                                "course_type_id": 2
+                            },
+                            {
+                                "academic_year": academicYear,
+                                "duration": 1,
+                                "group_count": 1,
+                                "course_type_id": 3
+                            },
+                            {
+                                "academic_year": academicYear,
+                                "duration": 1,
+                                "group_count": 1,
+                                "course_type_id": 4
+                            },
+                            {
+                                "academic_year": academicYear,
+                                "duration": 1,
+                                "group_count": 1,
+                                "course_type_id": 5
+                            }
+                        ]
                     };
+
                     const ueResponse = await UEAPI.createUE(newUEData);
                     if (ueResponse.isError()) {
                         console.error("Erreur lors de la création de l'UE:", ueResponse.errorMessage());
