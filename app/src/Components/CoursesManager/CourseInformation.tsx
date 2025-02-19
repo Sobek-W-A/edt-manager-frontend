@@ -1,4 +1,4 @@
-import {useState, useImperativeHandle, forwardRef, useEffect} from 'react';
+import {useState, useImperativeHandle, forwardRef} from 'react';
 import CollapsibleButton from './CollapsibleButton';
 import SearchAndChose from "./SearchAndChose";
 import UEModel from "../../scripts/Models/UEModel.ts";
@@ -83,7 +83,7 @@ const CourseInformation = forwardRef((_props, ref) => {
         setIsEditing(!isEditing); // bascule entre les modes
     };
 
-    const [refreshKey, setRefreshKey] = useState(0); // Clé pour forcer le refresh
+    const [, setRefreshKey] = useState(0); // Clé pour forcer le refresh
 
     const handleRefresh = () => {
         setRefreshKey((prevKey) => prevKey + 1); // Change la clé pour rerender

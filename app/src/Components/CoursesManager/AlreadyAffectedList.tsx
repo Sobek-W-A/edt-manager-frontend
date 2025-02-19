@@ -3,7 +3,7 @@ import AffectationAPI, {AffectationType} from "../../scripts/API/ModelAPIs/Affec
 import TuileAffectation from "./TuileAffectation.tsx";
 
 
-function AlreadyAffectedList(props: { course_id: number, refresh: () => never }) {
+function AlreadyAffectedList(props: { course_id: number, refresh: () => void }) {
 
     const [affectationsResponse, setaffectationsResponse] = useState<(AffectationType)[]>();
 

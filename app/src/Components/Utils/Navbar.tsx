@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
 import AuthModel from '../../scripts/Models/AuthModel';
-import {ChangeEvent, useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 import Storage from '../../scripts/API/Storage.ts'
 
 function Navbar() {
@@ -12,8 +12,8 @@ function Navbar() {
         setIsLoggedIn(AuthModel.isLoggedIn());
     }, []);
 
-    const ACADEMIC_YEAR = [2023, 2024, 2025, 2026];
-    const [academicYear, setAcademicYear] = useState<number>(ACADEMIC_YEAR[3]);
+    const ACADEMIC_YEAR = [2023, 2024, 2025];
+    const [academicYear, setAcademicYear] = useState<number>(ACADEMIC_YEAR[1]);
 
     useEffect(() => {
         const date = new Date();
@@ -59,6 +59,12 @@ function Navbar() {
                             </Link>
                         </div>
                         <div className="flex items-center">
+                            <Link to="/accountcreation"
+                                  className="text-sm hover:text-green-300 transition duration-200">
+                                Creer un utilisateur
+                            </Link>
+                        </div>
+                        <div className="flex items-center">
                             <div className="dropdown dropdown-hover">
                                 <div tabIndex={0}
                                      className="cursor-pointer text-sm bg-green-700 text-white focus:outline-none">
@@ -79,12 +85,6 @@ function Navbar() {
 
                 {!isLoggedIn && (
                     <>
-                        <div className="flex items-center">
-                            <Link to="/accountcreation"
-                                  className="text-sm hover:text-green-300 transition duration-200">
-                                Creer un utilisateur
-                            </Link>
-                        </div>
                         <div className="flex items-center">
                             <Link to="/login" className="text-sm hover:text-green-300 transition duration-200">
                                 LOGIN

@@ -26,10 +26,10 @@ export default class StatusAPI {
      * @param academic_year The id of the academic_year to be returned.
      * @returns A promise that is either a StatusType or an error.
      */
-    static getStatusByAcademicYear(academic_year: number): Promise<APIResponse<StatusType[]>> {
-        return api.requestLogged<StatusType[]>(
+    static getStatusByAcademicYear(): Promise<APIResponse<StatusType[]>> {
+        return api.requestLoggedWithAcademicYear<StatusType[]>(
             HTTPMethod.GET,
-            StatusAPI.BASE_STATUS_URL + `/${academic_year}`,
+            StatusAPI.BASE_STATUS_URL + '/',
             undefined,
             undefined
         );
