@@ -19,11 +19,56 @@ type TreeProps = {
     onSelectCourse: (course: TreeNode) => void;
 };
 
-// Fonction utilitaire pour générer une clé unique en combinant le type et l'ID
+// Génère une clé unique pour un nœud en combinant son type et son id
 const getNodeKey = (node: TreeNode) => `${node.type}-${node.id}`;
 
+/**
+ * Recharge un nœud et ses enfants si la clé du nœud figure dans openNodesSet.
+ * La fonction se fait de façon récursive sur les enfants.
+ */
+const refreshOpenNodes = async (
+    node: TreeNode,
+    openNodesSet: Set<string>,
+    loadNodeChildren: (nodeId: number, academicYear: number) => Promise<any>
+): Promise<TreeNode> => {
+    let updatedNode = node;
+    // Si le nœud est de type "node" et qu'il est marqué comme ouvert, on recharge ses données (et donc ses enfants)
+    if (node.type === "node" && openNodesSet.has(getNodeKey(node))) {
+        const updatedData = await loadNodeChildren(node.id, node.academic_year);
+        if (updatedData) {
+            const childrenNodes = await Promise.all(
+                (updatedData.child_nodes || []).map(async (child: number | APINode) => {
+                    if (typeof child === "number") {
+                        return await loadNodeChildren(child, node.academic_year);
+                    } else if (typeof child === "object" && child !== null) {
+                        if ("courses" in child) {
+                            return { ...child, type: "ue" };
+                        }
+                        return child;
+                    } else {
+                        return null;
+                    }
+                })
+            );
+            updatedNode = {
+                ...updatedData,
+                children: childrenNodes.filter((child) => child !== null)
+            };
+        }
+    }
+    // Ensuite, si le nœud possède des enfants, on applique la fonction de façon récursive
+    if (updatedNode.children) {
+        const refreshedChildren = await Promise.all(
+            updatedNode.children.map((child) =>
+                refreshOpenNodes(child, openNodesSet, loadNodeChildren)
+            )
+        );
+        updatedNode = { ...updatedNode, children: refreshedChildren };
+    }
+    return updatedNode;
+};
+
 const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
-    // State pour les noeuds ouverts, le menu contextuel, les données et l'édition
     const [openNodes, setOpenNodes] = useState<Set<string>>(new Set());
     const [contextMenu, setContextMenu] = useState<{
         visible: boolean;
@@ -35,12 +80,12 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
     const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
     const [newNodeName, setNewNodeName] = useState<string>("");
 
-    // State de l'année académique, initialisée depuis le sessionStorage ou par défaut à "2024"
+    // Année académique initialisée depuis le sessionStorage (ou "2024" par défaut)
     const [academicYear, setAcademicYear] = useState<string>(
         window.sessionStorage.getItem("academic_year") || "2024"
     );
 
-    // Chargement du noeud racine depuis le backend en utilisant l'année académique du state
+    // Recharge la racine depuis l'API et, si des nœuds étaient ouverts, on les rafraîchit via refreshOpenNodes
     const chargementDonneeBackend = async () => {
         try {
             const year = parseInt(academicYear, 10);
@@ -49,19 +94,22 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                 console.error("Erreur lors du chargement du node racine:", response.errorMessage());
             } else {
                 const rootNode = response.responseObject();
-                setDataState({
-                    ...rootNode,
-                    children: []
-                });
+                let initialTree: TreeNode = { ...rootNode, children: [] };
+                const currentOpenNodes = new Set(openNodes);
+                if (currentOpenNodes.size > 0) {
+                    initialTree = await refreshOpenNodes(initialTree, currentOpenNodes, loadNodeChildren);
+                }
+                setDataState(initialTree);
             }
         } catch (error) {
             console.error("Erreur lors de l'appel à l'API:", error);
         }
     };
 
-    // Recharge le noeud racine quand l'année académique change
+    // Recharge la racine (ainsi que les nœuds ouverts) quand l'année académique change
     useEffect(() => {
         chargementDonneeBackend();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [academicYear]);
 
     // Détection des modifications dans le sessionStorage provenant d'autres onglets
@@ -80,11 +128,11 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         };
     }, [academicYear]);
 
-    // Détection des modifications dans le sessionStorage dans le même onglet en surchargeant setItem
+    // Détection des modifications dans le même onglet en surchargeant sessionStorage.setItem
     useEffect(() => {
         const handleSessionStorageChange = () => {
             const storedYear = window.sessionStorage.getItem("academic_year");
-            setAcademicYear(prev =>
+            setAcademicYear((prev) =>
                 storedYear && storedYear !== prev ? storedYear : prev
             );
         };
@@ -102,7 +150,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         };
     }, []);
 
-    // Chargement d'un noeud par son ID (les données proviennent de l'API)
+    // Fonction pour charger les enfants d'un nœud par son ID
     const loadNodeChildren = async (nodeId: number, academicYear: number) => {
         try {
             const response = await NodeAPI.getNodeById(nodeId);
@@ -117,48 +165,25 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         }
     };
 
-    // Fonction appelée lors du clic pour ouvrir/fermer un noeud
+    // Fonction appelée lors du clic pour basculer l'ouverture/fermeture d'un nœud
     const toggleNode = async (node: TreeNode) => {
         const nodeKey = getNodeKey(node);
-
-        if (node.type === "node") {
-            if (!openNodes.has(nodeKey)) {
-                const updatedNode = await loadNodeChildren(node.id, node.academic_year);
-                if (updatedNode) {
-                    const childrenNodes = await Promise.all(
-                        (updatedNode.child_nodes || []).map(async (child: number | APINode) => {
-                            if (typeof child === "number") {
-                                return await loadNodeChildren(child, node.academic_year);
-                            } else if (typeof child === "object" && child !== null) {
-                                if ("courses" in child) {
-                                    return { ...child, type: "ue" };
-                                }
-                                return child;
-                            } else {
-                                return null;
-                            }
-                        })
-                    );
-                    updateNodeInTree(node.id, {
-                        ...updatedNode,
-                        children: childrenNodes.filter((child) => child !== null)
-                    });
-                }
-            }
+        const newSet = new Set(openNodes);
+        if (newSet.has(nodeKey)) {
+            // Fermeture : on retire uniquement la clé du nœud parent (les clés des enfants restent conservées)
+            newSet.delete(nodeKey);
+            setOpenNodes(newSet);
+        } else {
+            // Ouverture : on ajoute la clé du nœud parent
+            newSet.add(nodeKey);
+            setOpenNodes(newSet);
+            // Puis on recharge le nœud en utilisant refreshOpenNodes pour que les enfants qui étaient ouverts soient également rafraîchis
+            const refreshed = await refreshOpenNodes(node, newSet, loadNodeChildren);
+            updateNodeInTree(node.id, refreshed);
         }
-
-        setOpenNodes((prev) => {
-            const newSet = new Set(prev);
-            if (newSet.has(nodeKey)) {
-                newSet.delete(nodeKey);
-            } else {
-                newSet.add(nodeKey);
-            }
-            return newSet;
-        });
     };
 
-    // Mise à jour d'un noeud dans l'arborescence (récursive)
+    // Mise à jour d'un nœud dans l'arborescence (de manière récursive)
     const updateNodeInTree = (nodeId: number, updatedNode: TreeNode) => {
         if (!dataState) return;
         const updateNode = (node: TreeNode): TreeNode => {
@@ -189,7 +214,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         setContextMenu({ visible: false, x: 0, y: 0, nodeKey: null });
     };
 
-    // Recherche récursive d'un noeud par sa clé composite (type-id)
+    // Recherche récursive d'un nœud par sa clé composite
     const findNode = (node: TreeNode, compositeKey: string): TreeNode | null => {
         if (getNodeKey(node) === compositeKey) return node;
         if (node.children) {
@@ -201,7 +226,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         return null;
     };
 
-    // Recherche récursive du parent d'un noeud via sa clé composite
+    // Recherche récursive du parent d'un nœud via sa clé composite
     const findParentNode = (node: TreeNode, compositeKey: string): TreeNode | null => {
         if (node.children) {
             for (const child of node.children) {
@@ -378,7 +403,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         setEditingNodeId(null);
     };
 
-    // Rendu d'un noeud (ou UE) et de ses éventuels enfants
+    // Rendu d'un nœud (ou UE) et de ses éventuels enfants
     const renderNode = (node: TreeNode) => {
         const nodeKey = getNodeKey(node);
         const isOpen = openNodes.has(nodeKey);
@@ -419,8 +444,8 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                             onDoubleClick={() => handleDoubleClick(nodeKey, node.name)}
                             onClick={() => node.type === "ue" && onSelectCourse(node)}
                         >
-                            {node.name}
-                        </span>
+              {node.name}
+            </span>
                     )}
                 </div>
                 {isOpen && node.type === "node" && node.children && (
