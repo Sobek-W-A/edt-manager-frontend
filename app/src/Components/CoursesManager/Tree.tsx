@@ -3,7 +3,7 @@ import NodeAPI from "../../scripts/API/ModelAPIs/NodeAPI";
 import UEAPI from "../../scripts/API/ModelAPIs/UEAPI";
 import { APINode } from "../../scripts/API/APITypes/Tree";
 import { NodeInUpdate } from "../../scripts/API/APITypes/Tree";
-import { UEInCreation } from "../../scripts/API/APITypes/UE.ts";
+import {UEInCreation, UeInUpdate} from "../../scripts/API/APITypes/UE.ts";
 
 type TreeNode = {
     academic_year: number;
@@ -388,12 +388,13 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                         setDataState({ ...dataState });
                     }
                 } else if (node.type === "ue") {
-                    const response = await UEAPI.modifyUE(node.id, { name: trimmedName });
+                    const response = await UEAPI.modifyUE(node.id, { name: trimmedName, academic_year: academicYear } as UeInUpdate);
                     if (response.isError()) {
                         console.error("Erreur lors de la mise à jour du nom de l'UE:", response.errorMessage());
                     } else {
                         node.name = trimmedName;
                         setDataState({ ...dataState });
+                        
                     }
                 }
             } catch (error) {
