@@ -70,7 +70,7 @@ function AddRoleCard({ user, rolesList, openRoleMenu, setOpenRoleMenu, addRoleTo
     <div key={user.id} className="border p-4 rounded shadow-md relative flex justify-between bg-white hover:shadow-lg hover:scale-105 transition-transform duration-200">
       {/* Bouton de modification */}
       <div className="absolute top-2 right-2">
-        <Link to={"/affectation/" + user.id} title="Voir affectations">
+        <Link to={"/affectation/" + ('profile' in user && user.profile ? user.profile.id : user.id)} title="Voir affectations">
           <FontAwesomeIcon icon={faCalendarDays} className="text-green-500 hover:text-green-700 cursor-pointer text-xl" />
         </Link>
         &nbsp;
