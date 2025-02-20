@@ -36,7 +36,7 @@ export default class ProfileAPI {
      * @returns Promise<APIResponse<Profile>> A promise that resolves to the APIResponse containing the Profile.
      */
     static getProfileById(profile_id: number): Promise<APIResponse<Profile>> {
-        return api.requestLogged<Profile>(
+        return api.requestLoggedWithAcademicYear<Profile>(
             HTTPMethod.GET,
             `${ProfileAPI.PROFILE_URL}/${profile_id}`,
             undefined,
@@ -50,7 +50,7 @@ export default class ProfileAPI {
      * @returns Promise<APIResponse<undefined>> A promise that resolves to the APIResponse containing undefined.
      */
     static createProfile(profile: ProfileInCreate): Promise<APIResponse<undefined>> {
-        return api.requestLogged<undefined>(
+        return api.requestLoggedWithAcademicYear<undefined>(
             HTTPMethod.POST,
             `${ProfileAPI.PROFILE_URL}/`,
             JSON.stringify(profile),
@@ -65,7 +65,7 @@ export default class ProfileAPI {
      * @returns Promise<APIResponse<undefined>> A promise that resolves to the APIResponse containing undefined.
      */
     static updateProfile(profile_id: number, profile: ProfileInUpdate): Promise<APIResponse<undefined>> {
-        return api.requestLogged<undefined>(
+        return api.requestLoggedWithAcademicYear<undefined>(
             HTTPMethod.PATCH,
             `${ProfileAPI.PROFILE_URL}/${profile_id}`,
             JSON.stringify(profile),
@@ -79,7 +79,7 @@ export default class ProfileAPI {
      * @returns Promise<APIResponse<undefined>> A promise that resolves to the APIResponse containing undefined.
      */
     static deleteProfile(profile_id: number): Promise<APIResponse<undefined>> {
-        return api.requestLogged<undefined>(
+        return api.requestLoggedWithAcademicYear<undefined>(
             HTTPMethod.DELETE,
             `${ProfileAPI.PROFILE_URL}/${profile_id}`,
             undefined,

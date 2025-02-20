@@ -1,5 +1,5 @@
 import {api} from "../API.ts";
-import {Course, CourseInCreation, CourseInUpdate} from "../APITypes/Course.ts";
+import {Course, CourseInCreation} from "../APITypes/Course.ts";
 import {HTTPMethod} from "../Enums/HTTPMethod.ts";
 import APIResponse from "../Responses/APIResponse.ts";
 
