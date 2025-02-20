@@ -45,7 +45,7 @@ export default class AccountAPI {
      * @param account_id The id of the account to be returned.
      */
     static getAccountById(account_id: number): Promise<APIResponse<Account>> {
-            return api.requestLogged<Account>(
+            return api.requestLoggedWithAcademicYear<Account>(
             HTTPMethod.GET,
             `${AccountAPI.ACCOUNTS_PATH}/${account_id}`,
             undefined,
@@ -58,7 +58,7 @@ export default class AccountAPI {
      * @param account The account to be created.
      */
     static createAccount(account: AccountInCreate): Promise<APIResponse<undefined>> {
-        return api.requestLogged<undefined>(
+        return api.requestLoggedWithAcademicYear<undefined>(
             HTTPMethod.POST,
             `${AccountAPI.ACCOUNTS_PATH}/`,
             JSON.stringify(account),
@@ -72,7 +72,7 @@ export default class AccountAPI {
      * @param account The account to be updated.
      */
     static updateAccount(account_id: number, account: AccountInUpdate): Promise<APIResponse<undefined>> {
-        return api.requestLogged<undefined>(
+        return api.requestLoggedWithAcademicYear<undefined>(
             HTTPMethod.PATCH,
             `${AccountAPI.ACCOUNTS_PATH}/${account_id}`,
             JSON.stringify(account),
@@ -85,7 +85,7 @@ export default class AccountAPI {
      * @param account_id The id of the account to be deleted.
      */
     static deleteAccount(account_id: number): Promise<APIResponse<undefined>> {
-        return api.requestLogged<undefined>(
+        return api.requestLoggedWithAcademicYear<undefined>(
             HTTPMethod.DELETE,
             `${AccountAPI.ACCOUNTS_PATH}/${account_id}`,
             undefined,
@@ -117,7 +117,7 @@ export default class AccountAPI {
      * @returns A promise that resolves to the number of accounts or an error.
      */
     static getNumberOfAccounts(): Promise<APIResponse<{ number_of_elements: number }>> {
-        return api.requestLogged<{ number_of_elements: number }>(
+        return api.requestLoggedWithAcademicYear<{ number_of_elements: number }>(
             HTTPMethod.GET,
             `${AccountAPI.ACCOUNTS_PATH}/nb/`,
             undefined,
