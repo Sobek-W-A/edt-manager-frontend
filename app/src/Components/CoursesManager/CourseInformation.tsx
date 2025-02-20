@@ -19,7 +19,6 @@ const CourseInformation = forwardRef((_props, ref) => {
 
     const handleRefresh = () => {
         setRefreshKey((prevKey) => prevKey + 1); // Change la clé pour rerender
-        console.log(refreshKey)
     };
 
     useImperativeHandle(ref, () => ({
@@ -30,7 +29,6 @@ const CourseInformation = forwardRef((_props, ref) => {
                     const response = UEModel.getUEById(id);
                     response.then((ue) => {
                         if (ue instanceof UEModel) {
-                            console.log(ue);
                             setUeName(ue.name);
                             setCourses(ue.courses);
                             setAcademicYear(ue.academic_year);
@@ -41,7 +39,6 @@ const CourseInformation = forwardRef((_props, ref) => {
                     console.error('Erreur lors de la récupération des données de l\'UE:', error);
                 }
             };
-            console.log("heyà")
             fetchUEData();
         }
     }), );
@@ -51,7 +48,6 @@ const CourseInformation = forwardRef((_props, ref) => {
                 const response = UEModel.getUEById(idUE);
                 response.then((ue) => {
                     if (ue instanceof UEModel) {
-                        console.log(ue);
                         setUeName(ue.name);
                         setCourses(ue.courses);
                         setAcademicYear(ue.academic_year);

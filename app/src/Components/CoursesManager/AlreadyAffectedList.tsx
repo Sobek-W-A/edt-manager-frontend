@@ -25,8 +25,7 @@ function AlreadyAffectedList(props: { course_id: number, refresh: () => never, g
 
             setSomme(s)
             setaffectationsResponse(filteredAffectations)
-            console.log("-----" + props.course_id)
-            console.log(filteredAffectations)
+
 
         }
 

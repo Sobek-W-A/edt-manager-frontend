@@ -5,7 +5,7 @@ import StatusModel from "../../scripts/Models/StatusModel.ts";
 import AccountModel from "../../scripts/Models/AccountModel.ts";
 import {Account} from "../../scripts/API/APITypes/Accounts.ts";
 
-const global_academic_year = 2025;
+const global_academic_year = window.sessionStorage.getItem("academic_year");
 
 interface UserFormProps {
     email: string;
