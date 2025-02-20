@@ -36,7 +36,7 @@ export default class ProfileAPI {
      * @returns Promise<APIResponse<Profile>> A promise that resolves to the APIResponse containing the Profile.
      */
     static getProfileById(profile_id: number): Promise<APIResponse<Profile>> {
-        return api.requestLogged<Profile>(
+        return api.requestLoggedWithAcademicYear<Profile>(
             HTTPMethod.GET,
             `${ProfileAPI.PROFILE_URL}/${profile_id}`,
             undefined,
