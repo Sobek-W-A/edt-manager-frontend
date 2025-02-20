@@ -1,29 +1,67 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import NodeAPI from "../../scripts/API/ModelAPIs/NodeAPI";
 import UEAPI from "../../scripts/API/ModelAPIs/UEAPI";
 import { APINode } from "../../scripts/API/APITypes/Tree";
 import { NodeInUpdate } from "../../scripts/API/APITypes/Tree";
-import { UEInCreation } from "../../scripts/API/APITypes/UE.ts";
+import { UEInCreation, UeInUpdate } from "../../scripts/API/APITypes/UE.ts";
 
 type TreeNode = {
     academic_year: number;
     id: number;
     name: string;
     type: "node" | "ue";
-    // Pour le rendu, on ne se sert pas de child_nodes (issu de l’API) mais de children (arborescence enrichie)
     child_nodes: number[] | any[];
     children?: TreeNode[];
 };
 
 type TreeProps = {
     onSelectCourse: (course: TreeNode) => void;
+    // 
 };
 
-// Fonction utilitaire pour générer une clé unique en combinant le type et l'ID
 const getNodeKey = (node: TreeNode) => `${node.type}-${node.id}`;
 
+const refreshOpenNodes = async (
+    node: TreeNode,
+    openNodesSet: Set<string>,
+    loadNodeChildren: (nodeId: number, academicYear: number) => Promise<any>
+): Promise<TreeNode> => {
+    let updatedNode = node;
+    if (node.type === "node" && openNodesSet.has(getNodeKey(node))) {
+        const updatedData = await loadNodeChildren(node.id, node.academic_year);
+        if (updatedData) {
+            const childrenNodes = await Promise.all(
+                (updatedData.child_nodes || []).map(async (child: number | APINode) => {
+                    if (typeof child === "number") {
+                        return await loadNodeChildren(child, node.academic_year);
+                    } else if (typeof child === "object" && child !== null) {
+                        if ("courses" in child) {
+                            return { ...child, type: "ue" };
+                        }
+                        return child;
+                    } else {
+                        return null;
+                    }
+                })
+            );
+            updatedNode = {
+                ...updatedData,
+                children: childrenNodes.filter((child) => child !== null)
+            };
+        }
+    }
+    if (updatedNode.children) {
+        const refreshedChildren = await Promise.all(
+            updatedNode.children.map((child) =>
+                refreshOpenNodes(child, openNodesSet, loadNodeChildren)
+            )
+        );
+        updatedNode = { ...updatedNode, children: refreshedChildren };
+    }
+    return updatedNode;
+};
+
 const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
-    // On stocke dans openNodes les clés composites (ex: "node-123" ou "ue-123")
     const [openNodes, setOpenNodes] = useState<Set<string>>(new Set());
     const [contextMenu, setContextMenu] = useState<{
         visible: boolean;
@@ -31,129 +69,148 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         y: number;
         nodeKey: string | null;
     }>({ visible: false, x: 0, y: 0, nodeKey: null });
-
     const [dataState, setDataState] = useState<TreeNode | null>(null);
     const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
     const [newNodeName, setNewNodeName] = useState<string>("");
 
-    // Chargement du noeud racine depuis le backend
+    // Popup d'erreur
+    const [errorPopup, setErrorPopup] = useState<string | null>(null);
+    // Popup pour la création d'une UE
+    const [showAddUEPopup, setShowAddUEPopup] = useState(false);
+    const [newUEName, setNewUEName] = useState("");
+    // Nouveaux états pour les paramètres de chaque cours (5 lignes : CM, TD, TP, EI, TPL)
+    const [newUECourses, setNewUECourses] = useState<
+        { duration: number; group_count: number }[]
+    >([
+        { duration: 1, group_count: 1 },
+        { duration: 1, group_count: 1 },
+        { duration: 1, group_count: 1 },
+        { duration: 1, group_count: 1 },
+        { duration: 1, group_count: 1 }
+    ]);
+    const [parentForNewUE, setParentForNewUE] = useState<TreeNode | null>(null);
+
+    const [academicYear, setAcademicYear] = useState<string>(
+        window.sessionStorage.getItem("academic_year") || "2024"
+    );
+
+    const showError = (msg: string) => {
+        setErrorPopup(msg);
+        console.error(msg);
+    };
+
+    useEffect(() => {
+        if (errorPopup) {
+            const timer = setTimeout(() => setErrorPopup(null), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [errorPopup]);
+
     const chargementDonneeBackend = async () => {
         try {
-            const response = await NodeAPI.getRootNode(2024);
+            const year = parseInt(academicYear, 10);
+            const response = await NodeAPI.getRootNode(year);
             if (response.isError()) {
-                console.error("Erreur lors du chargement du node racine:", response.errorMessage());
+                showError("Erreur lors du chargement du node racine: " + response.errorMessage());
             } else {
                 const rootNode = response.responseObject();
-                setDataState({
-                    ...rootNode,
-                    children: []
-                });
+                let initialTree: TreeNode = { ...rootNode, children: [] };
+                const currentOpenNodes = new Set(openNodes);
+                if (currentOpenNodes.size > 0) {
+                    initialTree = await refreshOpenNodes(initialTree, currentOpenNodes, loadNodeChildren);
+                }
+                setDataState(initialTree);
             }
         } catch (error) {
-            console.error("Erreur lors de l'appel à l'API:", error);
+            showError("Erreur lors de l'appel à l'API: " + error);
         }
     };
 
-    // Chargement d'un noeud par son ID (les données proviennent de l'API)
+    useEffect(() => {
+        chargementDonneeBackend();
+    }, [academicYear]);
+
+    useEffect(() => {
+        const handleStorageChange = () => {
+            const storedYear = window.sessionStorage.getItem("academic_year");
+            if (storedYear && storedYear !== academicYear) {
+                setAcademicYear(storedYear);
+                console.log("Storage event:", storedYear);
+            }
+        };
+        window.addEventListener("storage", handleStorageChange);
+        return () => window.removeEventListener("storage", handleStorageChange);
+    }, [academicYear]);
+
+    useEffect(() => {
+        const handleSessionStorageChange = () => {
+            const storedYear = window.sessionStorage.getItem("academic_year");
+            setAcademicYear((prev) => (storedYear && storedYear !== prev ? storedYear : prev));
+        };
+        const originalSetItem = sessionStorage.setItem;
+        sessionStorage.setItem = function (key: string, value: string) {
+            originalSetItem.apply(this, arguments);
+            if (key === "academic_year") {
+                handleSessionStorageChange();
+            }
+        };
+        return () => {
+            sessionStorage.setItem = originalSetItem;
+        };
+    }, []);
+
     const loadNodeChildren = async (nodeId: number, academicYear: number) => {
         try {
             const response = await NodeAPI.getNodeById(nodeId);
             if (response.isError()) {
-                console.error(`Erreur lors du chargement du node ${nodeId}:`, response.errorMessage());
+                showError(`Erreur lors du chargement du node ${nodeId}: ${response.errorMessage()}`);
                 return null;
             }
             return response.responseObject();
         } catch (error) {
-            console.error("Erreur lors de l'appel à l'API:", error);
+            showError("Erreur lors de l'appel à l'API: " + error);
             return null;
         }
     };
 
-    // Fonction appelée lors du clic sur le bouton pour ouvrir/fermer un noeud
     const toggleNode = async (node: TreeNode) => {
         const nodeKey = getNodeKey(node);
-
-        if (node.type === "node") {
-            if (!openNodes.has(nodeKey)) {
-                // Récupération du noeud depuis l'API (qui peut contenir des enfants sous forme d'identifiants ou d'objets)
-                const updatedNode = await loadNodeChildren(node.id, node.academic_year);
-                if (updatedNode) {
-                    const childrenNodes = await Promise.all(
-                        (updatedNode.child_nodes || []).map(async (child: number | APINode) => {
-                            if (typeof child === "number") {
-                                return await loadNodeChildren(child, node.academic_year);
-                            } else if (typeof child === "object" && child !== null) {
-                                // Le noeud enfant est déjà fourni (par exemple, une UE)
-                                // Si le noeud possède une propriété "courses", il s'agit d'une UE : on force son type.
-                                if ("courses" in child) {
-                                    return { ...child, type: "ue" };
-                                }
-                                return child;
-                            } else {
-                                return null;
-                            }
-                        })
-                    );
-
-                    updateNodeInTree(node.id, {
-                        ...updatedNode,
-                        children: childrenNodes.filter((child) => child !== null)
-                    });
-                }
-            }
+        const newSet = new Set(openNodes);
+        if (newSet.has(nodeKey)) {
+            newSet.delete(nodeKey);
+            setOpenNodes(newSet);
+        } else {
+            newSet.add(nodeKey);
+            setOpenNodes(newSet);
+            const refreshed = await refreshOpenNodes(node, newSet, loadNodeChildren);
+            updateNodeInTree(node.id, refreshed);
         }
-
-        setOpenNodes((prev) => {
-            const newSet = new Set(prev);
-            if (newSet.has(nodeKey)) {
-                newSet.delete(nodeKey);
-            } else {
-                newSet.add(nodeKey);
-            }
-            return newSet;
-        });
     };
 
-    // Mise à jour d'un noeud dans l'arborescence (mise à jour récursive)
     const updateNodeInTree = (nodeId: number, updatedNode: TreeNode) => {
         if (!dataState) return;
-
         const updateNode = (node: TreeNode): TreeNode => {
-            if (node.id === nodeId && node.type === updatedNode.type) {
-                return updatedNode;
-            }
+            if (node.id === nodeId && node.type === updatedNode.type) return updatedNode;
             if (node.children) {
-                return {
-                    ...node,
-                    children: node.children.map((child) => updateNode(child))
-                };
+                return { ...node, children: node.children.map((child) => updateNode(child)) };
             }
             return node;
         };
-
         setDataState(updateNode(dataState));
     };
 
-    // Chargement initial des données lors du montage du composant
-    React.useEffect(() => {
-        chargementDonneeBackend();
-    }, []);
-
-    // Gestion du menu contextuel (affichage à la position du clic droit)
     const handleContextMenu = (e: React.MouseEvent, nodeKey: string) => {
         e.preventDefault();
-        // On arrête la propagation pour éviter que le clic droit sur un enfant ne déclenche aussi le menu du parent.
         e.stopPropagation();
         const x = e.clientX;
         const y = e.clientY - 40;
-        setContextMenu({ visible: true, x: x, y: y, nodeKey: nodeKey });
+        setContextMenu({ visible: true, x, y, nodeKey });
     };
 
     const closeContextMenu = () => {
         setContextMenu({ visible: false, x: 0, y: 0, nodeKey: null });
     };
 
-    // Recherche récursive d'un noeud par sa clé composite (type-id)
     const findNode = (node: TreeNode, compositeKey: string): TreeNode | null => {
         if (getNodeKey(node) === compositeKey) return node;
         if (node.children) {
@@ -165,7 +222,6 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         return null;
     };
 
-    // Recherche récursive du parent d'un noeud donné via sa clé composite
     const findParentNode = (node: TreeNode, compositeKey: string): TreeNode | null => {
         if (node.children) {
             for (const child of node.children) {
@@ -177,29 +233,22 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         return null;
     };
 
-    // Gestion des actions du menu contextuel
     const handleAction = async (action: string) => {
         if (contextMenu.nodeKey && dataState) {
             const node = findNode(dataState, contextMenu.nodeKey);
             if (!node) {
-                console.error("Noeud non trouvé pour l'action.");
+                showError("Noeud non trouvé pour l'action.");
                 closeContextMenu();
                 return;
             }
             if (action === "Ajouter Dossier") {
                 try {
-                    const newNodeData: NodeInUpdate = {
-                        name: "Nouveau Dossier",
-                        parent_id: node.id
-                    };
-
-                    const response = await NodeAPI.createNode(dataState.academic_year, newNodeData);
+                    const newNodeData: NodeInUpdate = { name: "Nouveau Dossier", parent_id: node.id };
+                    const response = await NodeAPI.createNode(node.academic_year, newNodeData);
                     if (response.isError()) {
-                        console.error("Erreur lors de la création du dossier:", response.errorMessage());
+                        showError("Erreur lors de la création du dossier: " + response.errorMessage());
                         return;
                     }
-
-                    // Ajout optimiste du nouveau dossier dans l'arborescence
                     const parent = findNode(dataState, contextMenu.nodeKey);
                     if (parent) {
                         const newFolderId = response.responseObject()?.id || Date.now();
@@ -211,80 +260,48 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                             child_nodes: [],
                             children: []
                         };
-
-                        if (!parent.children) {
-                            parent.children = [];
-                        }
-                        parent.children.push(newFolder);
+                        parent.children = parent.children ? [...parent.children, newFolder] : [newFolder];
                         setDataState({ ...dataState });
                     }
                 } catch (error) {
-                    console.error("Erreur lors de la création du dossier:", error);
+                    showError("Erreur lors de la création du dossier: " + error);
                 }
             } else if (action === "Ajouter UE") {
-                try {
-                    // Création d'une UE de base via l'API UE
-                    const newUEData: UEInCreation = {
-                        academic_year: 2024,
-                        name: "Nouvelle UE",
-                        parent_id: node.id,
-                        courses: []
-                    };
-
-                    const ueResponse = await UEAPI.createUE(newUEData);
-                    if (ueResponse.isError()) {
-                        console.error("Erreur lors de la création de l'UE:", ueResponse.errorMessage());
-                        return;
-                    }
-
-                    // Une fois l'UE ajoutée, recharger le noeud parent depuis le backend
-                    const updatedParent = await loadNodeChildren(node.id, dataState.academic_year);
-                    if (updatedParent) {
-                        const childrenNodes = await Promise.all(
-                            (updatedParent.child_nodes || []).map(async (child: number | APINode) => {
-                                if (typeof child === "number") {
-                                    return await loadNodeChildren(child, updatedParent.academic_year);
-                                } else if (typeof child === "object" && child !== null) {
-                                    if ("courses" in child) {
-                                        return { ...child, type: "ue" };
-                                    }
-                                    return child;
-                                } else {
-                                    return null;
-                                }
-                            })
-                        );
-                        updateNodeInTree(node.id, {
-                            ...updatedParent,
-                            children: childrenNodes.filter((child) => child !== null)
-                        });
-                    }
-                } catch (error) {
-                    console.error("Erreur lors de la création de l'UE:", error);
-                }
+                // Ouvre le popup pour créer une UE
+                setParentForNewUE(node);
+                setNewUEName("");
+                // Réinitialise les valeurs pour chaque ligne de cours
+                setNewUECourses([
+                    { duration: 1, group_count: 1 },
+                    { duration: 1, group_count: 1 },
+                    { duration: 1, group_count: 1 },
+                    { duration: 1, group_count: 1 },
+                    { duration: 1, group_count: 1 }
+                ]);
+                setShowAddUEPopup(true);
+                closeContextMenu();
+                return;
             } else if (action === "Supprimer") {
-                // Recherche du noeud à supprimer
                 const nodeToDelete = findNode(dataState, contextMenu.nodeKey);
                 if (!nodeToDelete) {
-                    console.error("Noeud non trouvé pour la suppression.");
+                    showError("Noeud non trouvé pour la suppression.");
                     closeContextMenu();
                     return;
                 }
                 try {
                     if (nodeToDelete.type === "node") {
-                        const response = await NodeAPI.deleteNode(dataState.academic_year, nodeToDelete.id);
+                        const response = await NodeAPI.deleteNode(nodeToDelete.academic_year, nodeToDelete.id);
                         if (response.isError()) {
-                            console.error("Erreur lors de la suppression du dossier:", response.errorMessage());
+                            showError("Erreur lors de la suppression du dossier: " + response.errorMessage());
                             return;
                         }
                     } else if (nodeToDelete.type === "ue") {
                         const response = await UEAPI.deleteUE(nodeToDelete.id);
                         if (response.isError()) {
-                            console.error("Erreur lors de la suppression de l'UE:", response.errorMessage());
+                            showError("Erreur lors de la suppression de l'UE: " + response.errorMessage());
                             return;
                         }
                     }
-
                     if (getNodeKey(dataState) === contextMenu.nodeKey) {
                         setDataState(null);
                     } else {
@@ -300,7 +317,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                         }
                     }
                 } catch (error) {
-                    console.error("Erreur lors de la suppression:", error);
+                    showError("Erreur lors de la suppression: " + error);
                 }
             } else if (action === "Renommer") {
                 setEditingNodeId(contextMenu.nodeKey);
@@ -310,59 +327,103 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         }
     };
 
-    // Passage en mode édition lors d'un double-clic
+    const handleCreateUE = async () => {
+        if (!parentForNewUE) return;
+        const newUEData: UEInCreation = {
+            academic_year: academicYear,
+            name: newUEName || "Nouvelle UE",
+            parent_id: parentForNewUE.id,
+            courses: newUECourses.map((course, index) => ({
+                academic_year: academicYear,
+                duration: course.duration,
+                group_count: course.group_count,
+                course_type_id: index + 1
+            }))
+        };
+
+        const ueResponse = await UEAPI.createUE(newUEData);
+        if (ueResponse.isError()) {
+            showError("Erreur lors de la création de l'UE: " + ueResponse.errorMessage());
+            return;
+        }
+        const updatedParent = await loadNodeChildren(parentForNewUE.id, parentForNewUE.academic_year);
+        if (updatedParent) {
+            const childrenNodes = await Promise.all(
+                (updatedParent.child_nodes || []).map(async (child: number | APINode) => {
+                    if (typeof child === "number") {
+                        return await loadNodeChildren(child, updatedParent.academic_year);
+                    } else if (typeof child === "object" && child !== null) {
+                        if ("courses" in child) {
+                            return { ...child, type: "ue" };
+                        }
+                        return child;
+                    } else {
+                        return null;
+                    }
+                })
+            );
+            updateNodeInTree(parentForNewUE.id, {
+                ...updatedParent,
+                children: childrenNodes.filter((child) => child !== null)
+            });
+        }
+        setShowAddUEPopup(false);
+    };
+
     const handleDoubleClick = (nodeKey: string, name: string) => {
         setEditingNodeId(nodeKey);
         setNewNodeName(name);
     };
 
-    // Mise à jour du nom en local lors de la saisie
     const handleNodeNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setNewNodeName(e.target.value);
     };
 
-    // Soumission du nouveau nom et envoi vers le backend
     const handleNodeNameSubmit = async (nodeKey: string) => {
         if (!dataState) return;
         const node = findNode(dataState, nodeKey);
         if (node) {
             const trimmedName = newNodeName.trim() === "" ? "default" : newNodeName.trim();
             try {
-                const response = await NodeAPI.updateNode(node.academic_year, node.id, { name: trimmedName });
-                if (response.isError()) {
-                    console.error("Erreur lors de la mise à jour du nom:", response.errorMessage());
-                } else {
-                    node.name = trimmedName;
-                    setDataState({ ...dataState });
+                if (node.type === "node") {
+                    const response = await NodeAPI.updateNode(node.academic_year, node.id, { name: trimmedName });
+                    if (response.isError()) {
+                        showError("Erreur lors de la mise à jour du nom: " + response.errorMessage());
+                    } else {
+                        node.name = trimmedName;
+                        setDataState({ ...dataState });
+                    }
+                } else if (node.type === "ue") {
+                    const response = await UEAPI.modifyUE(node.id, { name: trimmedName, academic_year: academicYear } as UeInUpdate);
+                    if (response.isError()) {
+                        showError("Erreur lors de la mise à jour du nom de l'UE: " + response.errorMessage());
+                    } else {
+                        node.name = trimmedName;
+                        setDataState({ ...dataState });
+                    }
                 }
             } catch (error) {
-                console.error("Erreur lors de l'appel à l'API de mise à jour:", error);
+                showError("Erreur lors de l'appel à l'API de mise à jour: " + error);
             }
         }
         setEditingNodeId(null);
     };
 
-    // Rendu d'un noeud (ou UE) et de ses éventuels enfants
     const renderNode = (node: TreeNode) => {
         const nodeKey = getNodeKey(node);
         const isOpen = openNodes.has(nodeKey);
-
         return (
             <div key={nodeKey} className="ml-4 relative">
                 {isOpen && node.type === "node" && (
                     <div className="absolute left-[-5px] top-3 h-full w-[1px] bg-blue-300"></div>
                 )}
-
-                <div
-                    className="flex items-center gap-2 cursor-pointer hover:text-gray-700"
-                    onContextMenu={(e) => handleContextMenu(e, nodeKey)}
-                >
+                <div className="flex items-center gap-2 cursor-pointer hover:text-gray-700" onContextMenu={(e) => handleContextMenu(e, nodeKey)}>
                     {node.type === "node" ? (
                         <button className="text-lg font-bold" onClick={() => toggleNode(node)}>
                             {isOpen ? "∨" : ">"}
                         </button>
                     ) : (
-                        <span className="w-6">📚</span> // Icône pour les UE
+                        <span className="w-6">📚</span>
                     )}
                     {editingNodeId === nodeKey ? (
                         <input
@@ -370,11 +431,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                             value={newNodeName}
                             onChange={handleNodeNameChange}
                             onBlur={() => handleNodeNameSubmit(nodeKey)}
-                            onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                    handleNodeNameSubmit(nodeKey);
-                                }
-                            }}
+                            onKeyDown={(e) => e.key === "Enter" && handleNodeNameSubmit(nodeKey)}
                             className="text-lg font-semibold whitespace-nowrap"
                             autoFocus
                         />
@@ -388,7 +445,6 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
             </span>
                     )}
                 </div>
-
                 {isOpen && node.type === "node" && node.children && (
                     <div className="mt-2 ml-2">
                         {node.children.map((child) => renderNode(child))}
@@ -400,36 +456,80 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
 
     return (
         <div className="relative p-4 h-full" onClick={closeContextMenu}>
+            {errorPopup && (
+                <div className="fixed top-4 right-4 z-50 bg-red-500 text-white p-2 rounded shadow">
+                    {errorPopup}
+                </div>
+            )}
             <div className="flex-grow h-full">{dataState && renderNode(dataState)}</div>
             {contextMenu.visible && (
-                <div
-                    className="absolute bg-white border border-gray-300 rounded shadow-md"
-                    style={{ top: contextMenu.y, left: contextMenu.x }}
-                >
-                    <button
-                        className="block px-4 py-2 text-left hover:bg-gray-100 w-full"
-                        onClick={() => handleAction("Renommer")}
-                    >
+                <div className="absolute bg-white border border-gray-300 rounded shadow-md" style={{ top: contextMenu.y, left: contextMenu.x }}>
+                    <button className="block px-4 py-2 text-left hover:bg-gray-100 w-full" onClick={() => handleAction("Renommer")}>
                         Renommer
                     </button>
-                    <button
-                        className="block px-4 py-2 text-left hover:bg-gray-100 w-full"
-                        onClick={() => handleAction("Ajouter Dossier")}
-                    >
+                    <button className="block px-4 py-2 text-left hover:bg-gray-100 w-full" onClick={() => handleAction("Ajouter Dossier")}>
                         Ajouter Dossier
                     </button>
-                    <button
-                        className="block px-4 py-2 text-left hover:bg-gray-100 w-full"
-                        onClick={() => handleAction("Ajouter UE")}
-                    >
+                    <button className="block px-4 py-2 text-left hover:bg-gray-100 w-full" onClick={() => handleAction("Ajouter UE")}>
                         Ajouter UE
                     </button>
-                    <button
-                        className="block px-4 py-2 text-left hover:bg-gray-100 w-full"
-                        onClick={() => handleAction("Supprimer")}
-                    >
+                    <button className="block px-4 py-2 text-left hover:bg-gray-100 w-full" onClick={() => handleAction("Supprimer")}>
                         Supprimer
                     </button>
+                </div>
+            )}
+            {showAddUEPopup && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                    <div className="bg-white p-4 rounded shadow-lg w-96">
+                        <h3 className="text-lg font-bold mb-4">Créer une nouvelle UE</h3>
+                        <label className="block mb-2">
+                            Nom de l'UE:
+                            <input
+                                type="text"
+                                value={newUEName}
+                                onChange={(e) => setNewUEName(e.target.value)}
+                                className="border p-1 w-full mt-1"
+                            />
+                        </label>
+                        {/* Formulaire pour chaque ligne */}
+                        {["CM", "TD", "TP", "EI", "TPL"].map((label, index) => (
+                            <div key={index} className="mb-2">
+                                <strong>{label}</strong>
+                                <div className="flex gap-2 mt-1">
+                                    <input
+                                        type="number"
+                                        placeholder="Durée"
+                                        value={newUECourses[index].duration}
+                                        onChange={(e) => {
+                                            const newCourses = [...newUECourses];
+                                            newCourses[index].duration = parseInt(e.target.value) || 0;
+                                            setNewUECourses(newCourses);
+                                        }}
+                                        className="border p-1 w-1/2"
+                                    />
+                                    <input
+                                        type="number"
+                                        placeholder="Nb Groupes"
+                                        value={newUECourses[index].group_count}
+                                        onChange={(e) => {
+                                            const newCourses = [...newUECourses];
+                                            newCourses[index].group_count = parseInt(e.target.value) || 0;
+                                            setNewUECourses(newCourses);
+                                        }}
+                                        className="border p-1 w-1/2"
+                                    />
+                                </div>
+                            </div>
+                        ))}
+                        <div className="flex justify-end gap-2 mt-4">
+                            <button className="px-3 py-1 bg-gray-200 rounded" onClick={() => setShowAddUEPopup(false)}>
+                                Annuler
+                            </button>
+                            <button className="px-3 py-1 bg-blue-500 text-white rounded" onClick={handleCreateUE}>
+                                Créer
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

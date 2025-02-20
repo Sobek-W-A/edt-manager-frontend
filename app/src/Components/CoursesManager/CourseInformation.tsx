@@ -39,7 +39,7 @@ const CourseInformation = forwardRef((_props, ref) => {
                     console.error('Erreur lors de la récupération des données de l\'UE:', error);
                 }
             };
-            fetchUEData();
+            fetchUEData(); // 
         }
     }), );
 
