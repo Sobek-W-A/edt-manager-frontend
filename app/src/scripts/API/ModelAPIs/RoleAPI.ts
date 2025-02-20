@@ -12,7 +12,7 @@ export default class RoleAPI {
     static ROLE_DEFAULT: RoleInPatchType = { name: "Non assigné"};
 
     static getAllRoles(): Promise<APIResponse<RoleType[]>> {
-        return api.requestLogged<RoleType[]>(
+        return api.requestLoggedWithAcademicYear<RoleType[]>(
             HTTPMethod.GET,
             `${RoleAPI.ROLE_URL}/`,
             undefined,
@@ -42,7 +42,7 @@ export default class RoleAPI {
      * @returns A promise that resolves into a role or an error.
      */
     static modifyUserRole(account_id: number, role: RoleType, academic_year: string): Promise<APIResponse<RoleType>> {
-        return api.requestLogged<RoleType>(
+        return api.requestLoggedWithAcademicYear<RoleType>(
             HTTPMethod.PATCH,
             `${RoleAPI.ACCOUNTS_PATH}/${account_id}${RoleAPI.ROLE_URL}/`,
             JSON.stringify({ name: role ? role.name : RoleAPI.ROLE_DEFAULT.name, academic_year }),
@@ -57,7 +57,7 @@ export default class RoleAPI {
      * @returns A promise that resolves into a role or an error.
      */
     static removeUserRole(account_id: number, academic_year: string): Promise<APIResponse<undefined>> {
-        return api.requestLogged<undefined>(
+        return api.requestLoggedWithAcademicYear<undefined>(
             HTTPMethod.PATCH,
             `${RoleAPI.ACCOUNTS_PATH}/${account_id}${RoleAPI.ROLE_URL}/`,
             JSON.stringify({ name: RoleAPI.ROLE_DEFAULT.name, academic_year }),
