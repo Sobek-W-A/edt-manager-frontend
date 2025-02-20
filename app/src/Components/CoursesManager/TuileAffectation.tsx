@@ -13,7 +13,6 @@ export default function TuileAffectation({ data, onRefresh }) {
     const [editedNotes, setEditedNotes] = useState(notes);
 
     const handleEdit = () => {
-        console.log(data);
         setIsEditing(true);
     };
 
