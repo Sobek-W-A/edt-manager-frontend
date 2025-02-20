@@ -5,7 +5,7 @@ import ProfileForm from "../Components/Profile/ProfileForm.tsx";
 import ProfileModel from "../scripts/Models/ProfileModel.ts";
 import {ProfileInCreate} from "../scripts/API/APITypes/Profiles.ts";
 
-const global_academic_year = 2025;
+
 
 function AddProfile() {
 
@@ -32,7 +32,7 @@ function AddProfile() {
     const [generalError, setGeneralError] = useState("");
     const [success, setSuccess] = useState(false);
 
-
+    const global_academic_year = window.sessionStorage.getItem("academic_year");
 
     const setEmailError = (error: string) => setErrors(prev => ({ ...prev, emailError: error }));
     const setPrenomError = (error: string) => setErrors(prev => ({ ...prev, prenomError: error }));
@@ -81,7 +81,7 @@ function AddProfile() {
             <div className="w-full max-w-md p-8 space-y-6 rounded-lg shadow-md">
                 <div className="flex flex-col items-center">
                     <h1 className="text-4xl font-semibold">Création de profil</h1>
-                    <p className="text-sm">Créez un nouveau profil</p>
+                    <p className="text-sm">Créez un nouveau profil pour {global_academic_year}</p>
                 </div>
 
                 {generalError && <AlertError title="Oups ! Une erreur est survenue." details={generalError} />}
