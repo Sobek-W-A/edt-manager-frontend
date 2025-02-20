@@ -15,6 +15,12 @@ const CourseInformation = forwardRef((_props, ref) => {
     const [idUE, setIDUE] = useState<number>(-1); // Si idUE est -1, ça veut dire qu'aucune UE n'est choisie
     const [idUELoad, setIdUELoad] = useState<boolean>(false);
 
+    const [refreshKey, setRefreshKey] = useState(0); // Clé pour forcer le refresh
+
+    const handleRefresh = () => {
+        setRefreshKey((prevKey) => prevKey + 1); // Change la clé pour rerender
+    };
+
     useImperativeHandle(ref, () => ({
         displayUE_By_ID(id: number) {
             setIDUE(id);
@@ -23,7 +29,6 @@ const CourseInformation = forwardRef((_props, ref) => {
                     const response = UEModel.getUEById(id);
                     response.then((ue) => {
                         if (ue instanceof UEModel) {
-                            console.log(ue);
                             setUeName(ue.name);
                             setCourses(ue.courses);
                             setAcademicYear(ue.academic_year);
@@ -36,7 +41,23 @@ const CourseInformation = forwardRef((_props, ref) => {
             };
             fetchUEData();
         }
-    }), []);
+    }), );
+
+    useEffect(() => {
+            try {
+                const response = UEModel.getUEById(idUE);
+                response.then((ue) => {
+                    if (ue instanceof UEModel) {
+                        setUeName(ue.name);
+                        setCourses(ue.courses);
+                        setAcademicYear(ue.academic_year);
+                        setIdUELoad(true);
+                    }
+                });
+            } catch (error) {
+                console.error('Erreur lors de la récupération des données de l\'UE:', error);
+            }
+    }, [idUE, refreshKey]);
 
     const handleCourseChange = (index: number, field: "group_count" | "duration", newValue: string) => {
         const updatedCourses = [...courses];
@@ -67,7 +88,6 @@ const CourseInformation = forwardRef((_props, ref) => {
     const handleValidate = () => {
         console.log('Validation des données...');
         const modifiesUE: UeInUpdate = {
-            academic_year: academicYear,
             name: ueName,
         };
 
@@ -76,6 +96,8 @@ const CourseInformation = forwardRef((_props, ref) => {
         courses.forEach((course) => {
             CourseModel.modifyCourseById(course.id, course);
         });
+
+        handleRefresh()
     };
 
     // Handler pour activer/désactiver le mode édition
@@ -83,11 +105,6 @@ const CourseInformation = forwardRef((_props, ref) => {
         setIsEditing(!isEditing); // bascule entre les modes
     };
 
-    const [refreshKey, setRefreshKey] = useState(0); // Clé pour forcer le refresh
-
-    const handleRefresh = () => {
-        setRefreshKey((prevKey) => prevKey + 1); // Change la clé pour rerender
-    };
 
     // Filtrer les cours pour ne pas afficher ceux où duration ou group_count sont égaux à 0
     const filteredCourses = courses.filter((course) => course.duration > 0 && course.group_count > 0);
@@ -177,14 +194,26 @@ const CourseInformation = forwardRef((_props, ref) => {
                                     <p>ID cours : {course.id}</p>
                                     <b>{course.course_type.name} </b>
                                     <p>description : {course.course_type.description}</p>
-                                    <p>assignées/total : x/{course.duration}</p>
+
+
                                 </div>
 
                                 <CollapsibleButton>
                                     <SearchAndChose id_cours={course.id} groupCount={course.group_count} />
                                 </CollapsibleButton>
 
-                                <AlreadyAffectedList course_id={course.id} refresh = {handleRefresh}/>
+                                {Array.from({ length: course.group_count }, (_, i) =>
+                                    <>
+
+                                        <AlreadyAffectedList
+                                            group={i}
+                                            refreshNumber={refreshKey}
+                                            duree = {course.duration}
+                                            course_id={course.id} refresh={handleRefresh}/>
+                                    </>
+                                )}
+
+
                             </div>
                         ))}
                     </div>

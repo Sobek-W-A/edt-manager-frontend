@@ -6,9 +6,12 @@ import {useParams} from "react-router";
 import ProfileModel from "../scripts/Models/ProfileModel.ts";
 import {ProfileInUpdate} from "../scripts/API/APITypes/Profiles.ts";
 
-const global_academic_year = 2025;
+const global_academic_year = window.sessionStorage.getItem("academic_year");;
+
 
 const ModifyProfile = () => {
+    const global_academic_year = window.sessionStorage.getItem("academic_year");
+
     const [nom, setNom] = useState('');
     const [prenom, setPrenom] = useState('');
     const [email, setEmail] = useState('');
@@ -22,7 +25,7 @@ const ModifyProfile = () => {
     const [generalError, setGeneralError] = useState("");
     const [success, setSuccess] = useState(false);
 
-    const [id_profile, setId_profile] = useState(-1);
+    const [, setId_profile] = useState(-1);
 
     const params = useParams();
     const userModel = useRef<ProfileModel>();
@@ -123,7 +126,7 @@ const ModifyProfile = () => {
             <div className="w-full max-w-md p-8 space-y-6 rounded-lg shadow-md">
                 <div className="flex flex-col items-center">
                     <h1 className="text-4xl font-semibold">Modifer un profile</h1>
-                    <p className="text-sm">Modification du profile {email}</p>
+                    <p className="text-sm">Modification du profile {email} pour {global_academic_year}</p>
                 </div>
 
                 {generalError && <AlertError title="Oups ! Une erreur est survenue." details={generalError}/>}
