@@ -13,7 +13,7 @@ export default class CourseAPI {
      * @returns The response of the request.
      */
     static async getCourseById(id: number): Promise<APIResponse<Course>> {
-        return api.requestLogged<Course>(
+        return api.requestLoggedWithAcademicYear<Course>(
             HTTPMethod.GET,
             `${CourseAPI.COURSE_PATH}/${id}`,
             undefined,
@@ -28,7 +28,7 @@ export default class CourseAPI {
      * @returns The response of the request.
      */
     static async modifyCourse(id: number, course: Course): Promise<APIResponse<undefined>> {
-        return api.requestLogged<undefined>(
+        return api.requestLoggedWithAcademicYear<undefined>(
             HTTPMethod.PATCH,
             `${CourseAPI.COURSE_PATH}/${id}`,
             JSON.stringify(course),
@@ -42,7 +42,7 @@ export default class CourseAPI {
      * @returns The response of the request.
      */
     static async deleteCourse(id: number): Promise<APIResponse<undefined>> {
-        return api.requestLogged<undefined>(
+        return api.requestLoggedWithAcademicYear<undefined>(
             HTTPMethod.DELETE,
             `${CourseAPI.COURSE_PATH}/${id}`,
             undefined,
@@ -56,7 +56,7 @@ export default class CourseAPI {
      * @returns The response of the request.
      */
     static async createCourse(course: CourseInCreation): Promise<APIResponse<Course>> {
-        return api.requestLogged<Course>(
+        return api.requestLoggedWithAcademicYear<Course>(
             HTTPMethod.POST,
             `${CourseAPI.COURSE_PATH}/`,
             JSON.stringify(course),

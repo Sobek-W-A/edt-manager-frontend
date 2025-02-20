@@ -108,8 +108,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
 
     const chargementDonneeBackend = async () => {
         try {
-            const year = parseInt(academicYear, 10);
-            const response = await NodeAPI.getRootNode(year);
+            const response = await NodeAPI.getRootNode();
             if (response.isError()) {
                 showError("Erreur lors du chargement du node racine: " + response.errorMessage());
             } else {
