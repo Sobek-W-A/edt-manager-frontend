@@ -13,7 +13,7 @@ export default class UEAPI {
      * @returns The response of the request.
      */
     static async getUEById(id: number): Promise<APIResponse<UE>> {
-        return api.requestLogged<UE>(
+        return api.requestLoggedWithAcademicYear<UE>(
             HTTPMethod.GET,
             `${UEAPI.UE_PATH}/${id}`,
             undefined,
@@ -29,7 +29,7 @@ export default class UEAPI {
      * @returns The response of the request.
      */
     static async modifyUE(id: number, ue: UeInUpdate): Promise<APIResponse<undefined>> {
-        return api.requestLogged<undefined>(
+        return api.requestLoggedWithAcademicYear<undefined>(
             HTTPMethod.PATCH,
             `${UEAPI.UE_PATH}/${id}`,
             JSON.stringify(ue),
@@ -41,7 +41,7 @@ export default class UEAPI {
      * This method is used to delete a UE.
      */
     static async deleteUE(id: number): Promise<APIResponse<undefined>> {
-        return api.requestLogged<undefined>(
+        return api.requestLoggedWithAcademicYear<undefined>(
             HTTPMethod.DELETE,
             `${UEAPI.UE_PATH}/${id}`,
             undefined,
