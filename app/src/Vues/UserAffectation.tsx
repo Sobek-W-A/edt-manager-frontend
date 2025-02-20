@@ -18,6 +18,28 @@ function UserAffectation() {
     const [notification, setNotification] = useState({ message: '', type: '' });
     const [showNotification, setShowNotification] = useState(false);
 
+    const [ACADEMIC_YEAR, setACADEMIC_YEAR] = useState<string>(window.sessionStorage.getItem("academic_year") || new Date().getFullYear().toString());
+
+    // Utilisation de useEffect pour récupérer l'année académique lorsqu'elle change dans le session storage
+    useEffect(() => {
+        const handleSessionStorageChange = () => {
+            const academicYear = window.sessionStorage.getItem("academic_year");
+            if (academicYear) {
+                setACADEMIC_YEAR(academicYear);
+            }
+        };
+
+        const originalSetItem = sessionStorage.setItem;
+        sessionStorage.setItem = function (key, value) {
+            originalSetItem.apply(this, arguments);
+            handleSessionStorageChange();
+        };
+
+        return () => {
+            sessionStorage.setItem = originalSetItem;
+        };
+    }, []);
+
     useEffect(() => {
         const fetchProfileData = async () => {
             const profileResponse = await ProfileAPI.getProfileById(Number(idProfile));
@@ -33,7 +55,7 @@ function UserAffectation() {
                 setNotification({ message: `Erreur dans la récuperation des affectations : ${affectationResponse.errorMessage()}.`, type: 'alert-error' });
                 setShowNotification(true);
             } else {
-                setAffectations(affectationResponse.responseObject());
+                setAffectations(affectationResponse.responseObject().filter(affectation => affectation.course.academic_year === Number(ACADEMIC_YEAR)));
             }
         };
         fetchProfileData();
@@ -57,8 +79,8 @@ function UserAffectation() {
                                             <p className="text-gray-500"><FontAwesomeIcon icon={faIdBadge} /> ID cours : {affectation.course.id}</p>
                                             <b className="text-gray-500"><FontAwesomeIcon icon={faBook} /> {affectation.course.course_type.name} </b>
                                             <p className="text-gray-500"><FontAwesomeIcon icon={faInfoCircle} /> description : {affectation.course.course_type.description}</p>
-                                            <p className="text-gray-500"><FontAwesomeIcon icon={faTasks} /> assignées/total : x/{affectation.course.duration}</p>
-                                            <p className="text-gray-500"><FontAwesomeIcon icon={faClock} /> {affectation.hours}h</p>
+                                            <p className="text-gray-500"><FontAwesomeIcon icon={faTasks} /> assignées/total : {affectation.course.duration / 60}/{affectation.hours} h</p>
+                                            <p className="text-gray-500"><FontAwesomeIcon icon={faClock} /> {affectation.course.duration} min</p>
                                         </div>
                                     )
                                 ) : (

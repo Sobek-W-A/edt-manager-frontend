@@ -41,7 +41,7 @@ function AddRole() {
     const [filterAccount, setFilterAccount] = useState<string>("id");
     const [filterProfile, setFilterProfile] = useState<string>("id");
 
-    const [ACADEMIC_YEAR, setACADEMIC_YEAR] = useState<string>(window.sessionStorage.getItem("academic_year") || '2024') //2024
+    const [ACADEMIC_YEAR, setACADEMIC_YEAR] = useState<string>(window.sessionStorage.getItem("academic_year") || new Date().getFullYear().toString()) //2024
 
     // Utilisation de useEffect pour récupérer l'année académique lorsqu'elle change dans le session storage
     useEffect(() => {
