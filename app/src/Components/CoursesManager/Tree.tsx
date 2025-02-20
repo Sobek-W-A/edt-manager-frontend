@@ -16,6 +16,7 @@ type TreeNode = {
 
 type TreeProps = {
     onSelectCourse: (course: TreeNode) => void;
+    // 
 };
 
 const getNodeKey = (node: TreeNode) => `${node.type}-${node.id}`;
