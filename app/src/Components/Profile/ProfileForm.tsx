@@ -7,6 +7,7 @@ import {Account} from "../../scripts/API/APITypes/Accounts.ts";
 
 const global_academic_year = window.sessionStorage.getItem("academic_year");
 
+
 interface UserFormProps {
     email: string;
     setEmail: (value: string) => void;
@@ -99,7 +100,7 @@ const UserForm: React.FC<UserFormProps> = ({
 
     React.useEffect(() => {
 
-        StatusModel.getAllStatusByYear(global_academic_year).then(response => {
+        StatusModel.getAllStatusByYear().then(response => {
             if (!(response instanceof ErrorResponse)) {
                 setAvailableStatus(response);
             }

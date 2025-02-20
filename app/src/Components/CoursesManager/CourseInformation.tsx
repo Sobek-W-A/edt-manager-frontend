@@ -1,4 +1,4 @@
-import {useState, useImperativeHandle, forwardRef, useEffect} from 'react';
+import {useState, useImperativeHandle, forwardRef} from 'react';
 import CollapsibleButton from './CollapsibleButton';
 import SearchAndChose from "./SearchAndChose";
 import UEModel from "../../scripts/Models/UEModel.ts";
@@ -104,7 +104,6 @@ const CourseInformation = forwardRef((_props, ref) => {
     const toggleEditMode = () => {
         setIsEditing(!isEditing); // bascule entre les modes
     };
-
 
 
     // Filtrer les cours pour ne pas afficher ceux où duration ou group_count sont égaux à 0

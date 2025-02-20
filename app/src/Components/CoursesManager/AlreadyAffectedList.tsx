@@ -4,7 +4,9 @@ import TuileAffectation from "./TuileAffectation.tsx";
 import AffectationModel from "../../scripts/Models/AffectationModel.ts";
 
 
+
 function AlreadyAffectedList(props: { course_id: number, refresh: () => never, group: number, refreshNumber: number, duree : number }) {
+
 
     const [affectationsResponse, setaffectationsResponse] = useState<(AffectationType)[]>();
     const [somme, setSomme] = useState(0);
