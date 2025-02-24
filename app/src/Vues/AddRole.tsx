@@ -156,8 +156,22 @@ function AddRole() {
 
     // Fonction pour récuperer les comptes et profils
     const fetchAccountsAndProfiles = async () => {
+        // On calcul le nombre de comptes et profils à récuperer en fonction de leur nombre respectif pour combler nbOfItemsPerPage
+        let nbOfItemsPerPageAccount;
+        let nbOfItemsPerPageProfile;
+        if (numberOfProfiles < nbOfItemsPerPage / 2) {
+            nbOfItemsPerPageAccount = nbOfItemsPerPage / 2 - numberOfProfiles;
+            nbOfItemsPerPageProfile = nbOfItemsPerPage / 2;
+        } else if (numberOfAccounts < nbOfItemsPerPage / 2) {
+            nbOfItemsPerPageAccount = nbOfItemsPerPage / 2;
+            nbOfItemsPerPageProfile = nbOfItemsPerPage / 2 - numberOfAccounts;
+        } else {
+            nbOfItemsPerPageAccount = nbOfItemsPerPage / 2;
+            nbOfItemsPerPageProfile = nbOfItemsPerPage / 2;
+        }
+
         // Récupérer les comptes liés à des profils
-        const accountResponse = await AccountAPI.getAllAccounts(currentPage, nbOfItemsPerPage / 2, filterAccount);
+        const accountResponse = await AccountAPI.getAllAccounts(currentPage, nbOfItemsPerPageAccount, filterAccount);
         if (accountResponse.isError()) {
             setNotification({ message: `Erreur dans la récuperation des comptes : ${accountResponse.errorMessage()}.`, type: 'alert-error' });
             setShowNotification(true);
@@ -167,7 +181,7 @@ function AddRole() {
         }
 
         // Récupérer la liste des rôles
-        const profilesResponse = await ProfileAPI.getAllProfiles(currentPage, nbOfItemsPerPage / 2, filterProfile);
+        const profilesResponse = await ProfileAPI.getAllProfiles(currentPage, nbOfItemsPerPageProfile, filterProfile);
         if (profilesResponse.isError()) {
             setNotification({ message: `Erreur dans la récuperation des profiles : ${profilesResponse.errorMessage()}.`, type: 'alert-error' });
             setShowNotification(true);
@@ -199,6 +213,7 @@ function AddRole() {
                     const accountsWithProfiles = accountsByKeywords.responseObject().filter((account: Account) => account.profile !== null);
                     setFilteredAccountsAndProfiles(accountsWithProfiles);
                     setNumberOfAccounts(accountsWithProfiles.length);
+
                 }
             });
         } else {
