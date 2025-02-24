@@ -21,6 +21,20 @@ export default class UEAPI {
         );
     }
 
+    /**
+     * This method is used to get all UEs of a specific profile.
+     * @param profileId The id of the profile to get the UEs from.
+     * @returns The response of the request.
+     */
+    static async getUEsByProfileId(profileId: number): Promise<APIResponse<UE[]>> {
+        return api.requestLoggedWithAcademicYear<UE[]>(
+            HTTPMethod.GET,
+            `${UEAPI.UE_PATH}/affectedto/${profileId}`,
+            undefined,
+            undefined
+        );
+    }
+
 
     /**
      * This method is used to modify a UE.

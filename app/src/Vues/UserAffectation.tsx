@@ -8,12 +8,15 @@ import { faEnvelope, faClock, faIdBadge, faBook, faInfoCircle, faTasks, faCalend
 import AffectationAPI from "../scripts/API/ModelAPIs/AffectationAPI.ts";
 import { Affectation } from "../scripts/API/APITypes/AffectationType.ts";
 import CourseInformation from "../Components/CoursesManager/CourseInformation.tsx";
-import Tree from "../Components/CoursesManager/Tree.tsx";
+import Tree from "../Components/CoursesManager/Tree.tsx"
+import { UE } from "../scripts/API/APITypes/UE.ts";
+import UEAPI from "../scripts/API/ModelAPIs/UEAPI.ts";
 
 function UserAffectation() {
     const { idProfile } = useParams<{ idProfile: string }>();
     const [profile, setProfile] = useState<Profile>();
     const [affectations, setAffectations] = useState<Affectation[]>([]);
+    const [ue, setUe] = useState<UE[]>();
 
     const [notification, setNotification] = useState({ message: '', type: '' });
     const [showNotification, setShowNotification] = useState(false);
@@ -57,9 +60,17 @@ function UserAffectation() {
             } else {
                 setAffectations(affectationResponse.responseObject());
             }
+
+            const ueResponse = await UEAPI.getUEsByProfileId(Number(idProfile));
+            if (ueResponse.isError()) {
+                setNotification({ message: `Erreur dans la récuperation des UE : ${ueResponse.errorMessage()}.`, type: 'alert-error' });
+                setShowNotification(true);
+            } else {
+                setUe(ueResponse.responseObject());
+            }
         };
         fetchProfileData();
-    }, []);
+    }, [ACADEMIC_YEAR]);
 
 
     useEffect(() => {
@@ -78,8 +89,36 @@ function UserAffectation() {
                         <div>
                             <h3 className="text-xl font-semibold">{profile.lastname} {profile.firstname}</h3>
                             <p className="text-gray-500"><FontAwesomeIcon icon={faEnvelope} /> {profile.mail}</p>
-                            <p className="text-gray-500">Quota : {profile.quota}</p>
+                            <p className={`text-gray-500 ${affectations.reduce((sum, affectation) => sum + affectation.hours, 0) > profile.quota ? 'text-red-500' : 'text-green-500'}`}>
+                                Quota : {affectations.reduce((sum, affectation) => sum + affectation.hours, 0)}/{profile.quota} h
+                            </p>
                             <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-3 gap-6 mt-6">
+                                {ue && ue.length > 0 ? (
+                                    ue.map((ueItem, index) => (
+                                        <div key={index} className="border p-4 rounded shadow-md relative flex flex-col bg-white hover:shadow-lg hover:scale-105 transition-transform duration-200 text-left">
+                                            <h3 className="text-lg font-bold mb-2">
+                                                <p className="text-gray-500"><FontAwesomeIcon icon={faBook} /> {ueItem.name}</p>
+                                                <p className="text-gray-500"><FontAwesomeIcon icon={faIdBadge} /> ID UE : {ueItem.ue_id}</p>
+                                            </h3>
+                                            {ueItem.courses && ueItem.courses.length > 0 ? (
+                                                ueItem.courses.map(course => (
+                                                    <div key={course.id} className="p-2 rounded bg-white">
+                                                        <p className="text-gray-500"><FontAwesomeIcon icon={faBook} /> {course.course_type.name}</p>
+                                                        <p className="text-gray-500"><FontAwesomeIcon icon={faIdBadge} /> {course.id}</p>
+                                                        <p className="text-gray-500"><FontAwesomeIcon icon={faInfoCircle} /> Description : {course.course_type.description}</p>
+                                                        <p className="text-gray-500"><FontAwesomeIcon icon={faTasks} /> Durée : {course.duration} h</p>
+                                                        <p className="text-gray-500"><FontAwesomeIcon icon={faUsers} /> Nombre de groupes : {course.group_count}</p>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <p className="text-gray-500">Aucun cours</p>
+                                            )}
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-gray-500 text-center col-span-full">Aucune UE</p>
+                                )}
+
                                 {affectations.length > 0 ? (
                                     Object.values(affectations.reduce<Record<string, Affectation[]>>((acc, affectation) => {
                                         const courseTypeName = affectation.course.course_type.name;
