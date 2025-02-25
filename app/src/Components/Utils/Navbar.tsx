@@ -93,11 +93,11 @@ function Navbar() {
                                 <ul tabIndex={0}
                                     className="dropdown-content menu bg-green-100 text-gray-700 rounded-box z-[1] w-52 p-2 shadow">
 
-                                    {ACADEMIC_YEAR.map(year => (
+                                    {academicYears.map(year => (
                                         <li key ={year} onClick={() => handleChangeAcadmicYear(year)}
 
                                             className="cursor-pointer p-2 hover:bg-green-200 rounded">
-                                            {academicYear.academic_year}
+                                            {year}
                                         </li>))}
                                     {loading && <span>Loading ...</span>}
                                 </ul>
