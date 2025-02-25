@@ -15,7 +15,7 @@ function Navbar() {
     }, []);
 
     const [academicYear, setAcademicYear] = useState<number>();
-    const [academicYears, setAcademicYears] = useState<AcademicYearType[] | undefined>();
+    const [academicYears, setAcademicYears] = useState<AcademicYearType[]>([]);
     const [loading, setIsLoading] = useState<boolean>(false);
 
     useEffect(() => {
@@ -94,10 +94,10 @@ function Navbar() {
                                     className="dropdown-content menu bg-green-100 text-gray-700 rounded-box z-[1] w-52 p-2 shadow">
 
                                     {academicYears.map(year => (
-                                        <li key ={year} onClick={() => handleChangeAcadmicYear(year)}
+                                        <li key ={year.academic_year} onClick={() => handleChangeAcadmicYear(year.academic_year)}
 
                                             className="cursor-pointer p-2 hover:bg-green-200 rounded">
-                                            {year}
+                                            {year.academic_year}
                                         </li>))}
                                     {loading && <span>Loading ...</span>}
                                 </ul>
