@@ -1,7 +1,7 @@
 import APIResponse from "../Responses/APIResponse.ts";
 import { HTTPMethod } from "../Enums/HTTPMethod.ts";
 import { api } from "../API.ts";
-import { AffectationInCreate } from "../APITypes/AffectationType.ts";
+import { AffectationInCreate, Affectation } from "../APITypes/AffectationType.ts";
 
 /**
  * TypeScript interface pour typer une affectation.
@@ -55,6 +55,18 @@ export default class AffectationAPI {
     return api.requestLoggedWithAcademicYear<AffectationType[]>(
       HTTPMethod.GET,
       `${AffectationAPI.AFFECTATION_URL}/${profile_id}`,
+      undefined,
+      undefined
+    );
+  }
+
+  /**
+   * Fetch teacher affectations.
+   */
+  static getTeacherAffectationsByProfileId(profile_id: number): Promise<APIResponse<Affectation[]>> {
+    return api.requestLoggedWithAcademicYear<Affectation[]>(
+      HTTPMethod.GET,
+      `${AffectationAPI.PROFILE_PATH}/${profile_id}`,
       undefined,
       undefined
     );

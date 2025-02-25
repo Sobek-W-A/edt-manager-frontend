@@ -4,6 +4,8 @@ import { faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
 import AuthModel from '../../scripts/Models/AuthModel';
 import {useEffect, useState} from 'react';
 import Storage from '../../scripts/API/Storage.ts'
+import AcademicYearAPI from "../../scripts/API/ModelAPIs/AcademicYearAPI.ts";
+import {AcademicYearType} from "../../scripts/API/APITypes/AcademicYearType.ts";
 
 function Navbar() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -12,13 +14,31 @@ function Navbar() {
         setIsLoggedIn(AuthModel.isLoggedIn());
     }, []);
 
-    const ACADEMIC_YEAR = [2023, 2024, 2025];
-    const [academicYear, setAcademicYear] = useState<number>(ACADEMIC_YEAR[1]);
+    const [academicYear, setAcademicYear] = useState<number>();
+    const [academicYears, setAcademicYears] = useState<AcademicYearType[] | undefined>();
+    const [loading, setIsLoading] = useState<boolean>(false);
 
     useEffect(() => {
-        const date = new Date();
-        Storage.setAcademicYear(date.getFullYear());
-    }, []);
+        setIsLoading(true);
+        const fetchAcademicYear = async () => {
+            const response = await AcademicYearAPI.getAllAcademicYear();
+            const academicYearsData = response.responseObject();
+            setAcademicYears(academicYearsData);
+            setIsLoading(false);
+
+            const storedAcademicYear = Storage.getAcademicYear();
+            // Verify if academic is stored already in session Storage
+            if (storedAcademicYear) {
+                setAcademicYear(storedAcademicYear);
+            } else {
+                const lastAcademicYear = academicYearsData[academicYearsData.length - 1].academic_year;
+                setAcademicYear(lastAcademicYear);
+                Storage.setAcademicYear(lastAcademicYear);
+            }
+        };
+        // fetch academic year only if user is authenticated
+        if (isLoggedIn) fetchAcademicYear();
+    }, [isLoggedIn]);
 
     const handleChangeAcadmicYear = (year: number) => {
         setAcademicYear(year);
@@ -72,11 +92,14 @@ function Navbar() {
                                 </div>
                                 <ul tabIndex={0}
                                     className="dropdown-content menu bg-green-100 text-gray-700 rounded-box z-[1] w-52 p-2 shadow">
+
                                     {ACADEMIC_YEAR.map(year => (
                                         <li key ={year} onClick={() => handleChangeAcadmicYear(year)}
+
                                             className="cursor-pointer p-2 hover:bg-green-200 rounded">
-                                            {year}
+                                            {academicYear.academic_year}
                                         </li>))}
+                                    {loading && <span>Loading ...</span>}
                                 </ul>
                             </div>
                         </div>
