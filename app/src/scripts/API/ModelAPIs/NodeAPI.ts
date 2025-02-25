@@ -12,7 +12,7 @@ export default class NodeAPI {
      * @returns Une promesse contenant le noeud ou une erreur
      */
     static async getNodeById(nodeId: number): Promise<APIResponse<APINode>> {
-        const response = await api.requestLogged<APINode>(
+        const response = await api.requestLoggedWithAcademicYear<APINode>(
             HTTPMethod.GET,
             `${NodeAPI.NODE_PATH}/${nodeId}`,
             undefined,
@@ -26,7 +26,7 @@ export default class NodeAPI {
      * @param academicYear L'année académique
      * @returns Une promesse contenant le noeud racine ou une erreur
      */
-    static async getRootNode(academicYear: number): Promise<APIResponse<APINode>> {
+    static async getRootNode(): Promise<APIResponse<APINode>> {
         return api.requestLoggedWithAcademicYear<APINode>(
             HTTPMethod.GET,
             `${NodeAPI.NODE_PATH}/root`,
@@ -37,13 +37,12 @@ export default class NodeAPI {
 
     /**
      * Cette méthode récupère l'arborescence complète à partir du noeud racine
-     * @param academicYear L'année académique
      * @returns Une promesse contenant l'arborescence complète ou une erreur
      */
-    static async getRootArborescence(academicYear: number): Promise<APIResponse<APINode>> {
-        return api.requestLogged<APINode>(
+    static async getRootArborescence(): Promise<APIResponse<APINode>> {
+        return api.requestLoggedWithAcademicYear<APINode>(
             HTTPMethod.GET,
-            `${NodeAPI.NODE_PATH}/root/arborescence/${academicYear}`,
+            `${NodeAPI.NODE_PATH}/root/arborescence`,
             undefined,
             undefined
         );
@@ -52,13 +51,12 @@ export default class NodeAPI {
     /**
      * Cette méthode récupère l'arborescence à partir d'un noeud spécifique
      * @param nodeId L'ID du noeud de départ
-     * @param academicYear L'année académique
      * @returns Une promesse contenant l'arborescence ou une erreur
      */
-    static async getNodeArborescence(nodeId: number, academicYear: number): Promise<APIResponse<APINode>> {
-        return api.requestLogged<APINode>(
+    static async getNodeArborescence(nodeId: number): Promise<APIResponse<APINode>> {
+        return api.requestLoggedWithAcademicYear<APINode>(
             HTTPMethod.GET,
-            `${NodeAPI.NODE_PATH}/${nodeId}/arborescence/${academicYear}`,
+            `${NodeAPI.NODE_PATH}/${nodeId}/arborescence`,
             undefined,
             undefined
         );
@@ -70,7 +68,7 @@ export default class NodeAPI {
      * @param node Les données du nœud à créer
      * @returns Une promesse contenant le nœud créé ou une erreur
      */
-    static async createNode(academicYear: number, node: NodeInUpdate): Promise<APIResponse<APINode>> {
+    static async createNode(node: NodeInUpdate): Promise<APIResponse<APINode>> {
         return api.requestLoggedWithAcademicYear<APINode>(
             HTTPMethod.POST,
             `${NodeAPI.NODE_PATH}`,
@@ -81,12 +79,11 @@ export default class NodeAPI {
 
     /**
      * Cette méthode modifie un nœud existant
-     * @param academicYear L'année académique
      * @param nodeId L'ID du nœud à modifier
      * @param node Les nouvelles données du nœud
      * @returns Une promesse contenant une confirmation ou une erreur
      */
-    static async updateNode(academicYear: number, nodeId: number, node: NodeInUpdate): Promise<APIResponse<undefined>> {
+    static async updateNode(nodeId: number, node: NodeInUpdate): Promise<APIResponse<undefined>> {
         return api.requestLoggedWithAcademicYear<undefined>(
             HTTPMethod.PATCH,
             `${NodeAPI.NODE_PATH}/${nodeId}`,
@@ -97,11 +94,10 @@ export default class NodeAPI {
 
     /**
      * Cette méthode supprime un nœud existant
-     * @param academicYear L'année académique
      * @param nodeId L'ID du nœud à supprimer
      * @returns Une promesse contenant une confirmation ou une erreur
      */
-    static async deleteNode(academicYear: number, nodeId: number): Promise<APIResponse<undefined>> {
+    static async deleteNode(nodeId: number): Promise<APIResponse<undefined>> {
         return api.requestLoggedWithAcademicYear<undefined>(
             HTTPMethod.DELETE,
             `${NodeAPI.NODE_PATH}/${nodeId}`,

@@ -13,7 +13,7 @@ export default class StatusAPI {
      * @returns A promise that is either a StatusType or an error.
      */
     static getStatusById(status_id: number): Promise<APIResponse<StatusType>> {
-        return api.requestLogged<StatusType>(
+        return api.requestLoggedWithAcademicYear<StatusType>(
             HTTPMethod.GET,
             StatusAPI.BASE_STATUS_URL + `/${status_id}`,
             undefined,
@@ -26,7 +26,7 @@ export default class StatusAPI {
      * @param academic_year The id of the academic_year to be returned.
      * @returns A promise that is either a StatusType or an error.
      */
-    static getStatusByAcademicYear(academic_year: number): Promise<APIResponse<StatusType[]>> {
+    static getStatusByAcademicYear(): Promise<APIResponse<StatusType[]>> {
         return api.requestLoggedWithAcademicYear<StatusType[]>(
             HTTPMethod.GET,
             StatusAPI.BASE_STATUS_URL + `/`,
@@ -42,7 +42,7 @@ export default class StatusAPI {
      * @returns A promise that is either undefined or an error.
      */
     static modifyStatus(status_id: number, status: StatusTypeInUpdate): Promise<APIResponse<undefined>> {
-        return api.requestLogged<undefined>(
+        return api.requestLoggedWithAcademicYear<undefined>(
             HTTPMethod.PATCH,
             StatusAPI.BASE_STATUS_URL + `/${status_id}`,
             JSON.stringify(status),
@@ -56,7 +56,7 @@ export default class StatusAPI {
      * @returns A promise that is either undefined or an error.
      */
     static deleteStatus(status_id: number): Promise<APIResponse<undefined>> {
-        return api.requestLogged<undefined>(
+        return api.requestLoggedWithAcademicYear<undefined>(
             HTTPMethod.DELETE,
             StatusAPI.BASE_STATUS_URL + `/${status_id}`,
             undefined,
@@ -70,7 +70,7 @@ export default class StatusAPI {
      * @returns A promise that is either a StatusType or an error.
      */
     static createStatus(status: StatusTypeInCreation): Promise<APIResponse<StatusType>> {
-        return api.requestLogged<StatusType>(
+        return api.requestLoggedWithAcademicYear<StatusType>(
             HTTPMethod.POST,
             StatusAPI.BASE_STATUS_URL + '/',
             JSON.stringify(status),

@@ -28,7 +28,7 @@ export default class AffectationAPI {
    * Assign a course to a profile.
    */
   static assignCourseToProfile(affectation: AffectationInCreate): Promise<APIResponse<undefined>> {
-    return api.requestLogged<undefined>(
+    return api.requestLoggedWithAcademicYear<undefined>(
       HTTPMethod.POST,
       `${AffectationAPI.AFFECTATION_URL}/assign`,
       JSON.stringify(affectation),
@@ -40,7 +40,7 @@ export default class AffectationAPI {
    * Fetch the profile of the logged-in user.
    */
   static getProfile(): Promise<APIResponse<{ id: number; firstname: string; lastname: string; mail: string }>> {
-    return api.requestLogged<{ id: number; firstname: string; lastname: string; mail: string }>(
+    return api.requestLoggedWithAcademicYear<{ id: number; firstname: string; lastname: string; mail: string }>(
       HTTPMethod.GET,
       `/profile/me`,
       undefined,
@@ -52,7 +52,7 @@ export default class AffectationAPI {
    * Fetch teacher affectations.
    */
   static getTeacherAffectations(profile_id: number): Promise<APIResponse<AffectationType[]>> {
-    return api.requestLogged<AffectationType[]>(
+    return api.requestLoggedWithAcademicYear<AffectationType[]>(
       HTTPMethod.GET,
       `${AffectationAPI.AFFECTATION_URL}/${profile_id}`,
       undefined,
@@ -76,7 +76,7 @@ export default class AffectationAPI {
    * Fetch teacher affectations.
    */
   static getAffectationsByCourseId(course_id: number): Promise<APIResponse<AffectationType[]>> {
-    return api.requestLogged<AffectationType[]>(
+    return api.requestLoggedWithAcademicYear<AffectationType[]>(
         HTTPMethod.GET,
         `${AffectationAPI.AFFECTATION_URL}/course/${course_id}`,
         undefined,
@@ -88,7 +88,7 @@ export default class AffectationAPI {
    * Fetch colleagues assigned to a specific course.
    */
   static getColleaguesByCourseId(course_id: number): Promise<APIResponse<{ firstname: string; lastname: string }[]>> {
-    return api.requestLogged<{ firstname: string; lastname: string }[]>(
+    return api.requestLoggedWithAcademicYear<{ firstname: string; lastname: string }[]>(
       HTTPMethod.GET,
       `${AffectationAPI.COURSE_PATH}/${course_id}`,
       undefined,
@@ -100,7 +100,7 @@ export default class AffectationAPI {
    * delete affectation
    */
   static deleteAffectationById(affectation_id: number): Promise<APIResponse<AffectationType[]>> {
-    return api.requestLogged<AffectationType[]>(
+    return api.requestLoggedWithAcademicYear<AffectationType[]>(
         HTTPMethod.DELETE,
         `${AffectationAPI.AFFECTATION_URL}/unassign/${affectation_id}`,
         undefined,
@@ -112,7 +112,7 @@ export default class AffectationAPI {
    * Fetch course details by course ID.
    */
   static getCourseById(course_id: number): Promise<APIResponse<{ course_type: { name: string } }>> {
-    return api.requestLogged<{ course_type: { name: string } }>(
+    return api.requestLoggedWithAcademicYear<{ course_type: { name: string } }>(
       HTTPMethod.GET,
       `/course/${course_id}`,
       undefined,
@@ -128,7 +128,7 @@ export default class AffectationAPI {
     notes: string;
     group: number
   }) {
-    return api.requestLogged<undefined>(
+    return api.requestLoggedWithAcademicYear<undefined>(
         HTTPMethod.PATCH,
         `${AffectationAPI.AFFECTATION_URL}/${body.affectation_id}`,
         JSON.stringify(body),

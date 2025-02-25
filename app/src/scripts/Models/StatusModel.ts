@@ -26,7 +26,6 @@ export default class StatusModel {
      */
     static async getAllStatusByYear(): Promise<StatusModel[] | ErrorResponse<StatusType[]>> {
         const response: APIResponse<StatusType[]> = await StatusAPI.getStatusByAcademicYear();
-        console.log(response);
         if (response.isError()) return response as ErrorResponse<StatusType[]>;
 
         const result: StatusModel[] = [];
