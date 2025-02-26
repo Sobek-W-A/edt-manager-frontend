@@ -243,7 +243,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
             if (action === "Ajouter Dossier") {
                 try {
                     const newNodeData: NodeInUpdate = { name: "Nouveau Dossier", parent_id: node.id };
-                    const response = await NodeAPI.createNode(node.academic_year, newNodeData);
+                    const response = await NodeAPI.createNode( newNodeData);
                     if (response.isError()) {
                         showError("Erreur lors de la création du dossier: " + response.errorMessage());
                         return;
@@ -289,7 +289,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                 }
                 try {
                     if (nodeToDelete.type === "node") {
-                        const response = await NodeAPI.deleteNode(nodeToDelete.academic_year, nodeToDelete.id);
+                        const response = await NodeAPI.deleteNode( nodeToDelete.id);
                         if (response.isError()) {
                             showError("Erreur lors de la suppression du dossier: " + response.errorMessage());
                             return;
@@ -385,7 +385,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
             const trimmedName = newNodeName.trim() === "" ? "default" : newNodeName.trim();
             try {
                 if (node.type === "node") {
-                    const response = await NodeAPI.updateNode(node.academic_year, node.id, { name: trimmedName });
+                    const response = await NodeAPI.updateNode( node.id, { name: trimmedName });
                     if (response.isError()) {
                         showError("Erreur lors de la mise à jour du nom: " + response.errorMessage());
                     } else {
