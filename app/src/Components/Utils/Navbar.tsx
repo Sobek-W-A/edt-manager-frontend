@@ -73,12 +73,6 @@ function Navbar() {
                             </Link>
                         </div>
                         <div className="flex items-center">
-                            <Link to="/assigned-courses"
-                                  className="text-sm hover:text-green-300 transition duration-200">
-                                Cours attribués
-                            </Link>
-                        </div>
-                        <div className="flex items-center">
                             <Link to="/accountcreation"
                                   className="text-sm hover:text-green-300 transition duration-200">
                                 Creer un utilisateur
