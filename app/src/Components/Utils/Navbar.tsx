@@ -17,6 +17,7 @@ function Navbar() {
     const [academicYear, setAcademicYear] = useState<number>();
     const [academicYears, setAcademicYears] = useState<AcademicYearType[]>([]);
     const [loading, setIsLoading] = useState<boolean>(false);
+    const [refreshAcademicYear, setRefreshAcademicYear] = useState<boolean>(false);
 
     useEffect(() => {
         setIsLoading(true);
@@ -38,11 +39,23 @@ function Navbar() {
         };
         // fetch academic year only if user is authenticated
         if (isLoggedIn) fetchAcademicYear();
-    }, [isLoggedIn]);
+    }, [isLoggedIn, refreshAcademicYear]);
 
+    const academicYearDescription = (year: number | undefined) : string|undefined => {
+        return academicYears.find(academicYear => academicYear.academic_year == year)?.description;
+    }
     const handleChangeAcadmicYear = (year: number) => {
         setAcademicYear(year);
         Storage.setAcademicYear(year);
+    }
+
+    const createNextAcademicYear = async () => {
+        const response = await AcademicYearAPI.createNextAcademicYear();
+        if(response.isError()) {
+            console.log(response);
+        } else {
+            setRefreshAcademicYear(prevState => !prevState);
+        }
     }
 
     return (
@@ -82,16 +95,19 @@ function Navbar() {
                             <div className="dropdown dropdown-hover">
                                 <div tabIndex={0}
                                      className="cursor-pointer text-sm bg-green-700 text-white focus:outline-none">
-                                    Année {academicYear}
+                                    Année {academicYearDescription(academicYear)}
                                 </div>
                                 <ul tabIndex={0}
                                     className="dropdown-content menu bg-green-100 text-gray-700 rounded-box z-[1] w-52 p-2 shadow">
-
+                                    <li onClick={createNextAcademicYear}
+                                        className="cursor-pointer p-2 hover:bg-green-200 rounded">
+                                        Créer année académique
+                                    </li>
                                     {academicYears.map(year => (
                                         <li key ={year.academic_year} onClick={() => handleChangeAcadmicYear(year.academic_year)}
 
                                             className="cursor-pointer p-2 hover:bg-green-200 rounded">
-                                            {year.academic_year}
+                                            {year.description}
                                         </li>))}
                                     {loading && <span>Loading ...</span>}
                                 </ul>
