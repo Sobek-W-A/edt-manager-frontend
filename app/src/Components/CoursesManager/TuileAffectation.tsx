@@ -4,9 +4,10 @@ import ConfirmationPopup from "../Utils/PopupConfirm.tsx";
 
 export default function TuileAffectation({ data, onRefresh }) {
     const { profile, hours, date, notes } = data;
-    const formattedTime = new Date(date).toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
+    const formattedTime = new Date(date).toLocaleDateString([], {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
     });
 
     const [isEditing, setIsEditing] = useState(false);
@@ -48,9 +49,8 @@ export default function TuileAffectation({ data, onRefresh }) {
     return (
         <div className="border border-green-500 rounded-lg p-3 grid grid-cols-10 items-center w-full">
             <span className="font-semibold col-span-2 md:col-span-2">{profile.firstname} {profile.lastname}</span>
-            <span className="text-gray-700 col-span-1 md:col-span-1">{hours}h</span>
-            <span className="text-gray-500 col-span-3 md:col-span-3">{notes}</span>
-            <span className="text-gray-500 col-span-1 md:col-span-1">{formattedTime}</span>
+            <span className="text-gray-700 col-span-2 md:col-span-2">{hours}h</span>
+            <span className="text-gray-500 col-span-3 md:col-span-3">{formattedTime}</span>
             <span className="text-gray-500 col-span-1 md:col-span-1"></span>
             <button onClick={handleEdit} className="col-span-1 md:col-span-1 bg-orange-500 text-white px-2 py-1 mr-2 rounded">Modifier</button>
             <button onClick={handleDelete} className="col-span-1 md:col-span-1 bg-red-500 text-white px-2 py-1 ml-2 rounded">Delete</button>
