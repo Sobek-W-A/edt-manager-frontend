@@ -14,4 +14,13 @@ export default class AcademicYearAPI {
             undefined
         )
     }
+
+    static createNextAcademicYear(): Promise<APIResponse<undefined>> {
+        return api.requestLogged<undefined>(
+            HTTPMethod.POST,
+            `${this.ACADEMIC_YEAR_URL}`,
+            undefined,
+            undefined
+        )
+    }
 }
