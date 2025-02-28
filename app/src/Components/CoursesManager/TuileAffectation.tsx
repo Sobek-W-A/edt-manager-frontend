@@ -1,5 +1,6 @@
 import { useState } from "react";
 import AffectationAPI from "../../scripts/API/ModelAPIs/AffectationAPI.ts";
+import ConfirmationPopup from "../Utils/PopupConfirm.tsx";
 
 export default function TuileAffectation({ data, onRefresh }) {
     const { profile, hours, date, notes } = data;
@@ -11,6 +12,7 @@ export default function TuileAffectation({ data, onRefresh }) {
     const [isEditing, setIsEditing] = useState(false);
     const [editedHours, setEditedHours] = useState(hours);
     const [editedNotes, setEditedNotes] = useState(notes);
+    const [showConfirmationPopup, setShowConfirmationPopup] = useState<boolean>();
 
     const handleEdit = () => {
         setIsEditing(true);
@@ -32,11 +34,15 @@ export default function TuileAffectation({ data, onRefresh }) {
     };
 
     const handleDelete = () => {
+        setShowConfirmationPopup(true);
+    }
+    const handleConfirmDelete = () => {
         const detruireAffectation = async () => {
             await AffectationAPI.deleteAffectationById(data.id);
             onRefresh();
         };
         detruireAffectation();
+        setShowConfirmationPopup(false);
     };
 
     return (
@@ -66,6 +72,11 @@ export default function TuileAffectation({ data, onRefresh }) {
                     </div>
                 </div>
             )}
+            {showConfirmationPopup &&
+                <ConfirmationPopup
+                    title={"Veuillez confirmer la suppression"}
+                    confirm={handleConfirmDelete}
+                    cancel={() => setShowConfirmationPopup(false)} />}
         </div>
     );
 }
