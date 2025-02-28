@@ -37,4 +37,20 @@ export default class Storage {
         const token = window.sessionStorage.getItem("refresh_token");
         return token === null ? "" : token;
     }
+
+    /**
+     * This method checks if the access token is stored in the session storage.
+     * @returns True if the token is stored, false otherwise.
+     */
+    static isAccessTokenStored(): boolean {
+        return window.sessionStorage.getItem("access_token") !== null && window.sessionStorage.getItem("refresh_token") !== null;
+    }
+
+    static setAcademicYear(academicYear: number): void {
+        window.sessionStorage.setItem("academic_year", academicYear);
+    }
+
+    static getAcademicYear(): number {
+        return window.sessionStorage.getItem("academic_year");
+    }
 }

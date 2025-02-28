@@ -11,10 +11,19 @@ export default class AuthModel {
 
     private readonly _login   : string;
     private readonly _password: string;
+    static BASE_LOGIN_URL: string = '/login';
 
     constructor(login: string, password: string) {
         this._login    = login;
         this._password = password;
+    }
+
+    /**
+     * This method checks if the user is logged in.
+     * @returns A boolean that is true if the user is logged in, false otherwise.
+     */
+    static isLoggedIn(): boolean {
+        return Storage.isAccessTokenStored();
     }
 
     /**
@@ -45,7 +54,7 @@ export default class AuthModel {
             Storage.getRefreshTokenFromStorage()
         );
         Storage.cleanStorage();
-        window.location.reload();
+        window.location.href = AuthModel.BASE_LOGIN_URL;
     }
 
     /**

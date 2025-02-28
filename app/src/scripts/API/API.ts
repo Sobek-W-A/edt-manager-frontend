@@ -148,5 +148,12 @@ class API {
             return await this.request<T>(method, url, body, content_type, authHeader);
         }
     }
+
+    async requestLoggedWithAcademicYear<T>(method: HTTPMethod, url: string, body: BodyInit | undefined, content_type: ContentType = ContentType.JSON): Promise<APIResponse<T>> {
+
+        const separator = url.includes('?') ? '&' : '?';
+        const urlWithAcademicYear = url.concat(`${separator}academic_year=${Storage.getAcademicYear()}`);
+        return this.requestLogged(method, urlWithAcademicYear, body, content_type);
+    }
 }
 export const api = new API();
