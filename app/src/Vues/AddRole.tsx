@@ -41,6 +41,10 @@ function AddRole() {
     const [filterAccount, setFilterAccount] = useState<string>("id");
     const [filterProfile, setFilterProfile] = useState<string>("id");
 
+    const [showAccounts, setShowAccounts] = useState<boolean>(true);
+    const [showProfiles, setShowProfiles] = useState<boolean>(false);
+    const[isCheckboxChecked, setIsCheckboxChecked] = useState<boolean>(false);
+
     const [ACADEMIC_YEAR, setACADEMIC_YEAR] = useState<string>(window.sessionStorage.getItem("academic_year") || new Date().getFullYear().toString()) //2024
 
     // Utilisation de useEffect pour récupérer l'année académique lorsqu'elle change dans le session storage
@@ -345,6 +349,17 @@ function AddRole() {
         }
     }
 
+    // On affiche les comptes liés par défaut ou si le checkbo n'est pas coché, si il est coché on affiche les profiles
+    useEffect(() => {
+        if (isCheckboxChecked) {
+            setShowAccounts(false);
+            setShowProfiles(true);
+        } else {
+            setShowAccounts(true);
+            setShowProfiles(false);
+        }
+    }, [isCheckboxChecked]);
+
         return (
             <div className="flex justify-center mt-6">
                 <div className="w-fit p-6 rounded-lg shadow-md">
@@ -369,7 +384,7 @@ function AddRole() {
                             {showFilterMenu && (
                                 <div className="absolute right-0 mt-2 w-56 bg-white border rounded shadow-lg z-10">
                                     <div className="p-2 border-b">
-                                        <span className="font-bold text-gray-700">Filtrer par</span>
+                                        <span className="font-bold text-gray-700">Ordonner par</span>
                                         <FontAwesomeIcon 
                                             icon={faSort} 
                                             className="mr-2 ml-2 text-green-500 hover:text-green-700 cursor-pointer" 
@@ -471,9 +486,16 @@ function AddRole() {
                             ))}
                         </div>
                     </div>
+
+                    {/* Checkbox pour switch entre les comptes liés et profiles seuls */}
+                    <div className="flex gap-4 mb-4">
+                        <label htmlFor="accounts" className="text-gray-500">Comptes liés</label>
+                        <input type="checkbox" checked={isCheckboxChecked} className="toggle border-green-500 bg-green-500 checked:bg-green-800 checked:text-green-800 checked:border-green-800 " onChange={() => setIsCheckboxChecked(prev => !prev)} />
+                        <label htmlFor="profiles" className="text-gray-500">Profils seuls</label>
+                    </div>
         
                     {/* Grille des comptes ayants des profils */}
-                    {filteredAccountsAndProfilesByTags.length > 0 && (
+                    {showAccounts && filteredAccountsAndProfilesByTags.length > 0 && (
                         <>
                             <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-3 gap-6">
                                 {filteredAccountsAndProfilesByTags.map((user: Account) => (
@@ -492,7 +514,7 @@ function AddRole() {
                     )}
 
                     { /* Grille des profils seuls */ }
-                    {filteredProfiles.length > 0 && !selectedTag.name && (
+                    {showProfiles && filteredProfiles.length > 0 && !selectedTag.name && (
                         <>
                             <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-3 gap-6 mt-6">
                                 {filteredProfiles.map((profile: Profile) => (
