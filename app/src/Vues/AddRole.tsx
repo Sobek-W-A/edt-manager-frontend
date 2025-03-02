@@ -44,6 +44,8 @@ function AddRole() {
     const [showProfiles, setShowProfiles] = useState<boolean>(false);
     const[isCheckboxChecked, setIsCheckboxChecked] = useState<boolean>(false);
 
+    const [userConnected, setUserConnected] = useState<Profile>({} as Profile);
+
     const [filterOptions, setFilterOptions] = useState<String[]>(showAccounts ? ['Id', 'Login'] : ['Id', 'Prénom', 'Nom', 'Mail']);
 
     const [ACADEMIC_YEAR, setACADEMIC_YEAR] = useState<string>(window.sessionStorage.getItem("academic_year") || new Date().getFullYear().toString()) //2024
@@ -68,7 +70,6 @@ function AddRole() {
         };
     }, []);
 
-
     // Utilisation de useEffect pour récupérer le nombre de comptes, de profils et les rôles
     useEffect(() => {
         const fetchData = async () => {
@@ -92,6 +93,15 @@ function AddRole() {
                 setShowNotification(true);
             } else {
                 setRolesList(rolesResponse.responseObject());
+            }
+
+            // Récupére l'utilisateur connecté
+            const userConnectedResponse = await ProfileAPI.getCurrentProfile();
+            if (userConnectedResponse.isError()) {
+                setNotification({ message: `Erreur dans la récuperation de l'utilisateur connecté : ${userConnectedResponse.errorMessage()}.`, type: 'alert-error' });
+                setShowNotification(true);
+            } else {
+                setUserConnected(userConnectedResponse.responseObject());
             }
         };
 
@@ -373,7 +383,7 @@ function AddRole() {
 
                         {/* Checkbox pour switch entre les comptes liés et profiles seuls */}
                         <div className="flex gap-4 mb-4">
-                            <label htmlFor="accounts" className="text-gray-500">Comptes liés</label>
+                            <label htmlFor="accounts" className="text-gray-500">Comptes & profils liés</label>
                             <input type="checkbox" checked={isCheckboxChecked} className="toggle border-green-500 bg-green-500 checked:bg-green-800 checked:text-green-800 checked:border-green-800 " onChange={() => setIsCheckboxChecked(prev => !prev)} />
                             <label htmlFor="profiles" className="text-gray-500">Profils seuls</label>
                         </div>
@@ -509,6 +519,7 @@ function AddRole() {
                                     <AddRoleCard
                                         key={user.id}
                                         user={user}
+                                        userConnected={userConnected}
                                         rolesList={rolesList}
                                         addRoleToUser={addRoleToUser}
                                         removeRoleFromUser={removeRoleFromUser}
@@ -521,11 +532,12 @@ function AddRole() {
                     { /* Grille des profils seuls */ }
                     {showProfiles && filteredProfiles.length > 0 && !selectedTag.name && (
                         <>
-                            <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-3 gap-6 mt-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-3 gap-6">
                                 {filteredProfiles.map((profile: Profile) => (
                                     <AddRoleCard
                                         key={profile.id}
                                         user={profile}
+                                        userConnected={userConnected}
                                         rolesList={rolesList}
                                         addRoleToUser={addRoleToUser}
                                         removeRoleFromUser={removeRoleFromUser}
