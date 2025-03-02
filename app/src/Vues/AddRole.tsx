@@ -20,7 +20,6 @@ function AddRole() {
     const [filteredProfiles, seFilteredProfiles] = useState<(Profile)[]>([]);
 
     const [searchTerm, setSearchTerm] = useState("");
-    const [openRoleMenu, setOpenRoleMenu] = useState<string | null>(null);
 
     const [notification, setNotification] = useState({ message: '', type: '' });
     const [showNotification, setShowNotification] = useState(false);
@@ -44,6 +43,8 @@ function AddRole() {
     const [showAccounts, setShowAccounts] = useState<boolean>(true);
     const [showProfiles, setShowProfiles] = useState<boolean>(false);
     const[isCheckboxChecked, setIsCheckboxChecked] = useState<boolean>(false);
+
+    const [filterOptions, setFilterOptions] = useState<String[]>(showAccounts ? ['Id', 'Login'] : ['Id', 'Prénom', 'Nom', 'Mail']);
 
     const [ACADEMIC_YEAR, setACADEMIC_YEAR] = useState<string>(window.sessionStorage.getItem("academic_year") || new Date().getFullYear().toString()) //2024
 
@@ -132,8 +133,17 @@ function AddRole() {
 
     // Calculer le nombre de pages
     useEffect(() => {
-        setNbOfPage(Math.ceil((numberOfAccounts + numberOfProfiles) / nbOfItemsPerPage));
-    }, [numberOfAccounts, numberOfProfiles, nbOfItemsPerPage]);
+        if (showAccounts) {
+            setNbOfPage(Math.ceil(numberOfAccounts / nbOfItemsPerPage));
+        } else if (showProfiles) {
+            setNbOfPage(Math.ceil(numberOfProfiles / nbOfItemsPerPage));
+        }
+    }, [numberOfAccounts, numberOfProfiles, nbOfItemsPerPage, showAccounts, showProfiles]);
+
+    // On mofifie la current page quand on change l'affichage des comptes ou des profils
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [showAccounts, showProfiles]);
 
     // Utilisation de useEffect pour récupérer les comptes et profils lors du changement de page
     useEffect(() => {
@@ -160,22 +170,8 @@ function AddRole() {
 
     // Fonction pour récuperer les comptes et profils
     const fetchAccountsAndProfiles = async () => {
-        // On calcul le nombre de comptes et profils à récuperer en fonction de leur nombre respectif pour combler nbOfItemsPerPage
-        let nbOfItemsPerPageAccount;
-        let nbOfItemsPerPageProfile;
-        if (numberOfProfiles < nbOfItemsPerPage / 2) {
-            nbOfItemsPerPageAccount = nbOfItemsPerPage / 2 - numberOfProfiles;
-            nbOfItemsPerPageProfile = nbOfItemsPerPage / 2;
-        } else if (numberOfAccounts < nbOfItemsPerPage / 2) {
-            nbOfItemsPerPageAccount = nbOfItemsPerPage / 2;
-            nbOfItemsPerPageProfile = nbOfItemsPerPage / 2 - numberOfAccounts;
-        } else {
-            nbOfItemsPerPageAccount = nbOfItemsPerPage / 2;
-            nbOfItemsPerPageProfile = nbOfItemsPerPage / 2;
-        }
-
         // Récupérer les comptes liés à des profils
-        const accountResponse = await AccountAPI.getAllAccounts(currentPage, nbOfItemsPerPageAccount, filterAccount);
+        const accountResponse = await AccountAPI.getAllAccounts(currentPage, nbOfItemsPerPage, filterAccount);
         if (accountResponse.isError()) {
             setNotification({ message: `Erreur dans la récuperation des comptes : ${accountResponse.errorMessage()}.`, type: 'alert-error' });
             setShowNotification(true);
@@ -185,7 +181,7 @@ function AddRole() {
         }
 
         // Récupérer la liste des rôles
-        const profilesResponse = await ProfileAPI.getAllProfiles(currentPage, nbOfItemsPerPageProfile, filterProfile);
+        const profilesResponse = await ProfileAPI.getAllProfiles(currentPage, nbOfItemsPerPage, filterProfile);
         if (profilesResponse.isError()) {
             setNotification({ message: `Erreur dans la récuperation des profiles : ${profilesResponse.errorMessage()}.`, type: 'alert-error' });
             setShowNotification(true);
@@ -207,8 +203,8 @@ function AddRole() {
         const keywords = e.target.value.toLowerCase();
 
         // Recherche des comptes & profiles, et comptes seuls par mots-clés
-        if (keywords !== "") {
-            AccountAPI.searchAccountsByKeywords(keywords, currentPage, nbOfItemsPerPage / 2, filterAccount).then((accountsByKeywords) => {
+        if (keywords !== "" && showAccounts) {
+            AccountAPI.searchAccountsByKeywords(keywords, currentPage, nbOfItemsPerPage, filterAccount).then((accountsByKeywords) => {
                 if (accountsByKeywords.isError()) {
                     setNotification({ message: `Erreur dans la récuperation des comptes : ${accountsByKeywords.errorMessage()}.`, type: 'alert-error' });
                     setShowNotification(true);
@@ -226,8 +222,8 @@ function AddRole() {
         }
 
         // Recherche des profils seuls par mots-clés
-        if (keywords !== "") {
-            ProfileAPI.searchProfilesByKeywords(keywords, currentPage, nbOfItemsPerPage / 2, filterProfile).then((profilesByKeywords) => {
+        if (keywords !== "" && showProfiles) {
+            ProfileAPI.searchProfilesByKeywords(keywords, currentPage, nbOfItemsPerPage, filterProfile).then((profilesByKeywords) => {
                 if (profilesByKeywords.isError()) {
                     setNotification({ message: `Erreur dans la récuperation des profiles : ${profilesByKeywords.errorMessage()}.`, type: 'alert-error' });
                     setShowNotification(true);
@@ -274,7 +270,6 @@ function AddRole() {
                 : userTmp
             )
         );
-        setOpenRoleMenu(null);
 
         // Afficher la notification d'ajout de rôle
         setNotification({ message: `Rôle "${selectedRole.name}" ajouté à ${user.profile ? user.profile.firstname : ""} ${user.profile ? user.profile.lastname : user.login}.`, type: 'alert-success' });
@@ -354,10 +349,20 @@ function AddRole() {
         if (isCheckboxChecked) {
             setShowAccounts(false);
             setShowProfiles(true);
+            setSearchTerm("");
+            setFilterOptions(['Id', 'Prénom', 'Nom', 'Mail']);
         } else {
             setShowAccounts(true);
             setShowProfiles(false);
+            setSearchTerm("");
+            setFilterOptions(['Id', 'Login']);
         }
+
+        // On réinitialise les filtres et tags
+        setSelectedFilters("id");
+        setOrderType('asc');
+        setShowFilterMenu(false);
+        setSelectedTag({} as RoleType);
     }, [isCheckboxChecked]);
 
         return (
@@ -365,6 +370,13 @@ function AddRole() {
                 <div className="w-fit p-6 rounded-lg shadow-md">
                     <div className="max-w-7xl mx-auto text-center mb-6">
                         <h2 className="text-2xl font-bold text-center text-green-800">Liste des utilisateurs</h2>
+
+                        {/* Checkbox pour switch entre les comptes liés et profiles seuls */}
+                        <div className="flex gap-4 mb-4">
+                            <label htmlFor="accounts" className="text-gray-500">Comptes liés</label>
+                            <input type="checkbox" checked={isCheckboxChecked} className="toggle border-green-500 bg-green-500 checked:bg-green-800 checked:text-green-800 checked:border-green-800 " onChange={() => setIsCheckboxChecked(prev => !prev)} />
+                            <label htmlFor="profiles" className="text-gray-500">Profils seuls</label>
+                        </div>
         
                         <div className="relative mt-6 mb-4">
                             <input
@@ -392,7 +404,7 @@ function AddRole() {
                                             title="Modifier l'ordre"
                                         />
                                     </div>
-                                    {['Id', 'Login', 'Prénom', 'Nom', 'Mail'].map(option => (
+                                    {filterOptions.map(option => (
                                         <div key={option} className="flex items-center p-2">
                                             {orderType === 'asc' && (
                                                 <FontAwesomeIcon 
@@ -452,6 +464,7 @@ function AddRole() {
                                                 setOrderType('asc');
                                                 setFilterAccount('id');
                                                 setFilterProfile('id');
+                                                setShowFilterMenu(false);
                                             }}
                                             className="bg-gray-200 hover:bg-gray-300 text-gray-700 py-1 px-2 rounded"
                                         >
@@ -472,26 +485,20 @@ function AddRole() {
                         </div>
 
                         {/* Tags */}
-                        <div className="flex justify-center gap-4 mt-4"></div>
-                        <div className="flex justify-center gap-4">
-                            <span className="text-gray-500">Tags :</span>
-                            {rolesList.map(role => (
-                                <span
-                                    key={role.name}
-                                    onClick={() => handleTagClick(role)}
-                                    className={`cursor-pointer px-2 py-1 rounded ${selectedTag === role ? 'bg-green-700 hover:bg-green-800 text-white' : 'bg-gray-400 hover:bg-gray-500 text-white'}`}
-                                >
-                                    {role.name}
-                                </span>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Checkbox pour switch entre les comptes liés et profiles seuls */}
-                    <div className="flex gap-4 mb-4">
-                        <label htmlFor="accounts" className="text-gray-500">Comptes liés</label>
-                        <input type="checkbox" checked={isCheckboxChecked} className="toggle border-green-500 bg-green-500 checked:bg-green-800 checked:text-green-800 checked:border-green-800 " onChange={() => setIsCheckboxChecked(prev => !prev)} />
-                        <label htmlFor="profiles" className="text-gray-500">Profils seuls</label>
+                        {showAccounts && (
+                            <div className="flex justify-center gap-4">
+                                <span className="text-gray-500">Tags :</span>
+                                {rolesList.map(role => (
+                                    <span
+                                        key={role.name}
+                                        onClick={() => handleTagClick(role)}
+                                        className={`cursor-pointer px-2 py-1 rounded ${selectedTag === role ? 'bg-green-700 hover:bg-green-800 text-white' : 'bg-gray-400 hover:bg-gray-500 text-white'}`}
+                                    >
+                                        {role.name}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
                     </div>
         
                     {/* Grille des comptes ayants des profils */}
@@ -503,8 +510,6 @@ function AddRole() {
                                         key={user.id}
                                         user={user}
                                         rolesList={rolesList}
-                                        openRoleMenu={openRoleMenu}
-                                        setOpenRoleMenu={setOpenRoleMenu}
                                         addRoleToUser={addRoleToUser}
                                         removeRoleFromUser={removeRoleFromUser}
                                     />
@@ -522,8 +527,6 @@ function AddRole() {
                                         key={profile.id}
                                         user={profile}
                                         rolesList={rolesList}
-                                        openRoleMenu={openRoleMenu}
-                                        setOpenRoleMenu={setOpenRoleMenu}
                                         addRoleToUser={addRoleToUser}
                                         removeRoleFromUser={removeRoleFromUser}
                                     />
@@ -532,33 +535,56 @@ function AddRole() {
                         </>
                     )}
 
-                    {/* Aucun utilisateur */}
-                    {((filteredAccountsAndProfilesByTags.length === 0 && filteredProfiles.length === 0) || (filteredAccountsAndProfilesByTags.length === 0 && selectedTag.name)) && (
-                        <div className="text-center text-gray-500 mt-6">Aucun utilisateur trouvé.</div>
-                    )}        
+                    {/* Aucun compte lié */}
+                    {(filteredAccountsAndProfilesByTags.length === 0 || (filteredAccountsAndProfilesByTags.length === 0 && selectedTag.name)) && showAccounts && (
+                        <div className="text-center text-gray-500 mt-6">Aucun compte lié trouvé.</div>
+                    )}     
+
+                    {/* Aucun compte lié */}
+                    {(filteredProfiles.length === 0 || filteredAccountsAndProfilesByTags.length === 0) && showProfiles && (
+                        <div className="text-center text-gray-500 mt-6">Aucun profile trouvé.</div>
+                    )}
 
                     {/* Notification */}
                     {showNotification && <Notification message={notification.message} type={notification.type} />}
 
                     {/* Pagination */}
-                    {((filteredAccountsAndProfilesByTags.length > 0) || ((filteredProfiles.length > 0) && !selectedTag.name)) && (
+                    {((filteredAccountsAndProfilesByTags.length > 0 && showAccounts) || ((filteredProfiles.length > 0) && !selectedTag.name && showProfiles)) && (
                         <div className="flex items-center justify-between bg-white px-4 py-3 sm:px-6">
                             <div className="flex flex-1 justify-between sm:hidden">
                                 <a href="#" className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Previous</a>
                                 <a href="#" className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Next</a>
                             </div>
                             <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-                                <div>
-                                <p className="text-sm text-gray-700">
-                                    Affichage de&nbsp;
-                                    <span className="font-medium">{currentPage*nbOfItemsPerPage - nbOfItemsPerPage + 1}</span>
-                                    &nbsp;à&nbsp;
-                                    <span className="font-medium">{(numberOfAccounts + numberOfProfiles) > currentPage*nbOfItemsPerPage ? currentPage*nbOfItemsPerPage : numberOfAccounts + numberOfProfiles}</span>
-                                    &nbsp;sur&nbsp;
-                                    <span className="font-medium">{numberOfAccounts + numberOfProfiles}</span>
-                                    &nbsp;élements
-                                </p>
-                                </div>
+
+                                {showAccounts && (
+                                    <div>
+                                        <p className="text-sm text-gray-700">
+                                        Affichage de&nbsp;
+                                        <span className="font-medium">{currentPage*nbOfItemsPerPage - nbOfItemsPerPage + 1}</span>
+                                        &nbsp;à&nbsp;
+                                        <span className="font-medium">{(numberOfAccounts) > currentPage*nbOfItemsPerPage ? currentPage*nbOfItemsPerPage : numberOfAccounts}</span>
+                                        &nbsp;sur&nbsp;
+                                        <span className="font-medium">{numberOfAccounts}</span>
+                                        &nbsp;élements
+                                        </p>
+                                    </div>
+                                )}    
+
+                                {showProfiles && (
+                                    <div>
+                                        <p className="text-sm text-gray-700">
+                                        Affichage de&nbsp;
+                                        <span className="font-medium">{currentPage*nbOfItemsPerPage - nbOfItemsPerPage + 1}</span>
+                                        &nbsp;à&nbsp;
+                                        <span className="font-medium">{(numberOfProfiles) > currentPage*nbOfItemsPerPage ? currentPage*nbOfItemsPerPage : numberOfProfiles}</span>
+                                        &nbsp;sur&nbsp;
+                                        <span className="font-medium">{numberOfProfiles}</span>
+                                        &nbsp;élements
+                                        </p>
+                                    </div>
+                                )}    
+                    
                                 <div>
                                     <label htmlFor="itemsPerPage" className="text-sm text-gray-700 mr-2">Éléments par page:</label>
                                     <select
@@ -567,9 +593,9 @@ function AddRole() {
                                         onChange={(e) => setNbOfItemsPerPage(Number(e.target.value))}
                                         className="py-1 px-2 border rounded"
                                     >
-                                        <option value={10}>12</option>
-                                        <option value={20}>24</option>
-                                        <option value={50}>48</option>
+                                        <option value={12}>12</option>
+                                        <option value={24}>24</option>
+                                        <option value={48}>48</option>
                                     </select>
                                 </div>
                                 <div>

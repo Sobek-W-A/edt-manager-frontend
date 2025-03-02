@@ -10,18 +10,17 @@ import { RoleType } from "../../scripts/API/APITypes/Role";
 interface AddRoleCardProps {
   user: Account | Profile;
   rolesList: RoleType[];
-  openRoleMenu: string | null;
-  setOpenRoleMenu: (id: string | null) => void;
   addRoleToUser: (user: Account, role: RoleType) => void;
   removeRoleFromUser: (user: Account, role: RoleType) => void;
 }
 
-function AddRoleCard({ user, rolesList, openRoleMenu, setOpenRoleMenu, addRoleToUser, removeRoleFromUser }: AddRoleCardProps) {
+function AddRoleCard({ user, rolesList, addRoleToUser, removeRoleFromUser }: AddRoleCardProps) {
   const [userRoles, setUserRoles] = useState<{ id: number, role: RoleType }[]>([]);
   const [, setNotification] = useState<{ message: string; type: string } | null>(null);
   const [, setShowNotification] = useState<boolean>(false);
 
   const ROLE_DEFAULT = { name: "Non assigné", description: "Rôle par défaut." } as RoleType;
+  const modalId = `role_modal_${user.id}`;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -49,8 +48,9 @@ function AddRoleCard({ user, rolesList, openRoleMenu, setOpenRoleMenu, addRoleTo
         } else {
           return userRole;
         }
-      }
-    ));
+      })
+    );
+    closeModal();
   };
 
   const handleRemoveRole = (user: Account, role: RoleType) => {
@@ -62,8 +62,18 @@ function AddRoleCard({ user, rolesList, openRoleMenu, setOpenRoleMenu, addRoleTo
         } else {
           return userRole;
         }
-      }
-    ));
+      })
+    );
+  };
+
+  const openModal = () => {
+    const modal = document.getElementById(modalId) as HTMLDialogElement;
+    modal?.showModal();
+  };
+
+  const closeModal = () => {
+    const modal = document.getElementById(modalId) as HTMLDialogElement;
+    modal?.close();
   };
 
   return (
@@ -103,7 +113,6 @@ function AddRoleCard({ user, rolesList, openRoleMenu, setOpenRoleMenu, addRoleTo
         { ('profile' in user && user.profile) || ('login' in user && user.login) ? (
           <ul className="w-fit">
             {userRoles.map((userRole, index) => (
-              //console.log("Test du role : ", userRole),
               userRole.id !== undefined && userRole.id === user.id && userRole.role.name ? (
                 <li key={index} className="flex justify-between items-center bg-gray-200 rounded">
                   <span className="px-2 text-gray-700">
@@ -111,24 +120,9 @@ function AddRoleCard({ user, rolesList, openRoleMenu, setOpenRoleMenu, addRoleTo
                   </span>
                   <summary
                     className="py-1 my-2 rounded flex items-center cursor-pointer relative"
-                    onClick={() => setOpenRoleMenu(user.id.toString() === openRoleMenu ? null : user.id.toString())}
+                    onClick={openModal} // Ouvrir le modal lorsque cliqué
                   >
                     <FontAwesomeIcon icon={faEdit} className="cursor-pointer text-green-500 hover:text-green-700 mx-2" title="Modifier le rôle" />
-                    {openRoleMenu === user.id.toString() && (
-                      <ul className="absolute top-full left-0 menu dropdown-content bg-base-100 rounded z-[1] w-52 p-2 shadow">
-                        {rolesList.map((role: RoleType, index: number) => (
-                          <li key={role.name}>
-                            <a
-                              key={index}
-                              className="flex justify-between items-center bg-gray-200 px-3 py-1 rounded mb-2 hover:bg-gray-300 cursor-pointer"
-                              onClick={() => handleAddRole(user, role)}
-                            >
-                              <span>{role.name}</span>
-                            </a>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
                   </summary>
                   <FontAwesomeIcon icon={faTimes} className="cursor-pointer text-red-500 hover:text-red-700 me-2" title="Supprimer le rôle" onClick={() => { removeRoleFromUser(user, userRole.role); handleRemoveRole(user, userRole.role); }} />
                 </li>
@@ -137,24 +131,9 @@ function AddRoleCard({ user, rolesList, openRoleMenu, setOpenRoleMenu, addRoleTo
                   <span>aucun rôle</span>
                   <summary
                     className="py-1 my-2 rounded flex items-center cursor-pointer relative"
-                    onClick={() => setOpenRoleMenu(user.id.toString() === openRoleMenu ? null : user.id.toString())}
+                    onClick={openModal} // Ouvrir le modal lorsque cliqué
                   >
-                    <FontAwesomeIcon icon={faPlus} className="cursor-pointer text-green-500 hover:text-green-700 ml-2" title="Ajouter un rôle" onClick={() => setOpenRoleMenu(user.id.toString() === openRoleMenu ? null : user.id.toString())} />
-                    {openRoleMenu === user.id.toString() && (
-                      <ul className="absolute top-full left-0 menu dropdown-content bg-base-100 rounded z-[1] w-52 p-2 shadow">
-                        {rolesList.map((role: RoleType, index: number) => (
-                          <li key={role.name}>
-                            <a
-                              key={index}
-                              className="flex justify-between items-center bg-gray-200 px-3 py-1 rounded mb-2 hover:bg-gray-300 cursor-pointer"
-                              onClick={() => handleAddRole(user, role)}
-                            >
-                              <span>{role.name}</span>
-                            </a>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
+                    <FontAwesomeIcon icon={faPlus} className="cursor-pointer text-green-500 hover:text-green-700 ml-2" title="Ajouter un rôle" />
                   </summary>
                 </li>
               )
@@ -162,6 +141,28 @@ function AddRoleCard({ user, rolesList, openRoleMenu, setOpenRoleMenu, addRoleTo
           </ul>
         ) : null}
       </div>
+
+      {/* Modal DaisyUI */}
+      <dialog id={modalId} className="modal">
+        <div className="modal-box">
+          <h3 className="font-bold text-lg">Sélectionner un rôle</h3>
+          <ul className="space-y-2">
+            {rolesList.map((role) => (
+              <li key={role.name}>
+                <button
+                  className="btn w-full bg-green-700 hover:bg-green-900 text-white"
+                  onClick={() => handleAddRole(user, role)}
+                >
+                  {role.name}
+                </button>
+              </li>
+            ))}
+          </ul>
+          <div className="modal-action">
+            <button className="btn bg-gray-300" onClick={closeModal}>Fermer</button>
+          </div>
+        </div>
+      </dialog>
     </div>
   );
 }
