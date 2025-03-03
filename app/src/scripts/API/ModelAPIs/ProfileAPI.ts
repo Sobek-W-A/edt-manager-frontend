@@ -11,6 +11,7 @@ export default class ProfileAPI {
 
     // The path to the Profile endpoints.
     static PROFILE_URL: string = '/profile';
+    static ALERTE_URL: string = '/alert';
 
     /**
      * This method builds and sends the request to get all the profiles
@@ -37,7 +38,7 @@ export default class ProfileAPI {
     static getAllProfilesWronglyAffected(): Promise<APIResponse<Profile[]>> {
         return api.requestLoggedWithAcademicYear<Profile[]>(
             HTTPMethod.GET,
-            `${ProfileAPI.PROFILE_URL}/alerte/`,
+            `${ProfileAPI.PROFILE_URL}${ProfileAPI.ALERTE_URL}/`,
             undefined,
             undefined
         );

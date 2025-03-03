@@ -2,6 +2,7 @@ import {api} from "../API.ts";
 import {UE, UEInCreation, UeInUpdate} from "../APITypes/UE.ts";
 import {HTTPMethod} from "../Enums/HTTPMethod.ts";
 import APIResponse from "../Responses/APIResponse.ts";
+import {Profile} from "../APITypes/Profiles.ts";
 
 export default class UEAPI {
 
@@ -62,6 +63,20 @@ export default class UEAPI {
             undefined
         );
     }
+
+    /**
+     * This method builds and sends the request to get all the not correctly affected profile
+     * @returns
+     */
+    static getAllUEWronglyAffected(): Promise<APIResponse<Profile[]>> {
+        return api.requestLoggedWithAcademicYear<Profile[]>(
+            HTTPMethod.GET,
+            `${UEAPI.UE_PATH}/alert`,
+            undefined,
+            undefined
+        );
+    }
+
 
     /**
      * This method is used to create a new UE.

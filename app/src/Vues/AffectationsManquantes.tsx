@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import ProfileAPI from "../scripts/API/ModelAPIs/ProfileAPI.ts";
+import UEAPI from "../scripts/API/ModelAPIs/UEAPI.ts";
 
 interface AffectationProf {
     id: number;
@@ -21,7 +22,7 @@ const AffectationsManquantes: React.FC = () => {
         const fetchAffectationsProf = async () => {
             try {
                 const response = await ProfileAPI.getAllProfilesWronglyAffected()
-                const data = await response;
+                const data = await response.responseObject();
                 console.log(data);
                 setListeAffectationsManquantesProf(data);
             } catch (error) {
@@ -31,8 +32,9 @@ const AffectationsManquantes: React.FC = () => {
 
         const fetchAffectationsUE = async () => {
             try {
-                const response = await fetch("/api/affectations-manquantes/ue");
-                const data = await response.json();
+                const response = await UEAPI.getAllUEWronglyAffected()
+                const data = await response.responseObject();
+                console.log(data);
                 setListeAffectationsManquantesUE(data);
             } catch (error) {
                 console.error("Erreur lors de la récupération des affectations des UE", error);
