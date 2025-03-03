@@ -13,6 +13,19 @@ export default class ProfileAPI {
     static PROFILE_URL: string = '/profile';
 
     /**
+     * This method return the current profile who is connected
+     * @returns Promise<APIResponse<Profile>> A promise that resolves to the APIResponse containing the Profile.
+     */
+    static getCurrentProfile(): Promise<APIResponse<Profile>> {
+        return api.requestLoggedWithAcademicYear<Profile>(
+            HTTPMethod.GET,
+            `${ProfileAPI.PROFILE_URL}/me`,
+            undefined,
+            undefined
+        );
+    }
+
+    /**
      * This method builds and sends the request to get all the profiles
      * @returns Promise<APIResponse<Profile[]>> A promise that resolves to the APIResponse containing the Profile array.
      */
