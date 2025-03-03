@@ -86,6 +86,12 @@ function Navbar() {
                             </Link>
                         </div>
                         <div className="flex items-center">
+                            <Link to="/affectationsmanquantes"
+                                  className="text-sm hover:text-green-300 transition duration-200">
+                                Affectations manquantes
+                            </Link>
+                        </div>
+                        <div className="flex items-center">
                             <Link to="/accountcreation"
                                   className="text-sm hover:text-green-300 transition duration-200">
                                 Creer un utilisateur

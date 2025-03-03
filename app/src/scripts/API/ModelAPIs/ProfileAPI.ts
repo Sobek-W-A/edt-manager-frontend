@@ -31,6 +31,19 @@ export default class ProfileAPI {
     }
 
     /**
+     * This method builds and sends the request to get all the not correctly affected profile
+     * @returns
+     */
+    static getAllProfilesWronglyAffected(): Promise<APIResponse<Profile[]>> {
+        return api.requestLoggedWithAcademicYear<Profile[]>(
+            HTTPMethod.GET,
+            `${ProfileAPI.PROFILE_URL}/alerte/`,
+            undefined,
+            undefined
+        );
+    }
+
+    /**
      * This method returns the profile specified by the id provided.
      * @param profile_id The id of the profile to be returned.
      * @returns Promise<APIResponse<Profile>> A promise that resolves to the APIResponse containing the Profile.
