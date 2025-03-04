@@ -144,11 +144,11 @@ function AddRoleCard({ user, userConnected, rolesList, addRoleToUser, removeRole
                     className="py-1 my-2 rounded flex items-center cursor-pointer relative"
                     onClick={openModal}
                   >
-                    {userRole.role.name !== ROLE_ADMINISTRATEUR.name && user.id !== userConnected.account_id && (
+                    {((userRole.role.name !== ROLE_ADMINISTRATEUR.name && user.id !== userConnected.account_id) || user.id !== userConnected.account_id) && (
                       <FontAwesomeIcon icon={faEdit} className="cursor-pointer text-green-500 hover:text-green-700 mx-2" title="Modifier le rôle" />
                     )}
                   </summary>
-                  {userRole.role.name !== ROLE_ADMINISTRATEUR.name && user.id !== userConnected.account_id && (
+                  {((userRole.role.name !== ROLE_ADMINISTRATEUR.name && user.id !== userConnected.account_id) || user.id !== userConnected.account_id) && (
                     <FontAwesomeIcon icon={faTimes} className="cursor-pointer text-red-500 hover:text-red-700 me-2" title="Supprimer le rôle" onClick={() => { removeRoleFromUser(user, userRole.role); handleRemoveRole(user, userRole.role); }} />
                   )}
                   </li>
