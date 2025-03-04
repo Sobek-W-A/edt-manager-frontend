@@ -69,7 +69,7 @@ export default class UEAPI {
      * @returns The response of the request.
      */
     static async createUE(ue: UEInCreation): Promise<APIResponse<UE>> {
-        return api.requestLogged<UE>(
+        return api.requestLoggedWithAcademicYear<UE>(
             HTTPMethod.POST,
             `${UEAPI.UE_PATH}/`,
             JSON.stringify(ue),
