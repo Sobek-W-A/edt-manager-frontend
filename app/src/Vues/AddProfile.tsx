@@ -37,9 +37,9 @@ function AddProfile() {
     const setEmailError = (error: string) => setErrors(prev => ({ ...prev, emailError: error }));
     const setPrenomError = (error: string) => setErrors(prev => ({ ...prev, prenomError: error }));
     const setNomError = (error: string) => setErrors(prev => ({ ...prev, nomError: error }));
-    const setLoginError = (error: string) => setErrors(prev => ({ ...prev, nomError: error }));
-    const setStatutError = (error: string) => setErrors(prev => ({ ...prev, nomError: error }));
-    const setQuotaError = (error: string) => setErrors(prev => ({ ...prev, nomError: error }));
+    const setLoginError = (error: string) => setErrors(prev => ({ ...prev, loginError: error }));
+    const setStatutError = (error: string) => setErrors(prev => ({ ...prev, statutError: error }));
+    const setQuotaError = (error: string) => setErrors(prev => ({ ...prev, quotaError: error }));
 
 
 

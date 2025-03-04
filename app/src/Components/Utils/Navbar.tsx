@@ -62,7 +62,7 @@ function Navbar() {
     }, [isLoggedIn, refreshAcademicYear]);
 
     const academicYearDescription = (year: number | undefined): string | undefined => {
-        return academicYears.find(academicYear => academicYear.academic_year === year)?.description;
+        return academicYears.find(academicYear => academicYear.academic_year == year)?.description;
     };
 
     const handleChangeAcadmicYear = (year: number) => {

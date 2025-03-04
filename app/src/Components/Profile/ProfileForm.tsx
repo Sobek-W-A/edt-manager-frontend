@@ -95,7 +95,7 @@ const UserForm: React.FC<UserFormProps> = ({
 
     const handleQuota = (e: React.ChangeEvent<HTMLInputElement>) => {
         setQuota(Number(e.target.value));
-        errors.setStatutError(Number(e.target.value) > 0 ? "" : "Veuillez choisir quota valide.");
+        errors.setQuotaError(Number(e.target.value) > 0 ? "" : "Veuillez choisir quota valide.");
     };
 
     React.useEffect(() => {
@@ -196,7 +196,7 @@ const UserForm: React.FC<UserFormProps> = ({
             <div>
                 <label className="form-label block text-sm font-medium text-green-700">Status</label>
                 <select value={statut} onChange={e => handleStatut(e)}>
-                    <option value="" disabled></option>
+                    <option value="0" disabled>Veuillez choisir ...</option>
                     {availableStatus.map(option => (
                         <option key={option.id} value={option.id}>{option.name}</option>
                     ))}
