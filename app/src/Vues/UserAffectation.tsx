@@ -1,10 +1,10 @@
-import React, { useState, useEffect} from "react";
+import React, { useState, useEffect, useRef} from "react";
 import { Profile } from "../scripts/API/APITypes/Profiles.ts";
 import ProfileAPI from "../scripts/API/ModelAPIs/ProfileAPI.ts";
 import Notification from "../Components/AddRole/AddRolePopUp";
 import { useParams } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEnvelope, faClock, faIdBadge, faBook, faInfoCircle, faTasks, faCalendar, faUsers, faStickyNote } from "@fortawesome/free-solid-svg-icons";
+import { faEnvelope, faClock, faIdBadge, faBook, faInfoCircle, faTasks, faCalendar, faUsers, faStickyNote, faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
 import AffectationAPI from "../scripts/API/ModelAPIs/AffectationAPI.ts";
 import { Affectation } from "../scripts/API/APITypes/AffectationType.ts";
 import CourseInformation from "../Components/CoursesManager/CourseInformation.tsx";
@@ -26,6 +26,9 @@ function UserAffectation() {
 
     const [ACADEMIC_YEAR, setACADEMIC_YEAR] = useState<string>(window.sessionStorage.getItem("academic_year") || new Date().getFullYear().toString());
     const COURSE_TYPE = ["CM", "TD", "TP", "EI", "TPL"];
+
+    const courseInfoRef = useRef(null);
+    const ueId = 1;
 
     // Utilisation de useEffect pour récupérer l'année académique lorsqu'elle change dans le session storage
     useEffect(() => {
@@ -97,6 +100,22 @@ function UserAffectation() {
         );
     }, [affectations]);
 
+    useEffect(() => {
+        if (courseInfoRef.current) {
+            courseInfoRef.current.displayUE_By_ID(ueId);
+        }
+    }, [ueId]);
+
+    const openModal = () => {
+        const modal = document.getElementById("modal_affectation") as HTMLDialogElement;
+    modal?.showModal();
+    };
+
+    const closeModal = () => {
+        const modal = document.getElementById("modal_affectation") as HTMLDialogElement;
+        modal?.close();
+    };
+
 
     return (
         <div className="flex justify-center mt-6">
@@ -110,55 +129,13 @@ function UserAffectation() {
                             <p className={`text-gray-500 ${affectations.reduce((sum, affectation) => sum + affectation.hours, 0) > status?.quota ? 'text-red-500' : 'text-green-500'}`}>
                                 Quota : {affectations.reduce((sum, affectation) => sum + affectation.hours, 0)}/{status?.quota} h
                             </p>
-                            <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-3 gap-6 mt-6">
+                            <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mt-6">
                                 {ue && ue.length > 0 ? (
                                     ue.map((ueItem, index) => (
-                                        /*<div key={index} className="border p-4 rounded shadow-md relative flex flex-col bg-white hover:shadow-lg hover:scale-105 transition-transform duration-200 text-left">
-                                            <h3 className="text-lg font-bold mb-2">
-                                                <p className="text-gray-500"><FontAwesomeIcon icon={faBook} /> {ueItem.name}</p>
-                                            </h3>
-                                            {ueItem.courses && ueItem.courses.length > 0 ? (
-                                                ueItem.courses.map(course => (
-                                                    <div key={course.id} className="p-2 rounded bg-white">
-                                                        <p className="text-gray-500"><FontAwesomeIcon icon={faBook} /> {course.course_type.name}</p>
-                                                        <p className="text-gray-500"><FontAwesomeIcon icon={faInfoCircle} /> Description : {course.course_type.description}</p>
-                                                        <p className="text-gray-500"><FontAwesomeIcon icon={faTasks} /> Durée : {course.duration} h</p>
-                                                        <p className="text-gray-500"><FontAwesomeIcon icon={faUsers} /> Nombre de groupes : {course.group_count}</p>
-                                                    </div>
-                                                ))
-                                            ) : (
-                                                <p className="text-gray-500">Aucun cours</p>
-                                            )}
-                                        </div>*/
-
-                                        /*<ul className="menu xl:menu-vertical bg-base-200 rounded-box lg:min-w-max">
-                                            <li>
-                                                <p className="text-gray-500 text-xl"><FontAwesomeIcon icon={faBook} /> {ueItem.name}</p>
-                                                <ul>
-                                                {ueItem.courses && ueItem.courses.length > 0 ? (
-                                                    ueItem.courses.map(course =>
-                                                        <>
-                                                        <p className="flex items-center text-gray-500 text-lg"><FontAwesomeIcon icon={faBook} />&nbsp; {course.course_type.name}</p>
-                                                        <li>
-                                                            <ul>
-                                                                <p className="flex items-center text-gray-500"><FontAwesomeIcon icon={faInfoCircle} />&nbsp; Description : {course.course_type.description}</p>
-                                                                <p className="flex items-center text-gray-500"><FontAwesomeIcon icon={faTasks} />&nbsp; Durée : {course.duration} h</p>
-                                                                <p className="flex items-center text-gray-500"><FontAwesomeIcon icon={faUsers} />&nbsp; Nombre de groupes : {course.group_count}</p>
-                                                            </ul>
-                                                        </li>
-                                                        </>
-                                                    )
-                                                ) : (
-                                                    <p className="text-gray-500">Aucun cours</p>
-                                                )}
-                                                </ul>
-                                            </li>
-                                        </ul>*/
-
                                         <ul className="menu menu-xs rounded-box max-w-xs w-full border p-4 rounded shadow-md">
                                             <li>
                                                 <details open>
-                                                <summary className="text-xl"><FontAwesomeIcon icon={faBook} /> {ueItem.name}</summary>
+                                                <summary className="text-xl"><FontAwesomeIcon icon={faBook} /> {ueItem.name}<FontAwesomeIcon className="hover:text-green-700" icon={faArrowUpRightFromSquare} onClick={openModal}/></summary>
                                                 <ul>
                                                     {ueItem.courses && ueItem.courses.length > 0 ? (
                                                         ueItem.courses.map(course =>
@@ -240,41 +217,6 @@ function UserAffectation() {
                                 ) : (
                                     <p className="text-gray-500 text-center col-span-full">Aucune UE</p>
                                 )}
-
-                                {/*{affectations.length > 0 ? (
-                                    Object.values(affectations.reduce<Record<string, Affectation[]>>((acc, affectation) => {
-                                        const courseTypeName = affectation.course.course_type.name;
-                                        if (!acc[courseTypeName]) {
-                                            acc[courseTypeName] = [];
-                                        }
-                                        acc[courseTypeName].push(affectation);
-                                        return acc;
-                                    }, {})).map((affectationsByType: Affectation[], index: number) => (
-                                        <div key={index} className="border p-4 rounded shadow-md relative flex flex-col bg-white hover:shadow-lg hover:scale-105 transition-transform duration-200 text-left">
-                                            <h3 className="text-lg font-bold mb-2">
-                                                <p className="text-gray-500"><FontAwesomeIcon icon={faBook} /> {affectationsByType[0].course.course_type.name}</p>
-                                                <p className="text-gray-500"><FontAwesomeIcon icon={faUsers} /> Nombre de groupes : {affectationsByType[0].course.group_count}</p>
-                                                <p className="text-gray-500"><FontAwesomeIcon icon={faTasks} /> Total des heures à effectuer : {affectationsByType.reduce((sum, affectation) => sum + affectation.hours, 0)} h</p>
-                                            </h3>
-                                            {affectationsByType.map(affectation => (
-                                                <details key={affectation.id} className="p-2 rounded bg-white">
-                                                    <summary className={`cursor-pointer ${new Date(affectation.date).getTime() < new Date().getTime() ? 'bg-red-100' : 'bg-green-200'}`}>
-                                                        <FontAwesomeIcon icon={faCalendar} /> Affectation du {new Date(affectation.date).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                                                    </summary>
-                                                    <div className="p-2">
-                                                        <p>{affectation.course?.name}</p>
-                                                        <p className="text-gray-500"><FontAwesomeIcon icon={faInfoCircle} /> description : {affectation.course.course_type.description}</p>
-                                                        <p className="text-gray-500"><FontAwesomeIcon icon={faTasks} /> affectées/total à affecter : {affectation.hours}/{affectation.course.duration} h</p>
-                                                        <p className="text-gray-500"><FontAwesomeIcon icon={faUsers} /> Groupe : {affectation.group}</p>
-                                                        <p className="text-gray-500"><FontAwesomeIcon icon={faStickyNote} /> Note : {affectation.notes}</p>
-                                                    </div>
-                                                </details>
-                                            ))}
-                                        </div>
-                                    ))
-                                ) : (
-                                    <p className="text-gray-500 text-center col-span-full">Aucune affectation</p>
-                                )}*/}
                             </div>
                         </div>
                     )}
@@ -283,8 +225,22 @@ function UserAffectation() {
                     {showNotification && <Notification message={notification.message} type={notification.type} />}
                 </div>
             </div>
+
+            {/* Modal DaisyUI */}
+            <dialog id="modal_affectation" className="modal">
+                <div className="modal-box w-[80vw] max-w-5xl">
+                    <h3 className="font-bold text-lg">Page d'affichage des cours</h3>
+                    <ul className="space-y-2">
+                        <CourseInformation ref={courseInfoRef} />
+                    </ul>
+                    <div className="modal-action">
+                    <button className="btn bg-gray-300" onClick={closeModal}>Fermer</button>
+                    </div>
+                </div>
+            </dialog>
         </div>
     );
 }
 
 export default UserAffectation;
+
