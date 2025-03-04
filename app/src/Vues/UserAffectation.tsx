@@ -135,11 +135,12 @@ function UserAffectation() {
                                         <ul className="menu menu-xs rounded-box max-w-xs w-full border p-4 rounded shadow-md">
                                             <li>
                                                 <details open>
-                                                <summary className="text-xl"><FontAwesomeIcon icon={faBook} /> {ueItem.name}<FontAwesomeIcon className="hover:text-green-700" icon={faArrowUpRightFromSquare} onClick={openModal}/></summary>
+                                                <summary className="text-xl"><FontAwesomeIcon icon={faBook} /> {ueItem.name}</summary>
                                                 <ul>
                                                     {ueItem.courses && ueItem.courses.length > 0 ? (
                                                         ueItem.courses.map(course =>
                                                             <li>
+                                                                <p className="flex items-center text-lg" onClick={openModal}><FontAwesomeIcon icon={faArrowUpRightFromSquare}/>Voir les infos du cours</p>
                                                                 <details open>
                                                                 <summary className="text-lg"><FontAwesomeIcon icon={faBook} />{course.course_type.name}&nbsp;&nbsp;&nbsp;{course.duration}h</summary>
                                                                 <ul>
