@@ -31,7 +31,6 @@ function AddAccount() {
             login: login,
         };
 
-        setSuccess(true);
 
         try {
             const model = new AccountModel(userData);
@@ -45,6 +44,8 @@ function AddAccount() {
                     : `Une erreur est survenue: ${response.errorMessage()}`
                 );
 
+            } else {
+                setSuccess(true);
             }
 
         } catch (err) {
@@ -61,7 +62,7 @@ function AddAccount() {
                 <p className="text-sm">Créez un nouvel utilisateur</p>
             </div>
 
-            {generalError && <AlertError title="Oups ! Une erreur est survenue." details={generalError} />}
+            {!success && generalError && <AlertError title="Oups ! Une erreur est survenue." details={generalError} />}
             {success && <AlertSuccess title="Succès !" details="L'inscription a été réalisée avec succès !" />}
 
             <AccountForm

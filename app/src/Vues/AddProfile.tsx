@@ -57,7 +57,6 @@ function AddProfile() {
 
         console.log(userData)
 
-        setSuccess(true);
 
         try {
             const model = new ProfileModel(userData);
@@ -69,6 +68,8 @@ function AddProfile() {
                     ? "Identifiants incorrects"
                     : `Une erreur est survenue: ${response.errorMessage()}`
                 );
+            } else {
+                setSuccess(true);
             }
         } catch (err) {
             setSuccess(false);
@@ -84,7 +85,7 @@ function AddProfile() {
                     <p className="text-sm">Créez un nouveau profil pour {global_academic_year}</p>
                 </div>
 
-                {generalError && <AlertError title="Oups ! Une erreur est survenue." details={generalError} />}
+                {!success && generalError && <AlertError title="Oups ! Une erreur est survenue." details={generalError} />}
                 {success && <AlertSuccess title="Succès !" details="L'inscription a été réalisée avec succès !" />}
 
                 <ProfileForm

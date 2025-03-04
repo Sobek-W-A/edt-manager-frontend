@@ -88,6 +88,7 @@ const CourseInformation = forwardRef((_props, ref) => {
     const handleValidate = () => {
         console.log('Validation des données...');
         const modifiesUE: UeInUpdate = {
+            academic_year: academicYear,
             name: ueName,
         };
 
@@ -97,7 +98,8 @@ const CourseInformation = forwardRef((_props, ref) => {
             CourseModel.modifyCourseById(course.id, course);
         });
 
-        handleRefresh()
+        handleRefresh();
+        setIsEditing(false);
     };
 
     // Handler pour activer/désactiver le mode édition
@@ -191,7 +193,6 @@ const CourseInformation = forwardRef((_props, ref) => {
                         {filteredCourses.map((course, index) => (
                             <div key={index} className="form-field pt-5">
                                 <div>
-                                    <p>ID cours : {course.id}</p>
                                     <b>{course.course_type.name} </b>
                                     <p>description : {course.course_type.description}</p>
 
