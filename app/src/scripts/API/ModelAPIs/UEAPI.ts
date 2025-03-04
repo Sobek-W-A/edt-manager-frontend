@@ -76,4 +76,34 @@ export default class UEAPI {
             undefined
         );
     }
+
+    /**
+     * This method attaches the UE to the parent node.
+     * @param ueId The id of the UE to attach.
+     * @param nodeId The id of the Node to which the UE will be attached.
+     * @returns The response of the request.
+     */
+    static async attachUEToNode(ueId: number, nodeId: number): Promise<APIResponse<string>> {
+        return api.requestLoggedWithAcademicYear<string>(
+            HTTPMethod.POST,
+            `${UEAPI.UE_PATH}/attach/${ueId}/${nodeId}`,
+            undefined,
+            undefined
+        );
+    }
+
+    /**
+     * This method detaches the UE from the parent node.
+     * @param ueId The id of the UE to detach.
+     * @param nodeId The id of the Node from which the UE will be detached.
+     * @returns The response of the request.
+     */
+    static async detachUEFromNode(ueId: number, nodeId: number): Promise<APIResponse<string>> {
+        return api.requestLoggedWithAcademicYear<string>(
+            HTTPMethod.POST,
+            `${UEAPI.UE_PATH}/detach/${ueId}/${nodeId}`,
+            undefined,
+            undefined
+        );
+    }
 }
