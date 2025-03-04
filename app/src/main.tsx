@@ -12,6 +12,7 @@ import AssignedCoursesPage from './Vues/AssignedCoursesPage.tsx';
 import Guard from "./Components/Utils/Guard.tsx";
 import ModifyProfile from "./Vues/ModifyProfile.tsx";
 import UserAffectation from './Vues/UserAffectation.tsx';
+import AffectationsManquantes from "./Vues/AffectationsManquantes.tsx";
 
 
 // Configuration des routes
@@ -19,6 +20,7 @@ const routes = createRoutesFromElements(
     <Route path="/" element={<Layout />}>
         <Route path="add-role" element={<Guard><AddRole /></Guard>} />
         <Route path="accountcreation" element={<Guard><AddAccount /></Guard>} />
+            <Route path="affectationsmanquantes" element={<Guard><AffectationsManquantes /></Guard>} />
         <Route path="profileCreation" element={<Guard><AddProfile /></Guard>} />
         <Route path="management" element={<Guard><ManageHumanResources /></Guard>} />
         <Route path="login" element={<LoginVue />} />
