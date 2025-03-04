@@ -127,7 +127,7 @@ function Navbar() {
                         {isLinkAllowed('/assigned-courses') && (
                             <div className="flex items-center">
                                 <Link to="/assigned-courses" className="text-sm hover:text-green-300 transition duration-200">
-                                    Cours assignés
+                                    Affectations Requises
                                 </Link>
                             </div>
                         )}

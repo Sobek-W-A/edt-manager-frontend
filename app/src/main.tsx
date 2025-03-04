@@ -12,6 +12,7 @@ import UserAffectation from './Vues/UserAffectation.tsx';
 import Guard from './Components/Utils/Guard.tsx';
 import Layout from './Components/Utils/Layout.tsx';
 import './index.css';
+import AffectationsManquantes from "./Vues/AffectationsManquantes.tsx";
 
 // Define routes with role-based access
 const routes = createRoutesFromElements(
@@ -63,7 +64,7 @@ const routes = createRoutesFromElements(
             path="assigned-courses"
             element={
                 <Guard allowedRoles={['Professeur', 'Administrateur', 'Responsable de département', 'Responsable de formation', 'Secrétariat']}>    
-                    <AssignedCoursesPage />
+                    <AffectationsManquantes />
                 </Guard>
             }
         />
