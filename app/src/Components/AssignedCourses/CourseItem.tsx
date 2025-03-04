@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import AffectationAPI from '../../scripts/API/ModelAPIs/AffectationAPI.ts';
 
-// TypeScript interfaces
+// Interfaces TypeScript
 interface Course {
   id: number;
   course_id: number;
@@ -27,7 +27,7 @@ const CourseItem: React.FC<CourseItemProps> = ({ course }) => {
   const [currentProfessor, setCurrentProfessor] = useState<{ firstname: string; lastname: string } | null>(null);
   const [courseName, setCourseName] = useState<string>('');
 
-  // Fetch the current professor's profile
+  // Récupérer le profil de l'utilisateur connecté (professeur)
   useEffect(() => {
     const fetchCurrentProfessor = async () => {
       try {
@@ -44,14 +44,14 @@ const CourseItem: React.FC<CourseItemProps> = ({ course }) => {
     fetchCurrentProfessor();
   }, []);
 
-  // Fetch the course name
+  // Récupérer le nom du cours à partir de l'ID du cours
   useEffect(() => {
     const fetchCourseName = async () => {
       try {
         const response = await AffectationAPI.getCourseById(course.course_id);
         if (!response.isError()) {
           const courseData = response.responseObject();
-          setCourseName(courseData.course_type.name); // Extract the course name
+          setCourseName(courseData.course_type.name);
         }
       } catch (error) {
         console.error('Error fetching course name:', error);
@@ -61,9 +61,9 @@ const CourseItem: React.FC<CourseItemProps> = ({ course }) => {
     fetchCourseName();
   }, [course.course_id]);
 
-  // Remove duplicate colleagues and filter out the current professor
+  // Filtrer les collègues pour ne pas inclure le profil déjà connecté
   const filterColleagues = (colleagues: Colleague[]) => {
-    const uniqueColleagues = new Map();
+    const uniqueColleagues = new Map<string, Colleague>();
     colleagues.forEach((colleague) => {
       const fullName = `${colleague.firstname} ${colleague.lastname}`;
       if (!uniqueColleagues.has(fullName)) {
@@ -71,7 +71,6 @@ const CourseItem: React.FC<CourseItemProps> = ({ course }) => {
       }
     });
 
-    // Filter out the current professor
     if (currentProfessor) {
       const professorFullName = `${currentProfessor.firstname} ${currentProfessor.lastname}`;
       uniqueColleagues.delete(professorFullName);
@@ -80,7 +79,7 @@ const CourseItem: React.FC<CourseItemProps> = ({ course }) => {
     return Array.from(uniqueColleagues.values());
   };
 
-  // Fetch colleagues assigned to the course
+  // Récupérer les collègues assignés au cours et extraire leur prénom et nom
   useEffect(() => {
     const fetchColleagues = async () => {
       try {
@@ -88,8 +87,13 @@ const CourseItem: React.FC<CourseItemProps> = ({ course }) => {
         if (response.isError()) {
           console.error('Error fetching colleagues:', response.errorMessage());
         } else {
-          const fetchedColleagues = response.responseObject() || [];
-          setColleagues(filterColleagues(fetchedColleagues));
+          const fetchedData = response.responseObject() || [];
+          // Extraction des données depuis item.profile si présent
+          const colleaguesNames: Colleague[] = fetchedData.map((item: any) => ({
+            firstname: item.profile ? item.profile.firstname : item.firstname,
+            lastname: item.profile ? item.profile.lastname : item.lastname,
+          }));
+          setColleagues(filterColleagues(colleaguesNames));
         }
       } catch (error) {
         console.error('Error fetching colleagues:', error);
@@ -104,39 +108,32 @@ const CourseItem: React.FC<CourseItemProps> = ({ course }) => {
   return (
     <li className="bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 p-6 mb-6 border border-green-700/10">
       <div className="flex flex-col space-y-4">
-        {/* Course Information */}
+        {/* Informations sur le cours */}
         <div className="space-y-3">
-          {/* Course Name */}
           <div className="flex items-center space-x-2">
-            <span className="text-lg font-semibold text-gray-800">📚 Course: {courseName || 'Loading...'}</span>
+            <span className="text-lg font-semibold text-gray-800">
+              📚 Cours: {courseName || 'Chargement...'}
+            </span>
           </div>
-
-          {/* Hours */}
           <div className="flex items-center space-x-2">
             <span className="text-gray-600">⏳ Heures: {course.hours} h</span>
           </div>
-
-          {/* Group */}
           <div className="flex items-center space-x-2">
             <span className="text-gray-600">👥 Groupe: {course.group}</span>
           </div>
-
-          {/* Date */}
           <div className="flex items-center space-x-2">
             <span className="text-gray-600">
               📅 Date: {new Date(course.date).toLocaleDateString()} à {new Date(course.date).toLocaleTimeString()}
             </span>
           </div>
-
-          {/* Notes */}
           <div className="flex items-center space-x-2">
             <span className="text-gray-600 italic">✏️ {course.notes}</span>
           </div>
         </div>
 
-        {/* Colleagues Section */}
+        {/* Section des collègues */}
         <div className="pt-4 border-t border-gray-150">
-          <h3 className="text-lg font-semibold text-gray-800 mb-3">Collègues:</h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">Collègues :</h3>
           {loading ? (
             <p className="text-gray-500 italic">Chargement des collègues...</p>
           ) : colleagues.length > 0 ? (

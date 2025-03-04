@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import CourseList from '../Components/AssignedCourses/CourseList.tsx';
+import CourseList from '../Components/AssignedCourses/CourseList';
 import AffectationAPI from '../scripts/API/ModelAPIs/AffectationAPI.ts';
 
-// TypeScript interfaces pour typer les données
+// Interface pour typer les cours affichés dans la page
 interface Course {
   id: number;
+  course_id: number; // Cet identifiant sera extrait de l'objet course retourné par l'API
   profile_id: number;
-  course_id: number;
   hours: number;
   notes: string;
   date: string;
@@ -28,7 +28,6 @@ const AssignedCoursesPage: React.FC = () => {
         if (profileResponse.isError()) {
           throw new Error(profileResponse.errorMessage());
         }
-
         const profileId = profileResponse.responseObject()?.id;
         if (!profileId) {
           throw new Error('ID du profil non trouvé');
@@ -39,8 +38,20 @@ const AssignedCoursesPage: React.FC = () => {
         if (coursesResponse.isError()) {
           throw new Error(coursesResponse.errorMessage());
         }
+        const affectations = coursesResponse.responseObject() || [];
 
-        setCourses(coursesResponse.responseObject() || []);
+        // Transformation : extraire le course id depuis l'objet course de l'affectation
+        const mappedCourses: Course[] = affectations.map((affectation: any) => ({
+          id: affectation.id,
+          course_id: affectation.course.id, // Extraction de l'ID du cours à partir de l'objet course
+          profile_id: affectation.profile,
+          hours: affectation.hours,
+          notes: affectation.notes,
+          date: affectation.date,
+          group: affectation.group,
+        }));
+
+        setCourses(mappedCourses);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Une erreur est survenue');
         setNotification({ message: 'Erreur lors du chargement des cours.', type: 'alert-error' });
