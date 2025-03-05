@@ -98,6 +98,13 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         window.sessionStorage.getItem("academic_year") || "2024"
     );
 
+    // Popup de confirmation générique pour les actions critiques
+    const [confirmPopup, setConfirmPopup] = useState<{
+        visible: boolean;
+        message: string;
+        onConfirm: () => Promise<void>;
+    } | null>(null);
+
     const showError = (msg: string) => {
         setErrorPopup(msg);
         console.error(msg);
@@ -219,6 +226,11 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         setContextMenu({ visible: false, x: 0, y: 0, node: null, parent: null });
     };
 
+    // Fonction générique pour lancer une confirmation avant d'exécuter une action
+    const confirmAction = (message: string, onConfirm: () => Promise<void>) => {
+        setConfirmPopup({ visible: true, message, onConfirm });
+    };
+
     const handleAction = async (action: string) => {
         if (!contextMenu.node) {
             showError("Noeud non trouvé pour l'action.");
@@ -276,47 +288,66 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                     closeContextMenu();
                     return;
                 }
-                const detachResponse = await UEAPI.detachUEFromNode(node.id, contextMenu.parent.id);
-                if (detachResponse.isError()) {
-                    showError("Erreur lors du détachement de l'UE: " + detachResponse.errorMessage());
-                    closeContextMenu();
-                    return;
-                }
-                if (contextMenu.parent.children) {
-                    const index = contextMenu.parent.children.findIndex((child) => child === node);
-                    if (index > -1) {
-                        contextMenu.parent.children.splice(index, 1);
-                        setDataState({ ...dataState! });
+                // Sauvegarder les valeurs actuelles avant de fermer le menu
+                const currentNode = node;
+                const currentParent = contextMenu.parent;
+                closeContextMenu();
+                confirmAction("Êtes-vous sûr de vouloir détacher cette UE ?", async () => {
+                    const detachResponse = await UEAPI.detachUEFromNode(currentNode.id, currentParent.id);
+                    if (detachResponse.isError()) {
+                        showError("Erreur lors du détachement de l'UE: " + detachResponse.errorMessage());
+                        return;
                     }
-                }
+                    if (currentParent.children) {
+                        const index = currentParent.children.findIndex((child) => child === currentNode);
+                        if (index > -1) {
+                            currentParent.children.splice(index, 1);
+                            setDataState({ ...dataState! });
+                        }
+                    }
+                });
                 break;
             }
             case "Supprimer": {
-                try {
-                    if (node.type === "node") {
+                if (node.type === "ue") {
+                    const currentNode = node;
+                    const currentParent = contextMenu.parent;
+                    closeContextMenu();
+                    confirmAction("Êtes-vous sûr de vouloir supprimer cette UE ?", async () => {
+                        const response = await UEAPI.deleteUE(currentNode.id);
+                        if (response.isError()) {
+                            showError("Erreur lors de la suppression de l'UE: " + response.errorMessage());
+                            return;
+                        }
+                        if (!currentParent) {
+                            setDataState(null);
+                        } else if (currentParent.children) {
+                            const index = currentParent.children.findIndex((child) => child === currentNode);
+                            if (index > -1) {
+                                currentParent.children.splice(index, 1);
+                                setDataState({ ...dataState! });
+                            }
+                        }
+                    });
+                } else if (node.type === "node") {
+                    try {
                         const response = await NodeAPI.deleteNode(node.id);
                         if (response.isError()) {
                             showError("Erreur lors de la suppression du dossier: " + response.errorMessage());
                             return;
                         }
-                    } else if (node.type === "ue") {
-                        const response = await UEAPI.deleteUE(node.id);
-                        if (response.isError()) {
-                            showError("Erreur lors de la suppression de l'UE: " + response.errorMessage());
-                            return;
+                        if (!contextMenu.parent) {
+                            setDataState(null);
+                        } else if (contextMenu.parent.children) {
+                            const index = contextMenu.parent.children.findIndex((child) => child === node);
+                            if (index > -1) {
+                                contextMenu.parent.children.splice(index, 1);
+                                setDataState({ ...dataState! });
+                            }
                         }
+                    } catch (error) {
+                        showError("Erreur lors de la suppression: " + error);
                     }
-                    if (!contextMenu.parent) {
-                        setDataState(null);
-                    } else if (contextMenu.parent.children) {
-                        const index = contextMenu.parent.children.findIndex((child) => child === node);
-                        if (index > -1) {
-                            contextMenu.parent.children.splice(index, 1);
-                            setDataState({ ...dataState! });
-                        }
-                    }
-                } catch (error) {
-                    showError("Erreur lors de la suppression: " + error);
                 }
                 break;
             }
@@ -437,7 +468,10 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                         showError("Erreur lors de la mise à jour du nom: " + response.errorMessage());
                     }
                 } else if (nodeKey.startsWith("ue-")) {
-                    const response = await UEAPI.modifyUE(parseInt(nodeKey.split("-")[1]), { name: newNodeName, academic_year: academicYear } as UeInUpdate);
+                    const response = await UEAPI.modifyUE(
+                        parseInt(nodeKey.split("-")[1]),
+                        { name: newNodeName, academic_year: academicYear } as UeInUpdate
+                    );
                     if (response.isError()) {
                         showError("Erreur lors de la mise à jour du nom de l'UE: " + response.errorMessage());
                     }
@@ -485,8 +519,8 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                             onDoubleClick={() => handleDoubleClick(nodeKey, node.name)}
                             onClick={() => node.type === "ue" && onSelectCourse(node)}
                         >
-                            {node.name}
-                        </span>
+              {node.name}
+            </span>
                     )}
                 </div>
                 {isOpen && node.type === "node" && node.children && (
@@ -614,6 +648,30 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                             </button>
                             <button className="px-3 py-1 bg-blue-500 text-white rounded" onClick={handleCreateUE}>
                                 Créer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {confirmPopup && confirmPopup.visible && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                    <div className="bg-white p-4 rounded shadow-lg w-80">
+                        <p className="mb-4">{confirmPopup.message}</p>
+                        <div className="flex justify-end gap-2">
+                            <button
+                                className="px-3 py-1 bg-gray-200 rounded"
+                                onClick={() => setConfirmPopup(null)}
+                            >
+                                Annuler
+                            </button>
+                            <button
+                                className="px-3 py-1 bg-blue-500 text-white rounded"
+                                onClick={async () => {
+                                    await confirmPopup.onConfirm();
+                                    setConfirmPopup(null);
+                                }}
+                            >
+                                Confirmer
                             </button>
                         </div>
                     </div>
