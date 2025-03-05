@@ -54,7 +54,7 @@ export default class AffectationAPI {
   static getTeacherAffectations(profile_id: number): Promise<APIResponse<AffectationType[]>> {
     return api.requestLoggedWithAcademicYear<AffectationType[]>(
       HTTPMethod.GET,
-      `${AffectationAPI.AFFECTATION_URL}/${profile_id}`,
+      `${AffectationAPI.PROFILE_PATH}/${profile_id}`,
       undefined,
       undefined
     );

@@ -5,7 +5,7 @@ import { APINode } from "../../scripts/API/APITypes/Tree";
 import { NodeInUpdate } from "../../scripts/API/APITypes/Tree";
 import { UEInCreation, UeInUpdate } from "../../scripts/API/APITypes/UE.ts";
 
-type TreeNode = {
+export type TreeNode = {
     academic_year: number;
     id: number;
     name: string;
@@ -16,9 +16,9 @@ type TreeNode = {
 
 type TreeProps = {
     onSelectCourse: (course: TreeNode) => void;
-    // 
 };
 
+// getNodeKey reste utilisé pour l'affichage ou d'autres traitements
 const getNodeKey = (node: TreeNode) => `${node.type}-${node.id}`;
 
 const refreshOpenNodes = async (
@@ -63,12 +63,14 @@ const refreshOpenNodes = async (
 
 const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
     const [openNodes, setOpenNodes] = useState<Set<string>>(new Set());
+    // Le menu contextuel stocke désormais le nœud cliqué et son parent
     const [contextMenu, setContextMenu] = useState<{
         visible: boolean;
         x: number;
         y: number;
-        nodeKey: string | null;
-    }>({ visible: false, x: 0, y: 0, nodeKey: null });
+        node: TreeNode | null;
+        parent: TreeNode | null;
+    }>({ visible: false, x: 0, y: 0, node: null, parent: null });
     const [dataState, setDataState] = useState<TreeNode | null>(null);
     const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
     const [newNodeName, setNewNodeName] = useState<string>("");
@@ -78,7 +80,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
     // Popup pour la création d'une UE
     const [showAddUEPopup, setShowAddUEPopup] = useState(false);
     const [newUEName, setNewUEName] = useState("");
-    // Nouveaux états pour les paramètres de chaque cours (5 lignes : CM, TD, TP, EI, TPL)
+    // Paramètres de chaque cours (CM, TD, TP, EI, TPL)
     const [newUECourses, setNewUECourses] = useState<
         { duration: number; group_count: number }[]
     >([
@@ -89,10 +91,19 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         { duration: 1, group_count: 1 }
     ]);
     const [parentForNewUE, setParentForNewUE] = useState<TreeNode | null>(null);
+    // Pour saisir l'ID d'une UE existante
+    const [existingUEId, setExistingUEId] = useState<string>("");
 
     const [academicYear, setAcademicYear] = useState<string>(
         window.sessionStorage.getItem("academic_year") || "2024"
     );
+
+    // Popup de confirmation générique pour les actions critiques
+    const [confirmPopup, setConfirmPopup] = useState<{
+        visible: boolean;
+        message: string;
+        onConfirm: () => Promise<void>;
+    } | null>(null);
 
     const showError = (msg: string) => {
         setErrorPopup(msg);
@@ -172,7 +183,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         }
     };
 
-    const toggleNode = async (node: TreeNode) => {
+    const toggleNode = async (node: TreeNode, parent: TreeNode | null) => {
         const nodeKey = getNodeKey(node);
         const newSet = new Set(openNodes);
         if (newSet.has(nodeKey)) {
@@ -198,78 +209,64 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
         setDataState(updateNode(dataState));
     };
 
-    const handleContextMenu = (e: React.MouseEvent, nodeKey: string) => {
+    // On passe directement le nœud cliqué et son parent au menu contextuel
+    const handleContextMenu = (
+        e: React.MouseEvent,
+        node: TreeNode,
+        parent: TreeNode | null
+    ) => {
         e.preventDefault();
         e.stopPropagation();
         const x = e.clientX;
         const y = e.clientY - 40;
-        setContextMenu({ visible: true, x, y, nodeKey });
+        setContextMenu({ visible: true, x, y, node, parent });
     };
 
     const closeContextMenu = () => {
-        setContextMenu({ visible: false, x: 0, y: 0, nodeKey: null });
+        setContextMenu({ visible: false, x: 0, y: 0, node: null, parent: null });
     };
 
-    const findNode = (node: TreeNode, compositeKey: string): TreeNode | null => {
-        if (getNodeKey(node) === compositeKey) return node;
-        if (node.children) {
-            for (const child of node.children) {
-                const found = findNode(child, compositeKey);
-                if (found) return found;
-            }
-        }
-        return null;
-    };
-
-    const findParentNode = (node: TreeNode, compositeKey: string): TreeNode | null => {
-        if (node.children) {
-            for (const child of node.children) {
-                if (getNodeKey(child) === compositeKey) return node;
-                const found = findParentNode(child, compositeKey);
-                if (found) return found;
-            }
-        }
-        return null;
+    // Fonction générique pour lancer une confirmation avant d'exécuter une action
+    const confirmAction = (message: string, onConfirm: () => Promise<void>) => {
+        setConfirmPopup({ visible: true, message, onConfirm });
     };
 
     const handleAction = async (action: string) => {
-        if (contextMenu.nodeKey && dataState) {
-            const node = findNode(dataState, contextMenu.nodeKey);
-            if (!node) {
-                showError("Noeud non trouvé pour l'action.");
-                closeContextMenu();
-                return;
-            }
-            if (action === "Ajouter Dossier") {
+        if (!contextMenu.node) {
+            showError("Noeud non trouvé pour l'action.");
+            closeContextMenu();
+            return;
+        }
+        const node = contextMenu.node;
+        switch (action) {
+            case "Ajouter Dossier": {
                 try {
                     const newNodeData: NodeInUpdate = { name: "Nouveau Dossier", parent_id: node.id };
-                    const response = await NodeAPI.createNode( newNodeData);
+                    const response = await NodeAPI.createNode(newNodeData);
                     if (response.isError()) {
                         showError("Erreur lors de la création du dossier: " + response.errorMessage());
                         return;
                     }
-                    const parent = findNode(dataState, contextMenu.nodeKey);
-                    if (parent) {
-                        const newFolderId = response.responseObject()?.id || Date.now();
-                        const newFolder: TreeNode = {
-                            academic_year: parent.academic_year,
-                            id: newFolderId,
-                            name: "Nouveau Dossier",
-                            type: "node",
-                            child_nodes: [],
-                            children: []
-                        };
-                        parent.children = parent.children ? [...parent.children, newFolder] : [newFolder];
-                        setDataState({ ...dataState });
-                    }
+                    const newFolderId = response.responseObject()?.id || Date.now();
+                    const newFolder: TreeNode = {
+                        academic_year: node.academic_year,
+                        id: newFolderId,
+                        name: "Nouveau Dossier",
+                        type: "node",
+                        child_nodes: [],
+                        children: []
+                    };
+                    node.children = node.children ? [...node.children, newFolder] : [newFolder];
+                    setDataState({ ...dataState! });
                 } catch (error) {
                     showError("Erreur lors de la création du dossier: " + error);
                 }
-            } else if (action === "Ajouter UE") {
-                // Ouvre le popup pour créer une UE
+                break;
+            }
+            case "Ajouter UE": {
                 setParentForNewUE(node);
                 setNewUEName("");
-                // Réinitialise les valeurs pour chaque ligne de cours
+                setExistingUEId("");
                 setNewUECourses([
                     { duration: 1, group_count: 1 },
                     { duration: 1, group_count: 1 },
@@ -278,95 +275,168 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                     { duration: 1, group_count: 1 }
                 ]);
                 setShowAddUEPopup(true);
-                closeContextMenu();
-                return;
-            } else if (action === "Supprimer") {
-                const nodeToDelete = findNode(dataState, contextMenu.nodeKey);
-                if (!nodeToDelete) {
-                    showError("Noeud non trouvé pour la suppression.");
+                break;
+            }
+            case "Détacher UE": {
+                if (node.type !== "ue") {
+                    showError("L'action de détachement ne s'applique qu'à une UE.");
                     closeContextMenu();
                     return;
                 }
-                try {
-                    if (nodeToDelete.type === "node") {
-                        const response = await NodeAPI.deleteNode( nodeToDelete.id);
-                        if (response.isError()) {
-                            showError("Erreur lors de la suppression du dossier: " + response.errorMessage());
-                            return;
+                if (!contextMenu.parent) {
+                    showError("Parent non trouvé pour détacher l'UE.");
+                    closeContextMenu();
+                    return;
+                }
+                // Sauvegarder les valeurs actuelles avant de fermer le menu
+                const currentNode = node;
+                const currentParent = contextMenu.parent;
+                closeContextMenu();
+                confirmAction("Êtes-vous sûr de vouloir détacher cette UE ?", async () => {
+                    const detachResponse = await UEAPI.detachUEFromNode(currentNode.id, currentParent.id);
+                    if (detachResponse.isError()) {
+                        showError("Erreur lors du détachement de l'UE: " + detachResponse.errorMessage());
+                        return;
+                    }
+                    if (currentParent.children) {
+                        const index = currentParent.children.findIndex((child) => child === currentNode);
+                        if (index > -1) {
+                            currentParent.children.splice(index, 1);
+                            setDataState({ ...dataState! });
                         }
-                    } else if (nodeToDelete.type === "ue") {
-                        const response = await UEAPI.deleteUE(nodeToDelete.id);
+                    }
+                });
+                break;
+            }
+            case "Supprimer": {
+                if (node.type === "ue") {
+                    const currentNode = node;
+                    const currentParent = contextMenu.parent;
+                    closeContextMenu();
+                    confirmAction("Êtes-vous sûr de vouloir supprimer cette UE ?", async () => {
+                        const response = await UEAPI.deleteUE(currentNode.id);
                         if (response.isError()) {
                             showError("Erreur lors de la suppression de l'UE: " + response.errorMessage());
                             return;
                         }
-                    }
-                    if (getNodeKey(dataState) === contextMenu.nodeKey) {
-                        setDataState(null);
-                    } else {
-                        const parentNode = findParentNode(dataState, contextMenu.nodeKey);
-                        if (parentNode && parentNode.children) {
-                            const index = parentNode.children.findIndex(
-                                (child) => getNodeKey(child) === contextMenu.nodeKey
-                            );
+                        if (!currentParent) {
+                            setDataState(null);
+                        } else if (currentParent.children) {
+                            const index = currentParent.children.findIndex((child) => child === currentNode);
                             if (index > -1) {
-                                parentNode.children.splice(index, 1);
-                                setDataState({ ...dataState });
+                                currentParent.children.splice(index, 1);
+                                setDataState({ ...dataState! });
                             }
                         }
+                    });
+                } else if (node.type === "node") {
+                    try {
+                        const response = await NodeAPI.deleteNode(node.id);
+                        if (response.isError()) {
+                            showError("Erreur lors de la suppression du dossier: " + response.errorMessage());
+                            return;
+                        }
+                        if (!contextMenu.parent) {
+                            setDataState(null);
+                        } else if (contextMenu.parent.children) {
+                            const index = contextMenu.parent.children.findIndex((child) => child === node);
+                            if (index > -1) {
+                                contextMenu.parent.children.splice(index, 1);
+                                setDataState({ ...dataState! });
+                            }
+                        }
+                    } catch (error) {
+                        showError("Erreur lors de la suppression: " + error);
                     }
-                } catch (error) {
-                    showError("Erreur lors de la suppression: " + error);
                 }
-            } else if (action === "Renommer") {
-                setEditingNodeId(contextMenu.nodeKey);
-                setNewNodeName(node.name);
+                break;
             }
-            closeContextMenu();
+            case "Renommer": {
+                setEditingNodeId(getNodeKey(node));
+                setNewNodeName(node.name);
+                break;
+            }
+            default:
+                break;
         }
+        closeContextMenu();
     };
 
     const handleCreateUE = async () => {
         if (!parentForNewUE) return;
-        const newUEData: UEInCreation = {
-            academic_year: academicYear,
-            name: newUEName || "Nouvelle UE",
-            parent_id: parentForNewUE.id,
-            courses: newUECourses.map((course, index) => ({
-                academic_year: academicYear,
-                duration: course.duration,
-                group_count: course.group_count,
-                course_type_id: index + 1
-            }))
-        };
-
-        const ueResponse = await UEAPI.createUE(newUEData);
-        if (ueResponse.isError()) {
-            showError("Erreur lors de la création de l'UE: " + ueResponse.errorMessage());
-            return;
-        }
-        const updatedParent = await loadNodeChildren(parentForNewUE.id, parentForNewUE.academic_year);
-        if (updatedParent) {
-            const childrenNodes = await Promise.all(
-                (updatedParent.child_nodes || []).map(async (child: number | APINode) => {
-                    if (typeof child === "number") {
-                        return await loadNodeChildren(child, updatedParent.academic_year);
-                    } else if (typeof child === "object" && child !== null) {
-                        if ("courses" in child) {
-                            return { ...child, type: "ue" };
+        if (existingUEId.trim() !== "") {
+            const ueId = parseInt(existingUEId);
+            if (isNaN(ueId)) {
+                showError("ID d'UE existante invalide.");
+                return;
+            }
+            const attachResponse = await UEAPI.attachUEToNode(ueId, parentForNewUE.id);
+            if (attachResponse.isError()) {
+                showError("Erreur lors de l'attachement de l'UE: " + attachResponse.errorMessage());
+                return;
+            }
+            const updatedParent = await loadNodeChildren(parentForNewUE.id, parentForNewUE.academic_year);
+            if (updatedParent) {
+                const childrenNodes = await Promise.all(
+                    (updatedParent.child_nodes || []).map(async (child: number | APINode) => {
+                        if (typeof child === "number") {
+                            return await loadNodeChildren(child, updatedParent.academic_year);
+                        } else if (typeof child === "object" && child !== null) {
+                            if ("courses" in child) {
+                                return { ...child, type: "ue" };
+                            }
+                            return child;
+                        } else {
+                            return null;
                         }
-                        return child;
-                    } else {
-                        return null;
-                    }
-                })
-            );
-            updateNodeInTree(parentForNewUE.id, {
-                ...updatedParent,
-                children: childrenNodes.filter((child) => child !== null)
-            });
+                    })
+                );
+                updateNodeInTree(parentForNewUE.id, {
+                    ...updatedParent,
+                    children: childrenNodes.filter((child) => child !== null)
+                });
+            }
+        } else {
+            const newUEData: UEInCreation = {
+                academic_year: academicYear,
+                name: newUEName || "Nouvelle UE",
+                parent_id: parentForNewUE.id,
+                courses: newUECourses.map((course, index) => ({
+                    academic_year: academicYear,
+                    duration: course.duration,
+                    group_count: course.group_count,
+                    course_type_id: index + 1
+                }))
+            };
+            const ueResponse = await UEAPI.createUE(newUEData);
+            if (ueResponse.isError()) {
+                showError("Erreur lors de la création de l'UE: " + ueResponse.errorMessage());
+                return;
+            }
+            const updatedParent = await loadNodeChildren(parentForNewUE.id, parentForNewUE.academic_year);
+            if (updatedParent) {
+                const childrenNodes = await Promise.all(
+                    (updatedParent.child_nodes || []).map(async (child: number | APINode) => {
+                        if (typeof child === "number") {
+                            return await loadNodeChildren(child, updatedParent.academic_year);
+                        } else if (typeof child === "object" && child !== null) {
+                            if ("courses" in child) {
+                                return { ...child, type: "ue" };
+                            }
+                            return child;
+                        } else {
+                            return null;
+                        }
+                    })
+                );
+                updateNodeInTree(parentForNewUE.id, {
+                    ...updatedParent,
+                    children: childrenNodes.filter((child) => child !== null)
+                });
+            }
         }
         setShowAddUEPopup(false);
+        setExistingUEId("");
     };
 
     const handleDoubleClick = (nodeKey: string, name: string) => {
@@ -380,35 +450,41 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
 
     const handleNodeNameSubmit = async (nodeKey: string) => {
         if (!dataState) return;
-        const node = findNode(dataState, nodeKey);
-        if (node) {
-            const trimmedName = newNodeName.trim() === "" ? "default" : newNodeName.trim();
-            try {
-                if (node.type === "node") {
-                    const response = await NodeAPI.updateNode( node.id, { name: trimmedName });
+        const updateInTree = (node: TreeNode): TreeNode => {
+            if (getNodeKey(node) === nodeKey) {
+                return { ...node, name: newNodeName.trim() === "" ? "default" : newNodeName.trim() };
+            }
+            if (node.children) {
+                return { ...node, children: node.children.map(updateInTree) };
+            }
+            return node;
+        };
+        setDataState(updateInTree(dataState));
+        try {
+            if (dataState) {
+                if (nodeKey.startsWith("node-")) {
+                    const response = await NodeAPI.updateNode(parseInt(nodeKey.split("-")[1]), { name: newNodeName });
                     if (response.isError()) {
                         showError("Erreur lors de la mise à jour du nom: " + response.errorMessage());
-                    } else {
-                        node.name = trimmedName;
-                        setDataState({ ...dataState });
                     }
-                } else if (node.type === "ue") {
-                    const response = await UEAPI.modifyUE(node.id, { name: trimmedName, academic_year: academicYear } as UeInUpdate);
+                } else if (nodeKey.startsWith("ue-")) {
+                    const response = await UEAPI.modifyUE(
+                        parseInt(nodeKey.split("-")[1]),
+                        { name: newNodeName, academic_year: academicYear } as UeInUpdate
+                    );
                     if (response.isError()) {
                         showError("Erreur lors de la mise à jour du nom de l'UE: " + response.errorMessage());
-                    } else {
-                        node.name = trimmedName;
-                        setDataState({ ...dataState });
                     }
                 }
-            } catch (error) {
-                showError("Erreur lors de l'appel à l'API de mise à jour: " + error);
             }
+        } catch (error) {
+            showError("Erreur lors de l'appel à l'API de mise à jour: " + error);
         }
         setEditingNodeId(null);
     };
 
-    const renderNode = (node: TreeNode) => {
+    // Modification de renderNode pour transmettre le parent (null pour la racine)
+    const renderNode = (node: TreeNode, parent: TreeNode | null = null) => {
         const nodeKey = getNodeKey(node);
         const isOpen = openNodes.has(nodeKey);
         return (
@@ -416,9 +492,12 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                 {isOpen && node.type === "node" && (
                     <div className="absolute left-[-5px] top-3 h-full w-[1px] bg-blue-300"></div>
                 )}
-                <div className="flex items-center gap-2 cursor-pointer hover:text-gray-700" onContextMenu={(e) => handleContextMenu(e, nodeKey)}>
+                <div
+                    className="flex items-center gap-2 cursor-pointer hover:text-gray-700"
+                    onContextMenu={(e) => handleContextMenu(e, node, parent)}
+                >
                     {node.type === "node" ? (
-                        <button className="text-lg font-bold" onClick={() => toggleNode(node)}>
+                        <button className="text-lg font-bold" onClick={() => toggleNode(node, parent)}>
                             {isOpen ? "∨" : ">"}
                         </button>
                     ) : (
@@ -446,7 +525,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                 </div>
                 {isOpen && node.type === "node" && node.children && (
                     <div className="mt-2 ml-2">
-                        {node.children.map((child) => renderNode(child))}
+                        {node.children.map((child) => renderNode(child, node))}
                     </div>
                 )}
             </div>
@@ -462,17 +541,44 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
             )}
             <div className="flex-grow h-full">{dataState && renderNode(dataState)}</div>
             {contextMenu.visible && (
-                <div className="absolute bg-white border border-gray-300 rounded shadow-md" style={{ top: contextMenu.y, left: contextMenu.x }}>
-                    <button className="block px-4 py-2 text-left hover:bg-gray-100 w-full" onClick={() => handleAction("Renommer")}>
+                <div
+                    className="absolute bg-white border border-gray-300 rounded shadow-md"
+                    style={{ top: contextMenu.y, left: contextMenu.x }}
+                >
+                    <button
+                        className="block px-4 py-2 text-left hover:bg-gray-100 w-full"
+                        onClick={() => handleAction("Renommer")}
+                    >
                         Renommer
                     </button>
-                    <button className="block px-4 py-2 text-left hover:bg-gray-100 w-full" onClick={() => handleAction("Ajouter Dossier")}>
-                        Ajouter Dossier
-                    </button>
-                    <button className="block px-4 py-2 text-left hover:bg-gray-100 w-full" onClick={() => handleAction("Ajouter UE")}>
-                        Ajouter UE
-                    </button>
-                    <button className="block px-4 py-2 text-left hover:bg-gray-100 w-full" onClick={() => handleAction("Supprimer")}>
+                    {contextMenu.node && contextMenu.node.type === "node" && (
+                        <>
+                            <button
+                                className="block px-4 py-2 text-left hover:bg-gray-100 w-full"
+                                onClick={() => handleAction("Ajouter Dossier")}
+                            >
+                                Ajouter Dossier
+                            </button>
+                            <button
+                                className="block px-4 py-2 text-left hover:bg-gray-100 w-full"
+                                onClick={() => handleAction("Ajouter UE")}
+                            >
+                                Ajouter UE
+                            </button>
+                        </>
+                    )}
+                    {contextMenu.node && contextMenu.node.type === "ue" && (
+                        <button
+                            className="block px-4 py-2 text-left hover:bg-gray-100 w-full"
+                            onClick={() => handleAction("Détacher UE")}
+                        >
+                            Détacher UE
+                        </button>
+                    )}
+                    <button
+                        className="block px-4 py-2 text-left hover:bg-gray-100 w-full"
+                        onClick={() => handleAction("Supprimer")}
+                    >
                         Supprimer
                     </button>
                 </div>
@@ -481,6 +587,19 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
                     <div className="bg-white p-4 rounded shadow-lg w-96">
                         <h3 className="text-lg font-bold mb-4">Créer une nouvelle UE</h3>
+                        {/* Champ pour saisir l'ID d'une UE existante */}
+                        <label className="block mb-2">
+                            ID d'une UE existante:
+                            <input
+                                type="number"
+                                value={existingUEId}
+                                onChange={(e) => setExistingUEId(e.target.value)}
+                                className="border p-1 w-full mt-1"
+                            />
+                        </label>
+                        <p className="text-sm text-gray-500 mb-2">
+                            Si vous saisissez un ID, les autres champs seront désactivés.
+                        </p>
                         <label className="block mb-2">
                             Nom de l'UE:
                             <input
@@ -488,9 +607,10 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                                 value={newUEName}
                                 onChange={(e) => setNewUEName(e.target.value)}
                                 className="border p-1 w-full mt-1"
+                                disabled={existingUEId.trim() !== ""}
                             />
                         </label>
-                        {/* Formulaire pour chaque ligne */}
+                        {/* Formulaire pour chaque ligne de cours */}
                         {["CM", "TD", "TP", "EI", "TPL"].map((label, index) => (
                             <div key={index} className="mb-2">
                                 <strong>{label}</strong>
@@ -505,6 +625,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                                             setNewUECourses(newCourses);
                                         }}
                                         className="border p-1 w-1/2"
+                                        disabled={existingUEId.trim() !== ""}
                                     />
                                     <input
                                         type="number"
@@ -516,6 +637,7 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                                             setNewUECourses(newCourses);
                                         }}
                                         className="border p-1 w-1/2"
+                                        disabled={existingUEId.trim() !== ""}
                                     />
                                 </div>
                             </div>
@@ -526,6 +648,30 @@ const Tree: React.FC<TreeProps> = ({ onSelectCourse }) => {
                             </button>
                             <button className="px-3 py-1 bg-blue-500 text-white rounded" onClick={handleCreateUE}>
                                 Créer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {confirmPopup && confirmPopup.visible && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                    <div className="bg-white p-4 rounded shadow-lg w-80">
+                        <p className="mb-4">{confirmPopup.message}</p>
+                        <div className="flex justify-end gap-2">
+                            <button
+                                className="px-3 py-1 bg-gray-200 rounded"
+                                onClick={() => setConfirmPopup(null)}
+                            >
+                                Annuler
+                            </button>
+                            <button
+                                className="px-3 py-1 bg-blue-500 text-white rounded"
+                                onClick={async () => {
+                                    await confirmPopup.onConfirm();
+                                    setConfirmPopup(null);
+                                }}
+                            >
+                                Confirmer
                             </button>
                         </div>
                     </div>

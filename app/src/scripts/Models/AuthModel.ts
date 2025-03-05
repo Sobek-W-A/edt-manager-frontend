@@ -1,54 +1,84 @@
 import Storage from "../API/Storage.ts";
-import {TokenPair} from "../API/APITypes/Tokens.ts";
+import { TokenPair } from "../API/APITypes/Tokens.ts";
 import CorrectResponse from "../API/Responses/CorrectResponse.ts";
 import AuthAPI from "../API/ModelAPIs/AuthAPI.ts";
 import APIResponse from "../API/Responses/APIResponse.ts";
 
 /**
+ * Interface for the role response from the API
+ */
+interface RoleResponse {
+    name: string;
+    description: string;
+    permissions: string[];
+}
+
+/**
  * This class provides handling methods for the authentication process of the user.
  */
 export default class AuthModel {
-
-    private readonly _login   : string;
+    private readonly _login: string;
     private readonly _password: string;
     static BASE_LOGIN_URL: string = '/login';
 
     constructor(login: string, password: string) {
-        this._login    = login;
+        this._login = login;
         this._password = password;
     }
 
     /**
-     * This method checks if the user is logged in.
-     * @returns A boolean that is true if the user is logged in, false otherwise.
+     * Checks if the user is logged in.
+     * @returns A boolean indicating if the user is logged in.
      */
     static isLoggedIn(): boolean {
         return Storage.isAccessTokenStored();
     }
 
     /**
-     * This method authenticates the user to the API.
-     * Requires login and password to be set.
-     * @returns A promise that resolves into a pair of tokens, or an error.
+     * Authenticates the user and fetches their role.
+     * @returns A promise resolving to a token pair or an error.
      */
     async login(): Promise<APIResponse<TokenPair>> {
         const res: APIResponse<TokenPair> = await AuthAPI.loginRequest(this._login, this._password);
         if (!res.isError()) {
-            Storage.setTokensInStorage(
-                (res as CorrectResponse<TokenPair>).responseObject().access_token,
-                (res as CorrectResponse<TokenPair>).responseObject().refresh_token
-            );
+            const tokens = (res as CorrectResponse<TokenPair>).responseObject();
+            Storage.setTokensInStorage(tokens.access_token, tokens.refresh_token);
+            // Fetch and store the role after successful login
+            await this.fetchAndStoreRole(tokens.access_token);
         }
         return res;
     }
 
     /**
-     * This method disconnect the user to the API.
-     * It sends the tokens to the API in order to be invalidated.
-     * Upon resolving, the Storage is cleared and the window is reloaded.
-     * @returns A promise that resolves into void.
+     * Fetches the user’s role from the API and stores it in sessionStorage.
+     * @param accessToken The access token to authenticate the API request.
      */
-    static async logout() : Promise<void> {
+    private async fetchAndStoreRole(accessToken: string): Promise<void> {
+        try {
+            const response = await fetch('http://localhost:8000/account/me/role?academic_year=2024', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch role');
+            }
+
+            const roleData: RoleResponse = await response.json();
+            window.sessionStorage.setItem('userRole', roleData.name);
+        } catch (error) {
+            console.error('Error fetching role:', error);
+            // Optionally, handle the error (e.g., log out the user)
+        }
+    }
+
+    /**
+     * Disconnects the user and cleans up storage.
+     * @returns A promise that resolves when logout is complete.
+     */
+    static async logout(): Promise<void> {
         await AuthAPI.logoutRequest(
             Storage.getAccessTokenFromStorage(),
             Storage.getRefreshTokenFromStorage()
@@ -58,26 +88,27 @@ export default class AuthModel {
     }
 
     /**
-     * This method refreshes the tokens used to make logged requests.
-     * It sends the refresh token to the API in order to generate a new pair.
-     *
-     * Upon resolving, if an error has occurred, the Storage is cleared and the window is reloaded.
-     * Otherwise, the new pair of token is saved into storage.
-     * @returns A promise that resolves into void.
+     * Refreshes the tokens and updates storage.
+     * @returns A promise that resolves when tokens are refreshed.
      */
     static async refreshTokens(): Promise<void> {
         const response = await AuthAPI.refreshTokensRequest(
-            Storage.getRefreshTokenFromStorage(),
+            Storage.getRefreshTokenFromStorage()
         );
         if (response.isError()) {
             Storage.cleanStorage();
             window.location.reload();
         } else {
-            Storage.setTokensInStorage(
-                (response as CorrectResponse<TokenPair>).responseObject().access_token,
-                (response as CorrectResponse<TokenPair>).responseObject().refresh_token
-            );
+            const tokens = (response as CorrectResponse<TokenPair>).responseObject();
+            Storage.setTokensInStorage(tokens.access_token, tokens.refresh_token);
         }
     }
 
+    /**
+     * Retrieves the user’s role from sessionStorage.
+     * @returns The user’s role as a string, or an empty string if not set.
+     */
+    static getRole(): string {
+        return window.sessionStorage.getItem('userRole') || '';
+    }
 }

@@ -1,38 +1,80 @@
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { createRoutesFromElements, Route } from 'react-router-dom';
-import LoginVue from "./Vues/LoginVue.tsx";
-import AddRole from "./Vues/AddRole.tsx";
-import Layout from "./Components/Utils/Layout.tsx";
-import './index.css';
-import AddAccount from "./Vues/AddAccount.tsx";
-import ManageHumanResources from "./Vues/ManageHumanResources.tsx";
-import AddProfile from "./Vues/AddProfile.tsx";
-import AssignedCoursesPage from './Vues/AssignedCoursesPage.tsx';
-import Guard from "./Components/Utils/Guard.tsx";
-import ModifyProfile from "./Vues/ModifyProfile.tsx";
+import LoginVue from './Vues/LoginVue.tsx';
+import ManageHumanResources from './Vues/ManageHumanResources.tsx';
+import AddRole from './Vues/AddRole.tsx';
+import AddAccount from './Vues/AddAccount.tsx';
+import AddProfile from './Vues/AddProfile.tsx';
+import ModifyProfile from './Vues/ModifyProfile.tsx';
 import UserAffectation from './Vues/UserAffectation.tsx';
+import Guard from './Components/Utils/Guard.tsx';
+import Layout from './Components/Utils/Layout.tsx';
+import './index.css';
+import AffectationsManquantes from "./Vues/AffectationsManquantes.tsx";
 
-
-// Configuration des routes
+// Define routes with role-based access
 const routes = createRoutesFromElements(
     <Route path="/" element={<Layout />}>
-        <Route path="add-role" element={<Guard><AddRole /></Guard>} />
-        <Route path="accountcreation" element={<Guard><AddAccount /></Guard>} />
-        <Route path="profileCreation" element={<Guard><AddProfile /></Guard>} />
-        <Route path="management" element={<Guard><ManageHumanResources /></Guard>} />
+        {/* Public route */}
         <Route path="login" element={<LoginVue />} />
-        <Route path="assigned-courses" element={<Guard><AssignedCoursesPage /></Guard>} />
-        <Route path="modify/:id" element={<Guard><ModifyProfile/></Guard>} />
-        <Route path="affectation/:idProfile" element={<Guard><UserAffectation /></Guard>} />
+
+        {/* Admin-only routes */}
+        <Route
+            path="add-role"
+            element={<Guard allowedRoles={['Administrateur']}><AddRole /></Guard>}
+        />
+        <Route
+            path="accountcreation"
+            element={<Guard allowedRoles={['Administrateur']}><AddAccount /></Guard>}
+        />
+        <Route
+            path="profileCreation"
+            element={<Guard allowedRoles={['Administrateur']}><AddProfile /></Guard>}
+        />
+        <Route
+            path="modify/:id"
+            element={<Guard allowedRoles={['Administrateur']}><ModifyProfile /></Guard>}
+        />
+        <Route
+            path="affectation/:idProfile"
+            element={<Guard allowedRoles={['Administrateur']}><UserAffectation /></Guard>}
+        />
+
+        {/* Management routes (for department heads, training heads, secretariat, and admin) */}
+        <Route
+            path="management"
+            element={
+                <Guard
+                    allowedRoles={[
+                        'Responsable de département',
+                        'Responsable de formation',
+                        'Secrétariat',
+                        'Administrateur',
+                    ]}
+                >
+                    <ManageHumanResources />
+                </Guard>
+            }
+        />
+
+        {/* Assigned courses (for professors and admin) */}
+        <Route
+            path="assigned-courses"
+            element={
+                <Guard allowedRoles={['Professeur', 'Administrateur', 'Responsable de département', 'Responsable de formation', 'Secrétariat']}>    
+                    <AffectationsManquantes />
+                </Guard>
+            }
+        />
+
+        {/* Unauthorized access page */}
+        <Route path="unauthorized" element={<div>Access Denied</div>} />
     </Route>
 );
 
-// Création du routeur avec les routes
 const router = createBrowserRouter(routes);
 
-// Point d'entrée de l'application React
-ReactDOM.createRoot(document.getElementById('root') ?? new HTMLElement())
-    .render(
-        <RouterProvider router={router} />
+ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+    <RouterProvider router={router} />
 );

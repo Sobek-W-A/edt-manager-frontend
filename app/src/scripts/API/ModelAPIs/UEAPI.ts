@@ -2,6 +2,7 @@ import {api} from "../API.ts";
 import {UE, UEInCreation, UeInUpdate} from "../APITypes/UE.ts";
 import {HTTPMethod} from "../Enums/HTTPMethod.ts";
 import APIResponse from "../Responses/APIResponse.ts";
+import {Profile} from "../APITypes/Profiles.ts";
 
 export default class UEAPI {
 
@@ -64,15 +65,59 @@ export default class UEAPI {
     }
 
     /**
+     * This method builds and sends the request to get all the not correctly affected profile
+     * @returns
+     */
+    static getAllUEWronglyAffected(): Promise<APIResponse<Profile[]>> {
+        return api.requestLoggedWithAcademicYear<Profile[]>(
+            HTTPMethod.GET,
+            `${UEAPI.UE_PATH}/alert`,
+            undefined,
+            undefined
+        );
+    }
+
+
+    /**
      * This method is used to create a new UE.
      * @param ue The new UE.
      * @returns The response of the request.
      */
     static async createUE(ue: UEInCreation): Promise<APIResponse<UE>> {
-        return api.requestLogged<UE>(
+        return api.requestLoggedWithAcademicYear<UE>(
             HTTPMethod.POST,
             `${UEAPI.UE_PATH}/`,
             JSON.stringify(ue),
+            undefined
+        );
+    }
+
+    /**
+     * This method attaches the UE to the parent node.
+     * @param ueId The id of the UE to attach.
+     * @param nodeId The id of the Node to which the UE will be attached.
+     * @returns The response of the request.
+     */
+    static async attachUEToNode(ueId: number, nodeId: number): Promise<APIResponse<string>> {
+        return api.requestLoggedWithAcademicYear<string>(
+            HTTPMethod.POST,
+            `${UEAPI.UE_PATH}/attach/${ueId}/${nodeId}`,
+            undefined,
+            undefined
+        );
+    }
+
+    /**
+     * This method detaches the UE from the parent node.
+     * @param ueId The id of the UE to detach.
+     * @param nodeId The id of the Node from which the UE will be detached.
+     * @returns The response of the request.
+     */
+    static async detachUEFromNode(ueId: number, nodeId: number): Promise<APIResponse<string>> {
+        return api.requestLoggedWithAcademicYear<string>(
+            HTTPMethod.POST,
+            `${UEAPI.UE_PATH}/detach/${ueId}/${nodeId}`,
+            undefined,
             undefined
         );
     }

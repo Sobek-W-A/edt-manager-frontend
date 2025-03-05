@@ -11,6 +11,20 @@ export default class ProfileAPI {
 
     // The path to the Profile endpoints.
     static PROFILE_URL: string = '/profile';
+    static ALERTE_URL: string = '/alert';
+
+    /**
+     * This method return the current profile who is connected
+     * @returns Promise<APIResponse<Profile>> A promise that resolves to the APIResponse containing the Profile.
+     */
+    static getCurrentProfile(): Promise<APIResponse<Profile>> {
+        return api.requestLoggedWithAcademicYear<Profile>(
+            HTTPMethod.GET,
+            `${ProfileAPI.PROFILE_URL}/me`,
+            undefined,
+            undefined
+        );
+    }
 
     /**
      * This method builds and sends the request to get all the profiles
@@ -25,6 +39,19 @@ export default class ProfileAPI {
         return api.requestLoggedWithAcademicYear<Profile[]>(
             HTTPMethod.GET,
             `${ProfileAPI.PROFILE_URL}/notlinked?${params.toString()}`,
+            undefined,
+            undefined
+        );
+    }
+
+    /**
+     * This method builds and sends the request to get all the not correctly affected profile
+     * @returns
+     */
+    static getAllProfilesWronglyAffected(): Promise<APIResponse<Profile[]>> {
+        return api.requestLoggedWithAcademicYear<Profile[]>(
+            HTTPMethod.GET,
+            `${ProfileAPI.PROFILE_URL}${ProfileAPI.ALERTE_URL}/`,
             undefined,
             undefined
         );
