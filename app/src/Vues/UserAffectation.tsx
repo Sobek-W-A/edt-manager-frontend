@@ -4,7 +4,7 @@ import ProfileAPI from "../scripts/API/ModelAPIs/ProfileAPI.ts";
 import Notification from "../Components/AddRole/AddRolePopUp";
 import { useParams } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEnvelope, faClock, faIdBadge, faBook, faInfoCircle, faTasks, faCalendar, faUsers, faStickyNote, faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
+import { faEnvelope, faClock, faIdBadge, faBook, faInfoCircle, faTasks, faCalendar, faUsers, faStickyNote, faArrowUpRightFromSquare, faTimes } from "@fortawesome/free-solid-svg-icons";
 import AffectationAPI from "../scripts/API/ModelAPIs/AffectationAPI.ts";
 import { Affectation } from "../scripts/API/APITypes/AffectationType.ts";
 import CourseInformation from "../Components/CoursesManager/CourseInformation.tsx";
@@ -95,10 +95,10 @@ function UserAffectation() {
 
 
     useEffect(() => {
-        setAffectations(prevAffectations =>
-            [...prevAffectations].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        setAffectations(affectations => 
+            affectations.slice().sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
         );
-    }, [affectations]);
+    }, []); 
 
     useEffect(() => {
         if (courseInfoRef.current) {
@@ -133,7 +133,7 @@ function UserAffectation() {
                                 {ue && ue.length > 0 ? (
                                     ue.map((ueItem, index) => (
                                         <ul className="menu menu-xs rounded-box max-w-xs w-full border p-4 rounded shadow-md">
-                                            <li>
+                                            <li key={`ue_${ueItem.id}`}>
                                                 <details open>
                                                     <summary className="text-xl"><FontAwesomeIcon icon={faBook} /> {ueItem.name}</summary>
                                                     <ul>
@@ -160,11 +160,11 @@ function UserAffectation() {
 
                                                                                 return (
                                                                                     <>
-                                                                                        <li>
+                                                                                        <li key={`course_infos_${index}`}>
                                                                                             <p className="flex items-center text-lg" onClick={openModal}><FontAwesomeIcon icon={faArrowUpRightFromSquare} />Voir les infos du cours</p>
                                                                                         </li>
-                                                                                        <li>
-                                                                                            <details key={index}>
+                                                                                        <li key={`course_${index}`}>
+                                                                                            <details key={`affectation_${index}`}>
                                                                                                 <summary className="text-lg">
                                                                                                     <FontAwesomeIcon icon={faBook} />
                                                                                                     {COURSE_TYPE[filteredAffectations[0].course.course_type.id - 1]}
@@ -172,7 +172,7 @@ function UserAffectation() {
                                                                                                     {filteredAffectations.reduce((sum, affectation) => sum + affectation.hours, 0)}/{filteredAffectations[0].course.duration}h
                                                                                                 </summary>
                                                                                                 <ul>
-                                                                                                    <li>
+                                                                                                    <li key={`affectation_${index}`}>
                                                                                                         <p className="flex items-center"><FontAwesomeIcon icon={faTasks} />Total des heures à effectuer : {filteredAffectations.reduce((sum, affectation) => sum + affectation.hours, 0)} h</p>
                                                                                                         {filteredAffectations.map(affectation => (
                                                                                                             <details key={affectation.id}>
@@ -180,7 +180,7 @@ function UserAffectation() {
                                                                                                                     <FontAwesomeIcon icon={faCalendar} /> Modification du {new Date(affectation.date).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                                                                                                 </summary>
                                                                                                                 <ul>
-                                                                                                                    <li>
+                                                                                                                    <li key={affectation.id}>
                                                                                                                         <p><FontAwesomeIcon icon={faInfoCircle} /> description : {affectation.course.course_type.description}</p>
                                                                                                                         <p><FontAwesomeIcon icon={faTasks} /> affectées/total à affecter : {affectation.hours}/{affectation.course.duration} h</p>
                                                                                                                         <p><FontAwesomeIcon icon={faUsers} /> Groupe : {affectation.group}</p>
@@ -222,9 +222,17 @@ function UserAffectation() {
                 </div>
             </div>
 
-            {/* Modal DaisyUI */}
+            {/* Modale */}
             <dialog id="modal_affectation" className="modal">
-                <div className="modal-box w-[80vw] max-w-5xl">
+                <div className="modal-box w-[80vw] max-w-5xl relative">
+                    <button 
+                        className="absolute top-2 right-2 text-red-500 hover:scale-125  transition-transform duration-200"
+                        onClick={closeModal}
+                        title="Fermer la fenêtre"
+                    >
+                        <FontAwesomeIcon icon={faTimes} className="w-6 h-6" />
+                    </button>
+
                     <h3 className="font-bold text-lg">Page d'affichage des cours</h3>
                     <ul className="space-y-2">
                         <CourseInformation ref={courseInfoRef} />
