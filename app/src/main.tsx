@@ -2,7 +2,6 @@ import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { createRoutesFromElements, Route } from 'react-router-dom';
 import LoginVue from './Vues/LoginVue.tsx';
-import AssignedCoursesPage from './Vues/AssignedCoursesPage.tsx';
 import ManageHumanResources from './Vues/ManageHumanResources.tsx';
 import AddRole from './Vues/AddRole.tsx';
 import AddAccount from './Vues/AddAccount.tsx';
