@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef} from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Profile } from "../scripts/API/APITypes/Profiles.ts";
 import ProfileAPI from "../scripts/API/ModelAPIs/ProfileAPI.ts";
 import Notification from "../Components/AddRole/AddRolePopUp";
@@ -95,7 +95,7 @@ function UserAffectation() {
 
 
     useEffect(() => {
-        setAffectations(prevAffectations => 
+        setAffectations(prevAffectations =>
             [...prevAffectations].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
         );
     }, [affectations]);
@@ -108,7 +108,7 @@ function UserAffectation() {
 
     const openModal = () => {
         const modal = document.getElementById("modal_affectation") as HTMLDialogElement;
-    modal?.showModal();
+        modal?.showModal();
     };
 
     const closeModal = () => {
@@ -135,20 +135,11 @@ function UserAffectation() {
                                         <ul className="menu menu-xs rounded-box max-w-xs w-full border p-4 rounded shadow-md">
                                             <li>
                                                 <details open>
-                                                <summary className="text-xl"><FontAwesomeIcon icon={faBook} /> {ueItem.name}</summary>
-                                                <ul>
-                                                    {ueItem.courses && ueItem.courses.length > 0 ? (
-                                                        ueItem.courses.map(course =>
-                                                            <li>
-                                                                <p className="flex items-center text-lg" onClick={openModal}><FontAwesomeIcon icon={faArrowUpRightFromSquare}/>Voir les infos du cours</p>
-                                                                <details open>
-                                                                <summary className="text-lg"><FontAwesomeIcon icon={faBook} />{course.course_type.name}&nbsp;&nbsp;&nbsp;{course.duration}h</summary>
-                                                                <ul>
-                                                                    <li>
-                                                                        <p className="flex items-center"><FontAwesomeIcon icon={faInfoCircle} />Description : {course.course_type.description}</p>
-                                                                        <p className="flex items-center"><FontAwesomeIcon icon={faTasks} />Durée : {course.duration} h</p>
-                                                                        <p className="flex items-center"><FontAwesomeIcon icon={faUsers} />Nombre de groupes : {course.group_count}</p>
-                                                                    </li>
+                                                    <summary className="text-xl"><FontAwesomeIcon icon={faBook} /> {ueItem.name}</summary>
+                                                    <ul>
+                                                        {ueItem.courses && ueItem.courses.length > 0 ? (
+                                                            ueItem.courses.map(course =>
+                                                                <>
                                                                     {affectations.length > 0 ? (
                                                                         Object.values(
                                                                             affectations.reduce<Record<string, Affectation[]>>((acc, affectation) => {
@@ -160,60 +151,64 @@ function UserAffectation() {
                                                                                 return acc;
                                                                             }, {})
                                                                         )
-                                                                        .map((affectationsByType: Affectation[], index: number) => {
-                                                                            // On filtre les affectations par l'ID du cours
-                                                                            const filteredAffectations = affectationsByType.filter((aff) => aff.course.id === course.id);
+                                                                            .map((affectationsByType: Affectation[], index: number) => {
+                                                                                // On filtre les affectations par l'ID du cours
+                                                                                const filteredAffectations = affectationsByType.filter((aff) => aff.course.id === course.id);
 
-                                                                            // Ne pas afficher si la liste filtrée est vide
-                                                                            if (filteredAffectations.length === 0) return null;
+                                                                                // Ne pas afficher si la liste filtrée est vide
+                                                                                if (filteredAffectations.length === 0) return null;
 
-                                                                            return (
-                                                                                <li>
-                                                                                <details key={index}>
-                                                                                    <summary>
-                                                                                        <FontAwesomeIcon icon={faBook} />
-                                                                                        {COURSE_TYPE[filteredAffectations[0].course.course_type.id - 1]}
-                                                                                        {filteredAffectations[0].group}&nbsp;&nbsp;&nbsp;
-                                                                                        {filteredAffectations[0].course.duration}h
-                                                                                    </summary>
-                                                                                    <ul>
+                                                                                return (
+                                                                                    <>
                                                                                         <li>
-                                                                                        <p className="flex items-center"><FontAwesomeIcon icon={faTasks} />Total des heures à effectuer : {filteredAffectations.reduce((sum, affectation) => sum + affectation.hours, 0)} h</p>
-                                                                                        {filteredAffectations.map(affectation => (
-                                                                                            <details key={affectation.id}>
-                                                                                                <summary>
-                                                                                                    <FontAwesomeIcon icon={faCalendar} /> Modification du {new Date(affectation.date).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                                                            <p className="flex items-center text-lg" onClick={openModal}><FontAwesomeIcon icon={faArrowUpRightFromSquare} />Voir les infos du cours</p>
+                                                                                        </li>
+                                                                                        <li>
+                                                                                            <details key={index}>
+                                                                                                <summary className="text-lg">
+                                                                                                    <FontAwesomeIcon icon={faBook} />
+                                                                                                    {COURSE_TYPE[filteredAffectations[0].course.course_type.id - 1]}
+                                                                                                    {filteredAffectations[0].group}&nbsp;&nbsp;&nbsp;
+                                                                                                    {filteredAffectations.reduce((sum, affectation) => sum + affectation.hours, 0)}/{filteredAffectations[0].course.duration}h
                                                                                                 </summary>
                                                                                                 <ul>
                                                                                                     <li>
-                                                                                                        <p><FontAwesomeIcon icon={faInfoCircle} /> description : {affectation.course.course_type.description}</p>
-                                                                                                        <p><FontAwesomeIcon icon={faTasks} /> affectées/total à affecter : {affectation.hours}/{affectation.course.duration} h</p>
-                                                                                                        <p><FontAwesomeIcon icon={faUsers} /> Groupe : {affectation.group}</p>
-                                                                                                        <p><FontAwesomeIcon icon={faStickyNote} /> Note : {affectation.notes}</p>
+                                                                                                        <p className="flex items-center"><FontAwesomeIcon icon={faTasks} />Total des heures à effectuer : {filteredAffectations.reduce((sum, affectation) => sum + affectation.hours, 0)} h</p>
+                                                                                                        {filteredAffectations.map(affectation => (
+                                                                                                            <details key={affectation.id}>
+                                                                                                                <summary>
+                                                                                                                    <FontAwesomeIcon icon={faCalendar} /> Modification du {new Date(affectation.date).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                                                                                </summary>
+                                                                                                                <ul>
+                                                                                                                    <li>
+                                                                                                                        <p><FontAwesomeIcon icon={faInfoCircle} /> description : {affectation.course.course_type.description}</p>
+                                                                                                                        <p><FontAwesomeIcon icon={faTasks} /> affectées/total à affecter : {affectation.hours}/{affectation.course.duration} h</p>
+                                                                                                                        <p><FontAwesomeIcon icon={faUsers} /> Groupe : {affectation.group}</p>
+                                                                                                                        <p><FontAwesomeIcon icon={faStickyNote} /> Note : {affectation.notes}</p>
+                                                                                                                    </li>
+                                                                                                                </ul>
+                                                                                                            </details>
+                                                                                                        ))}
                                                                                                     </li>
                                                                                                 </ul>
                                                                                             </details>
-                                                                                        ))}
                                                                                         </li>
-                                                                                    </ul>
-                                                                                </details>
-                                                                                </li>
-                                                                            );
-                                                                        })
+                                                                                    </>
+                                                                                );
+                                                                            })
                                                                     ) : (
                                                                         <p className="text-gray-500 text-center col-span-full">Aucune affectation</p>
                                                                     )}
-                                                                </ul>
-                                                                </details>
-                                                            </li>
-                                                        )
-                                                    ) : (
-                                                        <p className="text-gray-500">Aucun cours</p>
-                                                    )}
-                                                </ul>
+                                                                </>
+
+                                                            )
+                                                        ) : (
+                                                            <p className="text-gray-500">Aucun cours</p>
+                                                        )}
+                                                    </ul>
                                                 </details>
                                             </li>
-                                            </ul>
+                                        </ul>
                                     ))
                                 ) : (
                                     <p className="text-gray-500 text-center col-span-full">Aucune UE</p>
@@ -235,7 +230,7 @@ function UserAffectation() {
                         <CourseInformation ref={courseInfoRef} />
                     </ul>
                     <div className="modal-action">
-                    <button className="btn bg-gray-300" onClick={closeModal}>Fermer</button>
+                        <button className="btn bg-gray-300" onClick={closeModal}>Fermer</button>
                     </div>
                 </div>
             </dialog>
