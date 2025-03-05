@@ -113,7 +113,7 @@ const AffectationsManquantes: React.FC = () => {
 
                 {/* Modal */}
                 <dialog ref={modalRef} id="modal_ue" className="modal" onClose={closeUEModal}>
-                    <div className="modal-box">
+                    <div className="modal-box w-[80vw] max-w-5xl">
                         <CourseInformation ref={courseInfoRef} />
 
                         <form method="dialog">
