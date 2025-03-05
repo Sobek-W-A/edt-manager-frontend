@@ -82,8 +82,10 @@ function AddRole() {
                     setShowNotification(true);
                 } else {
                     setNumberOfAccounts(profileNumber.responseObject().number_of_profiles_with_account);
-                    setNumberOfProfiles(profileNumber.responseObject().number_of_profiles_without_account);
+                    setNumberOfProfiles(profileNumber.responseObject().number_of_profiles_without_account + profileNumber.responseObject().number_of_profiles_with_account);
                 }
+
+                fetchAccountsAndProfiles();
             }
 
             // Récupérer la liste des rôles
@@ -238,7 +240,7 @@ function AddRole() {
                     setNotification({ message: `Erreur dans la récuperation des profiles : ${profilesByKeywords.errorMessage()}.`, type: 'alert-error' });
                     setShowNotification(true);
                 } else {
-                    const profilesWithoutAccounts = profilesByKeywords.responseObject().filter((profile: Profile) => !accountsAndProfils.some(acc => acc.profile?.id === profile.id));
+                    const profilesWithoutAccounts = profilesByKeywords.responseObject();
                     seFilteredProfiles(profilesWithoutAccounts);
                     setNumberOfProfiles(profilesWithoutAccounts.length);
                 }

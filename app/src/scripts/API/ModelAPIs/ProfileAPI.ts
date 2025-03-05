@@ -38,7 +38,7 @@ export default class ProfileAPI {
 
         return api.requestLoggedWithAcademicYear<Profile[]>(
             HTTPMethod.GET,
-            `${ProfileAPI.PROFILE_URL}/notlinked?${params.toString()}`,
+            `${ProfileAPI.PROFILE_URL}?${params.toString()}`,
             undefined,
             undefined
         );

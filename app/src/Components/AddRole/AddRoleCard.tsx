@@ -9,6 +9,7 @@ import { RoleType } from "../../scripts/API/APITypes/Role";
 import StatusAPI from "../../scripts/API/ModelAPIs/StatusAPI";
 import { StatusType } from "../../scripts/API/APITypes/Status";
 import ProfileAPI from "../../scripts/API/ModelAPIs/ProfileAPI";
+import AffectationAPI from "../../scripts/API/ModelAPIs/AffectationAPI";
 
 interface AddRoleCardProps {
   user: Account | Profile;
@@ -24,6 +25,7 @@ function AddRoleCard({ user, userConnected, rolesList, addRoleToUser, removeRole
   const [, setShowNotification] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [status, setStatus] = useState<StatusType>({} as StatusType);
+  const [affectations, setAffectations] = useState<Affectation[]>([]);
 
   const ROLE_DEFAULT = { name: "Non assigné", description: "Rôle par défaut." } as RoleType;
   const ROLE_ADMINISTRATEUR = { name: "Administrateur", description: "Rôle administrateur. Dispose de toutes les permissions." } as RoleType;
@@ -50,6 +52,14 @@ function AddRoleCard({ user, userConnected, rolesList, addRoleToUser, removeRole
         } else {
           setStatus(statusResponse.responseObject());
         }
+
+        const affectationResponse = await AffectationAPI.getTeacherAffectationsByProfileId(Number(user.profile.id));
+        if (affectationResponse.isError()) {
+            setNotification({ message: `Erreur dans la récuperation des affectations : ${affectationResponse.errorMessage()}.`, type: 'alert-error' });
+            setShowNotification(true);
+        } else {
+            setAffectations(affectationResponse.responseObject());
+        }
       } else if ('status_id' in user) {
         const statusResponse = await StatusAPI.getStatusById(user.status_id as number);
         if (statusResponse.isError()) {
@@ -57,6 +67,14 @@ function AddRoleCard({ user, userConnected, rolesList, addRoleToUser, removeRole
           setShowNotification(true);
         } else {
           setStatus(statusResponse.responseObject());
+        }
+
+        const affectationResponse = await AffectationAPI.getTeacherAffectationsByProfileId(Number(user.id));
+        if (affectationResponse.isError()) {
+            setNotification({ message: `Erreur dans la récuperation des affectations : ${affectationResponse.errorMessage()}.`, type: 'alert-error' });
+            setShowNotification(true);
+        } else {
+            setAffectations(affectationResponse.responseObject());
         }
       }
     };
@@ -129,7 +147,7 @@ function AddRoleCard({ user, userConnected, rolesList, addRoleToUser, removeRole
           </h3>
         )}
         <p className="text-gray-500"><FontAwesomeIcon icon={faInfoCircle} /> Status : {status ? status.name : '--'}</p>
-        <p className="text-gray-500"><FontAwesomeIcon icon={faClock} /> Quota : {status ? status.quota : '--'}h</p>
+        <p className="text-gray-500"><FontAwesomeIcon icon={faClock} /> Quota : {status ? `${affectations.reduce((sum, affectation) => sum + affectation.hours, 0)}/${status.quota}` : '--'}h</p>
 
         {/* Rôle */}
         { ('profile' in user && user.profile) || ('login' in user && user.login) ? (
