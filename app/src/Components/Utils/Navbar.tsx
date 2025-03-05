@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import Storage from '../../scripts/API/Storage.ts';
 import AcademicYearAPI from "../../scripts/API/ModelAPIs/AcademicYearAPI.ts";
 import { AcademicYearType } from "../../scripts/API/APITypes/AcademicYearType.ts";
+import { useNavigate } from 'react-router-dom';
 
 // Définir les pages autorisées par rôle
 const rolePermissions: { [key: string]: string[] } = {
@@ -25,6 +26,7 @@ const rolePermissions: { [key: string]: string[] } = {
 function Navbar() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [userRole, setUserRole] = useState<string>(''); // Stocker le rôle de l'utilisateur
+    const navigate = useNavigate();
 
     // Vérifier si l'utilisateur est connecté et récupérer son rôle
     useEffect(() => {
@@ -137,8 +139,8 @@ function Navbar() {
                                     Année {academicYearDescription(academicYear)}
                                 </div>
                                 <ul tabIndex={0} className="dropdown-content menu bg-green-100 text-gray-700 rounded-box z-[1] w-52 p-2 shadow">
-                                    <li onClick={createNextAcademicYear} className="cursor-pointer p-2 hover:bg-green-200 rounded">
-                                        Créer année académique
+                                    <li onClick={() => navigate('/academic-years')} className="cursor-pointer p-2 hover:bg-green-200 rounded">
+                                        Gérer Année
                                     </li>
                                     {academicYears.map(year => (
                                         <li key={year.academic_year} onClick={() => handleChangeAcadmicYear(year.academic_year)}
