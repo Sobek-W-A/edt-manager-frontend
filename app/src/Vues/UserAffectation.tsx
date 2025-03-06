@@ -126,12 +126,13 @@ function UserAffectation() {
                         <div>
                             <h3 className="text-xl font-semibold">{profile.lastname} {profile.firstname}</h3>
                             <p className="text-gray-500"><FontAwesomeIcon icon={faEnvelope} /> {profile.mail}</p>
-                            <p className={`text-gray-500 ${affectations.reduce((sum, affectation) => sum + affectation.hours, 0) > status?.quota ? 'text-red-500' : 'text-green-500'}`}>
-                                Quota : {affectations.reduce((sum, affectation) => sum + affectation.hours, 0)}/{status?.quota} h
+                            <p className="text-gray-500 flex items-center justify-center">
+                                <FontAwesomeIcon icon={faClock} className="mr-1"/>
+                                Quota :&nbsp;<p className={`text-gray-500 ${affectations.reduce((sum, affectation) => sum + affectation.hours, 0) > profile.quota ? 'text-red-500' : 'text-green-500'}`}>{status ? `${affectations.reduce((sum, affectation) => sum + affectation.hours, 0)}/${profile.quota}` : '--'}h</p>
                             </p>
                             <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mt-6">
                                 {ue && ue.length > 0 ? (
-                                    ue.map((ueItem, index) => (
+                                    ue.map((ueItem: UE, index: number) => (
                                         <ul className="menu menu-xs rounded-box max-w-xs w-full border p-4 rounded shadow-md">
                                             <li key={`ue_${ueItem.id}`}>
                                                 <details open>

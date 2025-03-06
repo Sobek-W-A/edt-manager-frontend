@@ -385,9 +385,9 @@ function AddRole() {
 
                         {/* Checkbox pour switch entre les comptes liés et profiles seuls */}
                         <div className="flex gap-4 mb-4">
-                            <label htmlFor="accounts" className="text-gray-500">Comptes & profils liés</label>
+                            <label htmlFor="accounts" className="text-gray-500">Profils liés à un compte</label>
                             <input type="checkbox" checked={isCheckboxChecked} className="toggle border-green-500 bg-green-500 checked:bg-green-800 checked:text-green-800 checked:border-green-800 " onChange={() => setIsCheckboxChecked(prev => !prev)} />
-                            <label htmlFor="profiles" className="text-gray-500">Profils seuls</label>
+                            <label htmlFor="profiles" className="text-gray-500">Profils</label>
                         </div>
         
                         <div className="relative mt-6 mb-4">

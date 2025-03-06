@@ -147,7 +147,10 @@ function AddRoleCard({ user, userConnected, rolesList, addRoleToUser, removeRole
           </h3>
         )}
         <p className="text-gray-500"><FontAwesomeIcon icon={faInfoCircle} /> Status : {status ? status.name : '--'}</p>
-        <p className="text-gray-500"><FontAwesomeIcon icon={faClock} /> Quota : {status ? `${affectations.reduce((sum, affectation) => sum + affectation.hours, 0)}/${status.quota}` : '--'}h</p>
+        <p className="text-gray-500 flex items-center">
+            <FontAwesomeIcon icon={faClock} className="mr-1"/>
+            Quota :&nbsp;<p className={`text-gray-500 ${affectations.reduce((sum, affectation) => sum + affectation.hours, 0) > ('profile' in user && user.profile ? user.profile.quota : user.quota) ? 'text-red-500' : 'text-green-500'}`}>{status ? `${affectations.reduce((sum, affectation) => sum + affectation.hours, 0)}/${'profile' in user && user.profile ? user.profile.quota : user.quota}` : '--'}h</p>
+        </p>
 
         {/* Rôle */}
         { ('profile' in user && user.profile) || ('login' in user && user.login) ? (
