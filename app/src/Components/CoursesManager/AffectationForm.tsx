@@ -65,10 +65,8 @@ function AffectationForm({profile, idCours, groupCount}: AffectationFormProps) {
         setDataToAssignProfessor({...dataToAssignProfessor, notes: e.target.value});
     }
 
-    const assignProfessor = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        console.log(dataToAssignProfessor)
+    const assignProfessor = async () => {
+
         const response = await AffectationAPI.assignCourseToProfile(dataToAssignProfessor);
         if (response.isError()) {
             console.log(response);
@@ -84,18 +82,18 @@ function AffectationForm({profile, idCours, groupCount}: AffectationFormProps) {
             });
             setShowNotification(true);
         }
-        setLoading(false);
     }
 
-    const assignProfessor1 = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log(idCours)
+        setLoading(true);
         const affectationId = await verifyIsProfileAlreadyAssigned();
         if(affectationId) {
             await updateAffectation(affectationId);
         } else {
-            await assignProfessor(e);
+            await assignProfessor();
         }
+        setLoading(false);
     }
 
     const verifyIsProfileAlreadyAssigned = async () => {
@@ -108,8 +106,6 @@ function AffectationForm({profile, idCours, groupCount}: AffectationFormProps) {
     }
 
     const updateAffectation = async (affectationId: number) => {
-        setLoading(true);
-        //console.log("id cours : "+idCours);
         const body ={
             "affectation_id" : affectationId,
             "profile_id": profile.id,
@@ -117,7 +113,6 @@ function AffectationForm({profile, idCours, groupCount}: AffectationFormProps) {
             "notes": dataToAssignProfessor.notes,
             "group": dataToAssignProfessor.group,
         }
-        console.log(body);
         const response = await AffectationAPI.updateAffectationById(body);
         if (response.isError()) {
             setNotification({
@@ -132,14 +127,13 @@ function AffectationForm({profile, idCours, groupCount}: AffectationFormProps) {
             });
             setShowNotification(true);
         }
-        setLoading(false);
     }
 
     return (
         <div key={profile.id} className="w-full flex flex-col justify-between items-center">
             <div className="w-full flex items-center space-x-2">
                 <h1 className="w-1/3 px-3 py-2 mt-1">{profile?.firstname} {profile?.lastname}</h1>
-                <form className="w-full flex items-center space-x-2" onSubmit={assignProfessor1}>
+                <form className="w-full flex items-center space-x-2" onSubmit={handleSubmit}>
                     <input
                         id="note"
                         name="note"
