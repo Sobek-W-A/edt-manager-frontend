@@ -154,7 +154,7 @@ function AddRoleCard({ user, userConnected, rolesList, addRoleToUser, removeRole
         <p className="text-gray-500"><FontAwesomeIcon icon={faInfoCircle} /> Status : {status ? status.name : '--'}</p>
         <p className="text-gray-500 flex items-center">
             <FontAwesomeIcon icon={faClock} className="mr-1"/>
-            Quota :&nbsp;<p className={`text-gray-500 ${totalHours > ('profile' in user && user.profile ? user.profile.quota : user.quota) ? 'text-red-500' : 'text-green-500'}`}>{status ? `${totalHours}/${'profile' in user && user.profile ? user.profile.quota : user.quota}` : '--'}h</p>
+            Quota :&nbsp;<p className={`text-gray-500 ${totalHours > ('profile' in user && user.profile ? user.profile.quota : user.quota) ? 'text-red-500' : 'text-green-500'}`}>{status ? `${Math.round(totalHours * 100) / 100}/${'profile' in user && user.profile ? user.profile.quota : user.quota}` : '--'}h</p>
         </p>
 
         {/* Rôle */}

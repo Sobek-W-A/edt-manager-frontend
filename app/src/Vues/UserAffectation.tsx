@@ -137,7 +137,7 @@ function UserAffectation() {
                             <p className="text-gray-500"><FontAwesomeIcon icon={faEnvelope} /> {profile.mail}</p>
                             <p className="text-gray-500 flex items-center justify-center">
                                 <FontAwesomeIcon icon={faClock} className="mr-1"/>
-                                Quota :&nbsp;<p className={`text-gray-500 ${totalHours > profile.quota ? 'text-red-500' : 'text-green-500'}`}>{status ? `${totalHours}/${profile.quota}` : '--'}h</p>
+                                Quota :&nbsp;<p className={`text-gray-500 ${totalHours > profile.quota ? 'text-red-500' : 'text-green-500'}`}>{status ? `${Math.round(totalHours * 100) / 100}/${profile.quota}` : '--'}h</p>
                             </p>
                             <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mt-6">
                                 {ue && ue.length > 0 ? (
