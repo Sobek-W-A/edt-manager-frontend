@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import AddRoleCard from "../Components/AddRole/AddRoleCard";
+import UserCard from "../Components/UserList/UserCard.tsx";
 import Notification from "../Components/Utils/PopUpAlert.tsx";
-import AccountAPI from "../scripts/API/ModelAPIs/AccountAPI";
-import RoleAPI from "../scripts/API/ModelAPIs/RoleAPI";
+import AccountAPI from "../scripts/API/ModelAPIs/AccountAPI.ts";
+import RoleAPI from "../scripts/API/ModelAPIs/RoleAPI.ts";
 import APIResponse from "../scripts/API/Responses/APIResponse.ts";
 import { Account } from "../scripts/API/APITypes/Accounts.ts";
 import { Profile } from "../scripts/API/APITypes/Profiles.ts";
@@ -518,7 +518,7 @@ function AddRole() {
                         <>
                             <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-3 gap-6">
                                 {filteredAccountsAndProfilesByTags.map((user: Account) => (
-                                    <AddRoleCard
+                                    <UserCard
                                         key={user.id}
                                         user={user}
                                         userConnected={userConnected}
@@ -536,7 +536,7 @@ function AddRole() {
                         <>
                             <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-3 gap-6">
                                 {filteredProfiles.map((profile: Profile) => (
-                                    <AddRoleCard
+                                    <UserCard
                                         key={profile.id}
                                         user={profile}
                                         userConnected={userConnected}

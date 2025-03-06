@@ -3,7 +3,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { createRoutesFromElements, Route } from 'react-router-dom';
 import LoginVue from './Vues/LoginVue.tsx';
 import ManageHumanResources from './Vues/ManageHumanResources.tsx';
-import AddRole from './Vues/AddRole.tsx';
+import AddRole from './Vues/UserList.tsx';
 import AddAccount from './Vues/AddAccount.tsx';
 import AddProfile from './Vues/AddProfile.tsx';
 import ModifyProfile from './Vues/ModifyProfile.tsx';
@@ -22,7 +22,7 @@ const routes = createRoutesFromElements(
 
     {/* Admin-only routes */}
     <Route
-      path="add-role"
+      path="userList"
       element={<Guard allowedRoles={['Administrateur']}><AddRole /></Guard>}
     />
     <Route

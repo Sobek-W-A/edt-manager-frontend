@@ -26,61 +26,66 @@ function AddRoleCard({ user, userConnected, rolesList, addRoleToUser, removeRole
   const [showModal, setShowModal] = useState<boolean>(false);
   const [status, setStatus] = useState<StatusType>({} as StatusType);
   const [affectations, setAffectations] = useState<Affectation[]>([]);
+  const [totalHours, setTotalHours] = useState<number>(0);
 
   const ROLE_DEFAULT = { name: "Non assigné", description: "Rôle par défaut." } as RoleType;
   const ROLE_ADMINISTRATEUR = { name: "Administrateur", description: "Rôle administrateur. Dispose de toutes les permissions." } as RoleType;
   const modalId = `role_modal_${user.id}`;
 
   useEffect(() => {
-    const fetchData = async () => {
-      if ('profile' in user && user.profile) {
-        const userRolesResponse = await RoleAPI.getUserRoles(user.id);
-        if (userRolesResponse.isError()) {
-          setNotification({ message: `Erreur dans la récuperation de rôles : ${userRolesResponse.errorMessage()}.`, type: 'alert-error' });
-          setShowNotification(true);
-          setUserRoles([{ id: user.id, role: {} as RoleType }]);
-        } else {
-          setUserRoles([{ id: user.id, role: userRolesResponse.responseObject() }]);
-        }
+  const fetchData = async () => {
+    if (!user) return;
+
+    // Vérifie si l'utilisateur a un profil
+    const hasProfile = 'profile' in user && user.profile;
+    const profileId = hasProfile ? user.profile.id : user.id;
+    const statusId = hasProfile ? user.profile.status_id : user.status_id;
+
+    // Récupération des rôles uniquement si `user.profile` existe
+    if (hasProfile) {
+      const userRolesResponse = await RoleAPI.getUserRoles(user.id);
+      if (userRolesResponse.isError()) {
+        setNotification({ message: `Erreur dans la récupération des rôles : ${userRolesResponse.errorMessage()}.`, type: 'alert-error' });
+        setShowNotification(true);
+        setUserRoles([{ id: user.id, role: {} as RoleType }]);
+      } else {
+        setUserRoles([{ id: user.id, role: userRolesResponse.responseObject() }]);
       }
+    }
 
-      if ('profile' in user && user.profile) {
-        const statusResponse = await StatusAPI.getStatusById(user.profile.status_id as number);
-        if (statusResponse.isError()) {
-          setNotification({ message: `Erreur dans la récuperation de status : ${statusResponse.errorMessage()}.`, type: 'alert-error' });
-          setShowNotification(true);
-        } else {
-          setStatus(statusResponse.responseObject());
-        }
-
-        const affectationResponse = await AffectationAPI.getTeacherAffectationsByProfileId(Number(user.profile.id));
-        if (affectationResponse.isError()) {
-            setNotification({ message: `Erreur dans la récuperation des affectations : ${affectationResponse.errorMessage()}.`, type: 'alert-error' });
-            setShowNotification(true);
-        } else {
-            setAffectations(affectationResponse.responseObject());
-        }
-      } else if ('status_id' in user) {
-        const statusResponse = await StatusAPI.getStatusById(user.status_id as number);
-        if (statusResponse.isError()) {
-          setNotification({ message: `Erreur dans la récuperation de status : ${statusResponse.errorMessage()}.`, type: 'alert-error' });
-          setShowNotification(true);
-        } else {
-          setStatus(statusResponse.responseObject());
-        }
-
-        const affectationResponse = await AffectationAPI.getTeacherAffectationsByProfileId(Number(user.id));
-        if (affectationResponse.isError()) {
-            setNotification({ message: `Erreur dans la récuperation des affectations : ${affectationResponse.errorMessage()}.`, type: 'alert-error' });
-            setShowNotification(true);
-        } else {
-            setAffectations(affectationResponse.responseObject());
-        }
+    // Récupération du statut si disponible
+    if (statusId) {
+      const statusResponse = await StatusAPI.getStatusById(statusId as number);
+      if (statusResponse.isError()) {
+        setNotification({ message: `Erreur dans la récupération du statut : ${statusResponse.errorMessage()}.`, type: 'alert-error' });
+        setShowNotification(true);
+      } else {
+        setStatus(statusResponse.responseObject());
       }
-    };
+    }
 
-    fetchData().then();
-  }, [showModal]);
+    // Récupération des affectations
+    const affectationResponse = await AffectationAPI.getTeacherAffectationsByProfileId(Number(profileId));
+    if (affectationResponse.isError()) {
+      setNotification({ message: `Erreur dans la récupération des affectations : ${affectationResponse.errorMessage()}.`, type: 'alert-error' });
+      setShowNotification(true);
+    } else {
+      setAffectations(affectationResponse.responseObject());
+    }
+
+    // Récupération des heures
+    const totalHoursResponse = await AffectationAPI.getAffectationsHoursWithCoeffByProfileId(Number(profileId));
+    if (totalHoursResponse.isError()) {
+      setNotification({ message: `Erreur dans la récupération des heures : ${totalHoursResponse.errorMessage()}.`, type: 'alert-error' });
+      setShowNotification(true);
+    } else {
+      setTotalHours(totalHoursResponse.responseObject().total);
+    }
+  };
+
+  fetchData();
+}, [showModal]);
+
 
   const handleAddRole = (user: Account, role: RoleType) => {
     addRoleToUser(user, role);
@@ -149,7 +154,7 @@ function AddRoleCard({ user, userConnected, rolesList, addRoleToUser, removeRole
         <p className="text-gray-500"><FontAwesomeIcon icon={faInfoCircle} /> Status : {status ? status.name : '--'}</p>
         <p className="text-gray-500 flex items-center">
             <FontAwesomeIcon icon={faClock} className="mr-1"/>
-            Quota :&nbsp;<p className={`text-gray-500 ${affectations.reduce((sum, affectation) => sum + affectation.hours, 0) > ('profile' in user && user.profile ? user.profile.quota : user.quota) ? 'text-red-500' : 'text-green-500'}`}>{status ? `${affectations.reduce((sum, affectation) => sum + affectation.hours, 0)}/${'profile' in user && user.profile ? user.profile.quota : user.quota}` : '--'}h</p>
+            Quota :&nbsp;<p className={`text-gray-500 ${totalHours > ('profile' in user && user.profile ? user.profile.quota : user.quota) ? 'text-red-500' : 'text-green-500'}`}>{status ? `${totalHours}/${'profile' in user && user.profile ? user.profile.quota : user.quota}` : '--'}h</p>
         </p>
 
         {/* Rôle */}

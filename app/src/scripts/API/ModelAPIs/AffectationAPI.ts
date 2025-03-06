@@ -4,6 +4,7 @@ import { api } from "../API.ts";
 import {
   AffectationInCreate,
   Affectation,
+  AffectationHours,
 } from "../APITypes/AffectationType.ts";
 
 /**
@@ -144,6 +145,22 @@ export default class AffectationAPI {
     return api.requestLoggedWithAcademicYear<{ course_type: { name: string } }>(
       HTTPMethod.GET,
       `/course/${course_id}`,
+      undefined,
+      undefined
+    );
+  }
+
+  /**
+   * Fetch affectations hours with coeff by profile ID.
+   * @param profile_id The profile ID.
+   * @returns A promise that resolves into an array of affectations or an error.
+   */
+  static getAffectationsHoursWithCoeffByProfileId(
+    profile_id: number  // The profile ID.
+  ): Promise<APIResponse<AffectationHours>> { 
+    return api.requestLoggedWithAcademicYear<AffectationHours>(
+      HTTPMethod.GET,
+      `${AffectationAPI.AFFECTATION_URL}/${profile_id}`,
       undefined,
       undefined
     );

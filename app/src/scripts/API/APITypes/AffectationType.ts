@@ -18,3 +18,8 @@ export type AffectationInCreate = {
     group: number,
     notes: string
 }
+
+export type AffectationHours = {
+    hours: { [key: string]: number };
+    total: number;
+};

@@ -20,6 +20,7 @@ function UserAffectation() {
     const [affectations, setAffectations] = useState<Affectation[]>([]);
     const [ue, setUe] = useState<UE[]>();
     const [status, setStatus] = useState<StatusType>({} as StatusType);
+    const [totalHours, setTotalHours] = useState<number>(0);
 
     const [notification, setNotification] = useState({ message: '', type: '' });
     const [showNotification, setShowNotification] = useState(false);
@@ -75,6 +76,14 @@ function UserAffectation() {
             } else {
                 setUe(ueResponse.responseObject());
             }
+
+            const totalHoursResponse = await AffectationAPI.getAffectationsHoursWithCoeffByProfileId(Number(idProfile));
+            if (totalHoursResponse.isError()) {
+                setNotification({ message: `Erreur dans la récuperation des heures : ${totalHoursResponse.errorMessage()}.`, type: 'alert-error' });
+                setShowNotification(true);
+            } else {
+                setTotalHours(totalHoursResponse.responseObject().total);
+            }
         };
         fetchProfileData();
     }, [ACADEMIC_YEAR]);
@@ -128,7 +137,7 @@ function UserAffectation() {
                             <p className="text-gray-500"><FontAwesomeIcon icon={faEnvelope} /> {profile.mail}</p>
                             <p className="text-gray-500 flex items-center justify-center">
                                 <FontAwesomeIcon icon={faClock} className="mr-1"/>
-                                Quota :&nbsp;<p className={`text-gray-500 ${affectations.reduce((sum, affectation) => sum + affectation.hours, 0) > profile.quota ? 'text-red-500' : 'text-green-500'}`}>{status ? `${affectations.reduce((sum, affectation) => sum + affectation.hours, 0)}/${profile.quota}` : '--'}h</p>
+                                Quota :&nbsp;<p className={`text-gray-500 ${totalHours > profile.quota ? 'text-red-500' : 'text-green-500'}`}>{status ? `${totalHours}/${profile.quota}` : '--'}h</p>
                             </p>
                             <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mt-6">
                                 {ue && ue.length > 0 ? (

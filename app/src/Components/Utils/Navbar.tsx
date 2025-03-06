@@ -10,7 +10,7 @@ import { AcademicYearType } from "../../scripts/API/APITypes/AcademicYearType.ts
 // Définir les pages autorisées par rôle
 const rolePermissions: { [key: string]: string[] } = {
   'Administrateur': [
-    '/add-role',
+    '/userList',
     '/management',
     '/profileCreation',
     '/accountcreation',
@@ -111,9 +111,9 @@ function Navbar() {
       <div className="flex space-x-6">
         {isLoggedIn && (
           <>
-            {isLinkAllowed('/add-role') && (
+            {isLinkAllowed('/userList') && (
               <div className="flex items-center">
-                <Link to="/add-role" className="text-sm hover:text-green-300 transition duration-200">
+                <Link to="/userList" className="text-sm hover:text-green-300 transition duration-200">
                   Liste d'utilisateurs
                 </Link>
               </div>
