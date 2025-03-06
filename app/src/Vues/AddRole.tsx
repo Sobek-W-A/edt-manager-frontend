@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import AddRoleCard from "../Components/AddRole/AddRoleCard";
-import Notification from "../Components/AddRole/AddRolePopUp";
+import Notification from "../Components/Utils/PopUpAlert.tsx";
 import AccountAPI from "../scripts/API/ModelAPIs/AccountAPI";
 import RoleAPI from "../scripts/API/ModelAPIs/RoleAPI";
 import APIResponse from "../scripts/API/Responses/APIResponse.ts";

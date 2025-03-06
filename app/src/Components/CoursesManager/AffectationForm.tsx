@@ -3,7 +3,7 @@ import {Profile} from "../../scripts/API/APITypes/Profiles.ts";
 import AffectationAPI from "../../scripts/API/ModelAPIs/AffectationAPI.ts";
 import {AffectationInCreate} from "../../scripts/API/APITypes/AffectationType.ts";
 import Loader from "../Utils/Loader.tsx";
-import Notification from "../AddRole/AddRolePopUp.tsx";
+import Notification from "../Utils/PopUpAlert.tsx";
 
 
 interface AffectationFormProps {

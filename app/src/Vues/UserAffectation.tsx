@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Profile } from "../scripts/API/APITypes/Profiles.ts";
 import ProfileAPI from "../scripts/API/ModelAPIs/ProfileAPI.ts";
-import Notification from "../Components/AddRole/AddRolePopUp";
+import Notification from "../Components/Utils/PopUpAlert.tsx";
 import { useParams } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEnvelope, faClock, faIdBadge, faBook, faInfoCircle, faTasks, faCalendar, faUsers, faStickyNote, faArrowUpRightFromSquare, faTimes } from "@fortawesome/free-solid-svg-icons";
