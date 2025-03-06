@@ -1,4 +1,4 @@
-import {useState, useImperativeHandle, forwardRef, useEffect} from 'react';
+import React, {useState, useImperativeHandle, forwardRef, useEffect} from 'react';
 import CollapsibleButton from './CollapsibleButton';
 import SearchAndChose from "./SearchAndChose";
 import UEModel from "../../scripts/Models/UEModel.ts";
@@ -6,6 +6,7 @@ import { Course } from "../../scripts/API/APITypes/Course.ts";
 import AlreadyAffectedList from "./AlreadyAffectedList.tsx";
 import { UeInUpdate } from "../../scripts/API/APITypes/UE.ts";
 import CourseModel from "../../scripts/Models/CourseModel.ts";
+import Notification from "../Utils/PopUpAlert.tsx";
 
 const CourseInformation = forwardRef((_props, ref) => {
     const [ueName, setUeName] = useState<string>('');
@@ -16,6 +17,9 @@ const CourseInformation = forwardRef((_props, ref) => {
     const [idUELoad, setIdUELoad] = useState<boolean>(false);
 
     const [refreshKey, setRefreshKey] = useState(0); // Clé pour forcer le refresh
+
+    const [notification, setNotification] = useState({ message: '', type: '' });
+    const [showNotification, setShowNotification] = useState<boolean>(false);
 
     const handleRefresh = () => {
         setRefreshKey((prevKey) => prevKey + 1); // Change la clé pour rerender
@@ -59,6 +63,17 @@ const CourseInformation = forwardRef((_props, ref) => {
             }
     }, [idUE, refreshKey]);
 
+    // Utilisation de useEffect pour fermer la notification après 3 secondes
+    useEffect(() => {
+        if (showNotification) {
+            const timer = setTimeout(() => {
+                setShowNotification(false);
+            }, 3000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [showNotification]);
+
     const handleCourseChange = (index: number, field: "group_count" | "duration", newValue: string) => {
         const updatedCourses = [...courses];
 
@@ -93,6 +108,12 @@ const CourseInformation = forwardRef((_props, ref) => {
         };
 
         UEModel.modifyUEById(idUE, modifiesUE);
+
+        setNotification({
+            message: `L'UE est bien modifié`,
+            type: 'alert-success'
+        });
+        setShowNotification(true);
 
         courses.forEach((course) => {
             CourseModel.modifyCourseById(course.id, course);
@@ -232,6 +253,7 @@ const CourseInformation = forwardRef((_props, ref) => {
                     )}
                 </>
             )}
+            {showNotification && <Notification message={notification.message} type={notification.type} />}
         </div>
     );
 });
