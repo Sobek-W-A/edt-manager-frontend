@@ -87,11 +87,59 @@ function AffectationForm({profile, idCours, groupCount}: AffectationFormProps) {
         setLoading(false);
     }
 
+    const assignProfessor1 = async (e: React.FormEvent) => {
+        e.preventDefault();
+        console.log(idCours)
+        const affectationId = await verifyIsProfileAlreadyAssigned();
+        if(affectationId) {
+            await updateAffectation(affectationId);
+        } else {
+            await assignProfessor(e);
+        }
+    }
+
+    const verifyIsProfileAlreadyAssigned = async () => {
+
+        const response = await AffectationAPI.getTeacherAffectationsByProfileId(profile.id);
+        const affectationExists = response.responseObject()
+            .find(affectation => affectation.course.id == idCours && affectation.group == dataToAssignProfessor.group);
+
+        return affectationExists?.id;
+    }
+
+    const updateAffectation = async (affectationId: number) => {
+        setLoading(true);
+        //console.log("id cours : "+idCours);
+        const body ={
+            "affectation_id" : affectationId,
+            "profile_id": profile.id,
+            "hours": dataToAssignProfessor.hours,
+            "notes": dataToAssignProfessor.notes,
+            "group": dataToAssignProfessor.group,
+        }
+        console.log(body);
+        const response = await AffectationAPI.updateAffectationById(body);
+        if (response.isError()) {
+            setNotification({
+                message: `Une erreur est survenue : ${response.errorMessage()}.`,
+                type: 'alert-error'
+            });
+            setShowNotification(true);
+        } else {
+            setNotification({
+                message: `L'affectation a été mise à jour avec succès`,
+                type: 'alert-success'
+            });
+            setShowNotification(true);
+        }
+        setLoading(false);
+    }
+
     return (
         <div key={profile.id} className="w-full flex flex-col justify-between items-center">
             <div className="w-full flex items-center space-x-2">
                 <h1 className="w-1/3 px-3 py-2 mt-1">{profile?.firstname} {profile?.lastname}</h1>
-                <form className="w-full flex items-center space-x-2" onSubmit={assignProfessor}>
+                <form className="w-full flex items-center space-x-2" onSubmit={assignProfessor1}>
                     <input
                         id="note"
                         name="note"
