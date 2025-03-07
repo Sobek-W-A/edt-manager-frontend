@@ -83,57 +83,60 @@ const AffectationsManquantes: React.FC = () => {
         setUeId(null);
     };
 
+    const profSousAffectes = listeAffectationsManquantesProf.filter(prof => prof.hours_affected < prof.quota);
+    const profSurAffectes = listeAffectationsManquantesProf.filter(prof => prof.hours_affected > prof.quota);
+
     return (
         <div className="p-6 max-w-5xl mx-auto">
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Affectations Manquantes</h2>
 
-            {/* Collapse pour Professeurs */}
             <div tabIndex={0} className="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box mb-6">
                 <input type="checkbox" />
-                <div className="collapse-title text-xl font-semibold text-gray-700">
-                    Professeurs
-                </div>
+                <div className="collapse-title text-xl font-semibold text-gray-700">Professeurs</div>
                 <div className="collapse-content">
-                    {listeAffectationsManquantesProf.length > 0 ? (
-                        <ul className="space-y-3 mt-4">
-                            {listeAffectationsManquantesProf.map((prof) => (
-                                <li
-                                    key={prof.id}
-                                    className="flex items-center justify-between p-4 bg-white rounded shadow hover:shadow-md transition-shadow"
-                                >
+                    <h3 className="text-lg font-semibold text-red-600">Sous-affectés</h3>
+                    {profSousAffectes.length > 0 ? (
+                        <ul className="space-y-3 mt-2">
+                            {profSousAffectes.map(prof => (
+                                <li key={prof.id} className="flex items-center justify-between p-4 bg-white rounded shadow">
                                     <span className="text-gray-700">
-                                        {prof.firstname} {prof.lastname} :{" "}
-                                        <span className="font-medium">{prof.hours_affected}</span> / {prof.quota}
+                                        {prof.firstname} {prof.lastname} : <span className="font-medium">{prof.hours_affected}</span> / {prof.quota}
                                     </span>
                                     <Link to={`/affectation/${prof.id}`} title="Voir affectations">
-                                        <FontAwesomeIcon
-                                            icon={faCalendarDays}
-                                            className="text-green-500 hover:text-green-700 text-2xl transition-colors"
-                                        />
+                                        <FontAwesomeIcon icon={faCalendarDays} className="text-green-500 hover:text-green-700 text-2xl" />
                                     </Link>
                                 </li>
                             ))}
                         </ul>
-                    ) : (
-                        <p className="text-gray-500 mt-4">Aucune affectation manquante pour les professeurs.</p>
-                    )}
+                    ) : <p className="text-gray-500">Aucun professeur sous-affecté.</p>}
+
+                    <h3 className="text-lg font-semibold text-green-600 mt-4">Sur-affectés</h3>
+                    {profSurAffectes.length > 0 ? (
+                        <ul className="space-y-3 mt-2">
+                            {profSurAffectes.map(prof => (
+                                <li key={prof.id} className="flex items-center justify-between p-4 bg-white rounded shadow">
+                                    <span className="text-gray-700">
+                                        {prof.firstname} {prof.lastname} : <span className="font-medium">{prof.hours_affected}</span> / {prof.quota}
+                                    </span>
+                                    <Link to={`/affectation/${prof.id}`} title="Voir affectations">
+                                        <FontAwesomeIcon icon={faCalendarDays} className="text-green-500 hover:text-green-700 text-2xl" />
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : <p className="text-gray-500">Aucun professeur sur-affecté.</p>}
                 </div>
             </div>
 
-            {/* Collapse pour Unités d'Enseignement */}
             <div tabIndex={0} className="collapse collapse-arrow border border-base-300 bg-base-100 rounded-box">
                 <input type="checkbox" />
-                <div className="collapse-title text-xl font-semibold text-gray-700">
-                    Unités d'Enseignement (UE)
-                </div>
+                <div className="collapse-title text-xl font-semibold text-gray-700">Unités d'Enseignement (UE)</div>
                 <div className="collapse-content">
                     <dialog ref={modalRef} id="modal_ue" className="modal">
                         <div className="modal-box w-[80vw] max-w-5xl p-6">
                             <CourseInformation ref={courseInfoRef} />
                             <div className="mt-4 flex justify-end">
-                                <button onClick={closeUEModal} className="btn bg-red-500 hover:bg-red-600 text-white">
-                                    Fermer
-                                </button>
+                                <button onClick={closeUEModal} className="btn bg-red-500 hover:bg-red-600 text-white">Fermer</button>
                             </div>
                         </div>
                     </dialog>
@@ -142,33 +145,20 @@ const AffectationsManquantes: React.FC = () => {
                             {listeAffectationsManquantesUE.map((ue) => (
                                 <li key={ue.ue_id} className="bg-white p-4 rounded shadow hover:shadow-md transition-shadow">
                                     <div className="flex items-center justify-between mb-2">
-                                        <div className="text-gray-800 font-medium">
-                                            {ue.name} : {ue.affected_hours} / {ue.total_hours}
-                                        </div>
-                                        <button
-                                            className="btn bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded transition-colors"
-                                            onClick={() => openUEModal(ue.ue_id)}
-                                        >
-                                            Ouvrir menu de l'UE
-                                        </button>
+                                        <div className="text-gray-800 font-medium">{ue.name} : {ue.affected_hours} / {ue.total_hours}</div>
+                                        <button className="btn bg-green-500 hover:bg-green-600 text-white px-4 py-1 rounded transition-colors" onClick={() => openUEModal(ue.ue_id)}>Ouvrir menu de l'UE</button>
                                     </div>
                                     {ue.courses.length > 0 && (
                                         <ul className="ml-6 border-l border-gray-300 pl-4 space-y-1">
                                             {ue.courses.map((course) => (
-                                                <li key={course.id} className="text-gray-600">
-                                                    {course.course_type.name} :{" "}
-                                                    <span className="font-medium">{course.affected_hours}</span> /{" "}
-                                                    {course.duration}
-                                                </li>
+                                                <li key={course.id} className="text-gray-600">{course.course_type.name} : <span className="font-medium">{course.affected_hours}</span> / {course.duration}</li>
                                             ))}
                                         </ul>
                                     )}
                                 </li>
                             ))}
                         </ul>
-                    ) : (
-                        <p className="text-gray-500 mt-4">Aucune affectation manquante pour les unités d'enseignement.</p>
-                    )}
+                    ) : <p className="text-gray-500 mt-4">Aucune affectation manquante pour les unités d'enseignement.</p>}
                 </div>
             </div>
         </div>
@@ -176,3 +166,4 @@ const AffectationsManquantes: React.FC = () => {
 };
 
 export default AffectationsManquantes;
+
